@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="socket.io/socket.io.js"></script>
+    
+    <style>
+        .container
+        {
+            width: 250px;
+            height: 100%;
+        }
+	#insertimg
+        {
+            width: 300px;
+            height: 300px;
+        }
+	#insertvideo
+        {
+            width: 300px;
+            height: 300px;
+        }
+
+    </style>
+</head>
+<body onload="getRoomId()">
+    <h1>welcome</h1>
+
+    <div class="inputBox">
+        <input type="text" id='messageBox' placeholder="Typing Message...." autofocus><button id="btn">send</button>
+        <input type="file" name="galery" id="gallery"><br>
+        <input type="button" class="sendfile" value="uploadGalery" onclick="sendGallery()"><br>
+        <input type="button" class="sendfile" value="uploadDocument" onclick="sendDocument()"><br>
+        <input type="button" class="sendfile" value="uploadAudio" onclick="sendAudio()"><br>
+        <input type="button" class="sendfile" value="uploadVideo" onclick="sendVideo()"><br>
+        <input type="button" class="sendfile" value="uploadcamera" onclick="sendCamera()"><br>
+        <img src=""  id="insertimg">
+	<iframe src="" frameborder="2" id="insertvideo"></iframe>
+
+    </div>
+    <script src="client.js"></script>
+</body>
+</html>

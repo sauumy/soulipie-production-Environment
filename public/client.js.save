@@ -1,0 +1,91 @@
+const socket=io();
+
+//loading all contact
+function loadingContact()
+{
+    fetch('/getcontact').then(response=>response.json()).then(result=>
+    {
+        if(result.response.length!=0)
+        {
+            console.log(result);
+        }
+        else{
+            console.log("no any contact present")
+        }
+    }).catch(err=>{
+        console.log(err)
+    })
+}
+//End all loading contact
+
+//create roomid and send request on the server for the joing 
+var room_id;
+const user_id="9931206929";
+function getRoomId(){
+    var data={
+        user_id:"9931206929",
+        other_id:"9199428650"
+    }
+    const headers={
+        'Content-Type':'application/json'
+    }
+    fetch('/registerRoom',{method:'post',body:JSON.stringify(data),headers})
+    .then(Response=>
+        Response.json()
+        ).then(result=>{
+            //room_id=result.response.room_id
+            console.log(result)
+
+            socket.emit('joinRoom',result)
+            socket.emit('liveuser',user_id)
+        }).catch(err=>{
+            console.log(err)
+    })
+}
+//request transmit for the joing code End
+
+//live user show 
+const liveruser=[]
+socket.on('liveuser',(data)=>{
+    if(liveruser.length==0){
+        liveruser.push(data)
+        console.log(data)
+    }
+    else{
+        let len=data.length-1;
+        liveruser.push(data[len])
+        console.log(data[len])
+    }
+})
+//End live user store
+
+//mesage emit on server
+$(document).ready(()=>{
+    $('#btn').click(()=>{
+        var mssg=$('#messageBox').val();
+        console.log(mssg)
+        var obj={
+            sender_id:9199428650,
+            senderName:"snandeep",
+            msg:mssg,
+            room_id:""
+
+        }
+        socket.emit('message',obj);
+        $('#messageBox').val('')
+    })
+})
+// End transmit message code
+
+//catch message on the server
+socket.on('messageSend',(data)=>{
+    console.log(data)
+})
+//end code of cath message
+
+//leve user
+socket.on('leve',(data)=>{
+    console.log(data)
+})
+//end user leve 
+
