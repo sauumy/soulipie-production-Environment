@@ -95,7 +95,7 @@ const route =require('./app/routers/index')
 app.use('/', route);
 
 app.get('/', (req, res) => {
-    res.json({"message": "This is for testing"});
+  //  res.json({"message": "This is for testing"});
 });
 
 app.listen(4000,()=>
