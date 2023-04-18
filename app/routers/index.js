@@ -1,7 +1,9 @@
 const express = require('express')
 const route = express.Router();
 
-
+const healthcheck=require('../controllers/healthcheck')
+//ends
+route.post('/healthcheck',healthcheck.healthcheck)
 const registrationController = require('../controllers/registration')
 const {uploadProfile,compressProfileImg}=require('../middleware/uploadprofile')
 const {uploadHobbies,compressHobbiesImg}=require('../middleware/uploadhobbies')
