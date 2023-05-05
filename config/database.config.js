@@ -5,5 +5,7 @@
 // //mongodb://hardeep:yourSecretPassword@169.45.23.99/animals
 
 module.exports = {
-   url:'mongodb://212.47.226.119/Souliepie'
+   url:'mongodb://Soulipie:1234@212.47.226.119/Souliepie'
 }
+
+
