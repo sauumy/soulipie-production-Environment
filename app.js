@@ -94,7 +94,8 @@ mongoose.connect(dbConfig.url, {
 const route =require('./app/routers/index')
 app.use('/', route);
 
-app.get('/', (req, res) => {
+app.get('/github', (req, res) => {
+    res.send("https://github.com/sponsors/epoberezkin");
     res.json({"message": "This is for testing Latheef "});
 });
 
