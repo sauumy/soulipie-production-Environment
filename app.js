@@ -98,7 +98,7 @@ app.get('/', (req, res) => {
     res.json({"message": "This is for testing Latheef "});
 });
 const port = process.env.port || 4000;
-app.listen(port,()=>
+app.listen(4000,()=>
 {
     console.log("listening port 4000");
 });
