@@ -135,5 +135,7 @@ route.get('/connectedppltotag',postsController.connectedppltotag)
 
 route.post('/sendNotification',registrationController.sendNotification)
 //route.post('/checkToken',registrationController.checkToken)
+route.post('/healthcheck',registrationController.healthcheck)
+
 module.exports = route;
 
