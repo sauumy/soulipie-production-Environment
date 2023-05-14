@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 const chatApplicationSchema=mongoose.Schema({
-    user_id:{
+    sender_id:{
         type:Schema.Types.ObjectId,
         default:" "
     },
@@ -15,6 +15,10 @@ const chatApplicationSchema=mongoose.Schema({
         type:String,
         require:true,
         unique:true
+    },
+    blocked: {
+        type:Boolean,
+        default:false
     }
 },{ timestamps: true });
 const chatModule=mongoose.model('chatModule',chatApplicationSchema);

@@ -1,61 +1,79 @@
+const AWS = require('aws-sdk');
 const multer = require('multer');
-const express = require('express');
-const fs = require('fs')
 const path = require('path');
+const ffmpeg = require('fluent-ffmpeg');
+const { promisify } = require('util');
+const concat = require('concat-stream');
 
-const ffmpeg = require('@ffmpeg-installer/ffmpeg');
-const FFmpeg = require('fluent-ffmpeg');
-FFmpeg.setFfmpegPath(ffmpeg.path);
+const uploadVideoStory = multer()
 
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      var dir = '/var/www/html/Soulipie/Soulipie/sollipie/beforecompress/Chat/video/'
-        cb(null, dir);
-    },
+const s3 = new AWS.S3({
+  accessKeyId: 'AKIA3BU5MVVZR3OTTNUO',
+  secretAccessKey: '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',
+  region: 'ap-south-1'
+});
 
-    filename: function (req, file, cb) {
-      cb(null,file.fieldname+"_"+Date.now()+path.extname(file.originalname));
-    }
-
- });
- 
-var uploadVideoStory = multer({ storage: storage });
 
 const compressVideoStroy = async (req, res, next) => {
-    try {
-      const compressedFiles = [];
-  
-      for (const file of req.files) {
-        const inputFile = file.path;
-        const outputFile = '/var/www/html/Soulipie/Soulipie/sollipie/aftercompress/Chat/video/' + file.filename + '.webm';
-  
-        await new Promise((resolve, reject) => {
-          FFmpeg(inputFile)
-            .videoCodec('libvpx')
-            .audioCodec('libvorbis')
-            .format('webm')
+  try {
+    const originalBucketName = 'soulipiebucket1';
+    const compressedBucketName = 'soulipiebucket2';
+
+    const originalFiles = req.files;
+    const compressedFiles = [];
+
+    for (const originalFile of originalFiles) {
+      const originalKey = `videos/${originalFile.fieldname}_${Date.now()}${path.extname(originalFile.originalname)}`;
+
+      const uploadParams = {
+        Bucket: originalBucketName,
+        Key: originalKey,
+        Body: originalFile.buffer,
+        ContentType: originalFile.mimetype,
+      };
+      const originalUploadResult = await s3.upload(uploadParams).promise();
+      const originalVideoPath = originalUploadResult.Key.replace('videos/', '');
+
+      const compressedKey = `${originalKey}`;
+      const compressedVideoPath = compressedKey.replace('videos/', '');
+
+      const outputBuffer = async (inputBuffer) => {
+        return new Promise((resolve, reject) => {
+          ffmpeg(inputBuffer)
+            .videoCodec('libx264')
+            .audioCodec('aac')
+            .format('mp4')
+            .outputOptions('-crf 28')
             .on('error', (err) => {
               console.log('An error occurred: ' + err.message);
               reject(err);
             })
-            .on('progress', (progress) => {
-              console.log('... frames: ' + progress.frames);
+            .on('end', (stdout, stderr) => {
+              resolve(stdout);
             })
-            .on('end', () => {
-              console.log('Finished processing');
-              compressedFiles.push(outputFile);
-              resolve();
-            })
-            .save(outputFile);
+            .toBuffer();
         });
-      }
-  
-      req.compressedVideo = compressedFiles; 
-      next();
-    } catch (error) {
-      next(error);
-      console.log(error);
-    }
-  };
+      };
 
-module.exports =  {uploadVideoStory,compressVideoStroy}
+      const compressedParams = {
+        Bucket: compressedBucketName,
+        Key: compressedKey,
+        Body: outputBuffer,
+        ContentType: 'video/mp4',
+      };
+      await s3.upload(compressedParams).promise();
+
+      compressedFiles.push(compressedVideoPath);
+    }
+
+    req.compressedVideoPaths = compressedFiles;
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
+module.exports = { uploadVideoStory, compressVideoStroy };

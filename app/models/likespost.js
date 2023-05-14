@@ -3,17 +3,18 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-user_id:{
+post_id:{
     type:Schema.Types.ObjectId,
     default:" "
 },
-connections:{
+likesofposts:{
 type:Array,
 default:[]
 },
-totalrequest:{
-    type:Array,
-    default:[]
-    }
+totallikesofpost:{
+    type:Number,
+    default:0
+}
+
 },{ timestamps: true });
-module.exports = mongoose.model('connection', userSchema, 'connection');
+module.exports = mongoose.model('postlike', userSchema, 'postlike');

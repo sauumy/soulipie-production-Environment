@@ -3,20 +3,17 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-
-fromUser:{
+post_id:{
     type:Schema.Types.ObjectId,
-default:" "
+    default:" "
 },
-toUser:{
+reporter_id:{
     type:Schema.Types.ObjectId,
-default:" "
+    default:" "
 },
-
-requestPending:{
-    type: Boolean, 
-    default: false
-},
-
+reportreason:{
+type:String,
+default:''
+}
 },{ timestamps: true });
-module.exports = mongoose.model('requests', userSchema, 'requests');
+module.exports = mongoose.model('reportpost', userSchema, 'reportpost');

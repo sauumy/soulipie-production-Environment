@@ -3,6 +3,7 @@ const usermaster=require('../models/registration')
 const {v4 : uuidv4} = require('uuid')
 const connection=require('../models/connection')
 const storeMsg=require('../models/storemssage')
+const report=require('../models/report')
 
 
 exports.getConnections=async(req,res)=>{
@@ -25,34 +26,58 @@ exports.getConnections=async(req,res)=>{
 
 exports.createChat=async(req,res)=>{
     try{
-      let userid=req.body.user_id;
-      let otherid=req.body.other_id;
-      if(!userid|| !otherid){
+      const {sender_id,other_id}=req.body
+      if(!sender_id|| !other_id){
           res.send({ErrorMessage:"Please Before Provide user_id and other_id"})
          }
       else{
-	 console.log(userid,typeof userid ,otherid,typeof otherid)
-	if(userid.length>10){
-           let l = userid.length 
+        const isuser = await usermaster.findOne({ _id: sender_id })
+        const isotherUser = await usermaster.findOne({ _id: other_id })
+        const isuserblocked = isuser.blockContact.includes(other_id);
+        const isotheruserblocked = isotherUser.blockContact.includes(sender_id);
+          console.log(isuserblocked,isotheruserblocked)
+          if(isuserblocked||isotheruserblocked){
+            res.send({status:false,Message: "Blocked Contact, cannot createChat" })
+          }else{
+        const isuserprivate=isuser.public
+        const isotheruserprivate=isotherUser.public
+        const data=await connection.findOne({sender_id:sender_id})
+        const isuserconnected=data?.connections?.map(connection => connection._id) || []
+        const data1=await connection.findOne({user_id:other_id})
+        const isotherconnected=data1?.connections?.map(connection => connection._id) || []
+        console.log(isuserconnected,isotherconnected)
+
+        const connectuserStr = isuserconnected.map(id => id.toString());
+        console.log(connectuserStr);
+        const connectotherStr = isotherconnected.map(id => id.toString());
+        console.log(connectotherStr);
+        
+        if (isuser.private===true || isotherUser.private===true) {
+          res.send({status:false,Message: "Cannot create chat with private user" })
+        }else if (connectuserStr.includes(sender_id)||connectuserStr.includes(other_id)||
+        connectotherStr.includes(sender_id)||connectotherStr.includes(other_id)){
+	 console.log(sender_id,typeof sender_id ,other_id,typeof other_id)
+	if(sender_id.length>10){
+           let l = sender_id.length 
            if(l===12){
-               userid = userid.substring(2)
+            sender_id = sender_id.substring(2)
            }
            else if(l===13){
-                userid = userid.substring(3)
+            sender_id = sender_id.substring(3)
            }
         }
-        if(otherid.length>10){
-            let l = otherid.length 
+        if(other_id.length>10){
+            let l = other_id.length 
             if(l===12){
-                otherid = otherid.substring(2)
+                other_id = other_id.substring(2)
             }
             else if(l===13){
-                otherid = otherid.substring(3)
+                other_id = other_id.substring(3)
             }
         }
-	console.log(otherid,userid)
+	console.log(other_id,sender_id)
         var response=await chatModule.find({
-              $or:[{user_id:userid,other_id:otherid},{user_id:otherid,other_id:userid}]
+              $or:[{sender_id:sender_id,other_id:other_id},{sender_id:other_id,other_id:sender_id}]
         });
         if(response.length!=0){
 	   console.log(response)
@@ -62,8 +87,8 @@ exports.createChat=async(req,res)=>{
         else{
            const room_id=uuidv4()
            const user=new chatModule({
-            user_id:userid,
-            other_id:otherid,
+            sender_id:sender_id,
+            other_id:other_id,
             room_id:room_id.toString()
            })
           const result=await user.save();
@@ -77,13 +102,67 @@ exports.createChat=async(req,res)=>{
                res.send({ErrorMessage:"some technical issue"})
            }
         }
+      }else if(isotheruserprivate===true&&isuserprivate===true) {
+    
+            console.log(sender_id,typeof sender_id ,other_id,typeof other_id)
+           if(sender_id.length>10){
+                  let l = sender_id.length 
+                  if(l===12){
+                    sender_id = sender_id.substring(2)
+                  }
+                  else if(l===13){
+                    sender_id = sender_id.substring(3)
+                  }
+               }
+               if(other_id.length>10){
+                   let l = other_id.length 
+                   if(l===12){
+                    other_id = other_id.substring(2)
+                   }
+                   else if(l===13){
+                    other_id = other_id.substring(3)
+                   }
+               }
+           console.log(other_id,sender_id)
+               var response=await chatModule.find({
+                     $or:[{sender_id:sender_id,other_id:other_id},{sender_id:other_id,other_id:sender_id}]
+               });
+               if(response.length!=0){
+              console.log(response)
+                   res.status(200).send({status:"Success",message:"room created",response})
+               }
+       
+               else{
+                  const room_id=uuidv4()
+                  const user=new chatModule({
+                    sender_id:sender_id,
+                   other_id:other_id,
+                   room_id:room_id.toString()
+                  })
+                 const result=await user.save();
+                  if(result)
+                  {
+               console.log(result)
+               let response=[result]
+                       res.send({status:"Success",message:"room created",response})
+                  }
+                  else{
+                      res.send({ErrorMessage:"some technical issue"})
+                  }
+               }
+      }else{
+        return res.status(400).send({status:false,Message:"your not connected to chat with user"})
       }
     }
-    catch(err){
+
+  }
+}catch(err){
         console.log("room err",err)
         return res.status(400).send({ErrorMessage:"somthing error"})
     }
 } 
+
+
 
 exports.Message=async(req,res)=>{
     try{
@@ -107,6 +186,20 @@ exports.Message=async(req,res)=>{
         const result= await store.save();
         if(result)
         {
+            const data=await chatModule.findOne({room_id:roomid})
+            console.log(data)
+            if (data.sender_id === otherid) {
+                const other_id = data.other_id;
+                console.log('hi',other_id)
+              } else {
+                const other_id = data.sender_id;
+                console.log('bye',other_id)
+              }
+            const notification = {
+                title: `${name} Sent A meesage`,
+                body: `${msg}`
+              };
+              const response=await admin.messaging().sendToDevice(token,{notification});
             return res.status(200).send({status:"Success",message:"Store Message Successfully",result})
         }else{
 	  return res.status(400).json({stauts:"Success",message:"Some Technical Issue"})
@@ -114,6 +207,7 @@ exports.Message=async(req,res)=>{
      }
     }
     catch(err){
+        console.log(err)
         return res.status(400).send({ErrorMessage:"Somthing Wrong"})
     }
 }
@@ -149,8 +243,42 @@ exports.image = async (req, res, next) => {
             message,
             image:i
         }))
+        
         const result = await storeMsg.insertMany(upload);
-        res.send({status:"Success",message:"images are sent successfully",result})
+        if(result){
+            const data=await chatModule.findOne({room_id:roomid},{_id:0,sender_id:1,other_id:1})
+          console.log(data)
+          if (data.sender_id === otherid) {
+              const other_id = data.other_id;
+              console.log('hi',other_id)
+              const tokens=await Users.findOne({_id:other_id},{_id:0 ,token:1})
+              const token=tokens.token
+              console.log(token)
+              const notification = {
+                title: `${name} Sent A meesage`,
+                body: `${msg}`
+                
+              };
+              const response=await admin.messaging().sendToDevice(token,{notification});
+               
+              res.send({status:"Success",message:"images are sent successfully",result,response})
+            } else {
+              const other_id = data.sender_id;
+              console.log('bye',other_id)
+              const tokens=await Users.findOne({_id:other_id},{_id:0 ,token:1})
+              const token=tokens.token
+              console.log(token)
+              const notification = {
+                title: `${name} Sent A meesage`,
+                body: `${msg}`
+              };  
+              const response=await admin.messaging().sendToDevice(token,{notification});
+              res.send({status:"Success",message:"images are sent successfully",result,response})
+              
+            }
+         
+        }
+       
     }else{
         res.send({status:"faluier",message:"couldnt upload"})
     } 
@@ -242,8 +370,6 @@ exports.clearChat=(req,res)=>{
             res.status(401).send({status:"Failure",messaage:"somthing problem in clear chat"})
         })
     }
-
-
 
 exports.deleteChat=async(req,res)=>{
     try{
@@ -363,9 +489,39 @@ if(response){
     res.status(400).send({message:"somthing is wrong",err})
 }
 
-     } catch(err)
-    {
-        res.send({message:"somthing is wrong"})
-        console.log(err)
+  }  catch(err){
+    console.log(err);
+    return res.status(400).json({status:'Error',message:'somthing went wrong',err})
+}
+}
+
+exports.reportUser=async(req,res)=>{
+    try{
+const{reporter_id,report_id,reportreason}=req.body
+if(!reporter_id&&!report_id&&!reportreason){
+    return res.status(404).json({ message: 'Please provide all the details' });
+}
+else {
+const data=await usermaster.findOne({_id:reporter_id,_id:report_id})
+const data1=await usermaster.findOne({_id:report_id})
+console.log(data)
+      if (!data&&!data1) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+     else if(data&&data1){
+        const repor=new report({
+            report_id:report_id,
+            reporter_id:reporter_id,
+            reportreason:reportreason
+        })
+        const response=await repor.save()
+        res.status(200).send({status:true,message:"Reported Successfully",response})
+     }else{
+        return res.status(404).json({ message: 'User not found' });
+     }
     }
+}catch(err){
+    console.log(err);
+    return res.status(400).json({status:'Error',message:'somthing went wrong',err})
+}
 }

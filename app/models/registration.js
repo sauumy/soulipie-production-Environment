@@ -5,12 +5,10 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
     name: {
         type: String,
-        valid:true
+        unique:true
     },
     mobilenumber: {
         type: Number,
-        valid:true,
-        max:10000000000,
         default:" "
     },
     name:{
@@ -88,12 +86,20 @@ const userSchema = new Schema({
         type:Array,
         default:[]
       },
-isActive:{
-type:Number,
-default:0
-}
+    private:{
+    type:Boolean,
     
-});
+    },   
+        public:{
+        type:Boolean,
+        default:true
+        
+        },
+        connected:{
+            type:Boolean,
+           
+            }
+},{ timestamps: true });
 
 module.exports = mongoose.model('usermaster', userSchema, 'usermasters');
 

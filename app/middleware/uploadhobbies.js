@@ -1,62 +1,73 @@
+const AWS = require('aws-sdk');
+const sharp = require('sharp');
+const { promisify } = require('util');
 const multer = require('multer');
-const fs=require('fs')
 const path = require('path')
-const webp=require('webp-converter');
-const storage=multer.diskStorage({
-    destination:function(req,res,cb){
-   
-        cb(null,'/var/www/html/Soulipie/Soulipie/sollipie/beforecompress/Hobbies_Img/')
-    },
-    filename:(req,file,cb)=>{
-	var name=file.fieldname+"_"+Date.now()+path.extname(file.originalname)
-       
-	console.log(file)
-	
-	cb(null,name)
+const uploadHobbies= multer()
 
-    }
-})
-const uploadHobbies=multer({
-    storage:storage,
-    fileFilter:function(req,file,cb){
-        if(file.mimetype==='image/png'||file.mimetype==='image/jpg'||file.mimetype==='image/jpeg'){
-            cb(null,true)
-        }else{
-            console.log('only jpg & png file supported');
-            cb(null,false)
-        }
-    },
-  
-})
-    var compressHobbiesImg=async(req,res,next)=>{
+const s3 = new AWS.S3({
+  accessKeyId: 'AKIA3BU5MVVZR3OTTNUO',
+  secretAccessKey: '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',
+  region: 'ap-south-1'
+});
+const compressHobbiesImg = async (req, res, next) => {
+  try {
+    const originalBucketName = 'soulipiebucket1';
+    const compressedBucketName = 'soulipiebucket2';
+
+    const originalFile = req.file;
+    const originalKey = `images/${originalFile.fieldname}_${Date.now()}${path.extname(originalFile.originalname)}`
+
+    const params = {
+      Bucket: originalBucketName,
+      Key: originalKey,
+      Body: originalFile.buffer,
+      ContentType: originalFile.mimetype,
+    };
+    const originalUploadResult = await s3.upload(params).promise();
+    const originalImagePath = originalUploadResult.Key.replace('images/', '');
+
+    const compressedFiles = [];
+
     let result;
-      if(req.file){
-           
-	if(req.file.mimetype==='image/heic' || req.file.mimetype==='image/HEIC'){
-              let output_path='/var/www/html/Soulipie/Soulipie/sollipie/aftercompress/Hobbies_Img/'+req.file.filename
-	      const inputBuffer = await promisify(fs.readFile)(req.file.path);
-	      const outputBuffer = await convert({
-		      buffer: inputBuffer, 
-	              format: 'JPEG',      
-		      quality: 0.5          
-                     });
-              await promisify(fs.writeFile)(output_path,outputBuffer);
-              next();
-        }else{
-             var output_path='/var/www/html/Soulipie/Soulipie/sollipie/aftercompress/Hobbies_Img'+req.file.filename
-             result=await webp.cwebp(req.file.path,output_path,"-q 40", logging="-v")
-     
-            console.log(result)
-            next()
-        }
+    if (originalFile) {
+      const inputBuffer = originalFile.buffer;
+      let outputBuffer;
+      let contentType;
+
+      if (originalFile.mimetype === 'image/heic' || originalFile.mimetype === 'image/HEIC') {
+        outputBuffer = await sharp(inputBuffer).jpeg({ quality: 50 }).toBuffer();
+        contentType = 'image/jpeg';
+      } else {
+        outputBuffer = await sharp(inputBuffer).webp({ quality: 80 }).toBuffer();
+        contentType = 'image/webp';
       }
-	else{
-	     next()
-	  }
+
+      const compressedKey = `${originalKey}`;
+      const params = {
+        Bucket: compressedBucketName,
+        Key: compressedKey,
+        Body: outputBuffer,
+        ContentType: contentType,
+      };
+      await s3.upload(params).promise();
+      compressedFiles.push(compressedKey.replace('images/', ''));
     }
 
+    req.compressedFiles = compressedFiles;
+    req.file.filename = originalImagePath;
+    next();
+  } catch (error) {
+    next();
+    console.log(error);
+  }
+};
+
+
+module.exports ={uploadHobbies,compressHobbiesImg};
 
 
 
 
- module.exports={uploadHobbies,compressHobbiesImg}
+
+

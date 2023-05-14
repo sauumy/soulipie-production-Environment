@@ -22,11 +22,22 @@ const userSchema = new Schema({
     default:''
    },
    Tagged_people:{
-    type:String,
+    type:Array,
+   },
+   totallikesofpost:{
+    type:Number,
     default:''
-   }
+   },
+   totalcomments:{
+    type:Number,
+    defualt:" "
+    },
+    likedpeopledata:{
+        type:Array,
+        defualt:" "
+    }
 
-});
+},{ timestamps: true });
 
 module.exports = mongoose.model('posts', userSchema, 'posts');
 

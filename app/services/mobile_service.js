@@ -7,24 +7,23 @@ const path=require('path')
 var transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   auth: {
-    user: "impanavenkatesh11@gmail.com",
-    pass: "kihhjsjsujsjvcbn",
+    user: "hiyaak123@gmail.com",
+    pass: "woofqpsirjtiufpf ",
   },
   
 });
 function mailoption(toemail,otp){
 var mail ={
-
-  from: '"Hiddenly Team" <impanavenkatesh11@gmail.com>',
+  from: '"Soulipie Team" <hiyaak123@gmail.com>',
   to: `${toemail}`,
-  subject: "Received OTP From Hiddenly ",
+  subject: "Received OTP From Soulipie ",
   html:
   "<h3>Dear" +
         "  " +
         "User," +
         
         "</h3>" +
-        `<h4><h3>${otp}</h3>Find here you'r otp to login Hiddenly, For security purpose don't share this with anyone</h4>`
+        `<h4><h3>${otp}</h3>Find here your otp to login Soulipie, For security purpose do not share this with anyone</h4>`
         +
         "<p> Note:-This is your one Time Password, please dont share it with anyone</p>",        
 }

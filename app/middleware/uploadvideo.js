@@ -1,68 +1,66 @@
+const AWS = require('aws-sdk');
+
+const sharp = require('sharp');
+const { promisify } = require('util');
 const multer = require('multer');
-const express = require('express');
-const fs = require('fs')
 const path = require('path');
+const uploadVideo = multer();
 
-const ffmpeg = require('@ffmpeg-installer/ffmpeg');
-const FFmpeg = require('fluent-ffmpeg');
-FFmpeg.setFfmpegPath(ffmpeg.path);
-
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      var dir = '/var/www/html/Soulipie/Soulipie/sollipie/beforecompress/Chat/video/'
-        cb(null, dir);
-    },
-
-    filename: function (req, file, cb) {
-      cb(null,file.fieldname+"_"+Date.now()+path.extname(file.originalname));
-    }
-
- });
- 
-var uploadVideo = multer({ storage: storage });
-
-
+const s3 = new AWS.S3({
+          accessKeyId: 'AKIA3BU5MVVZR3OTTNUO',
+          secretAccessKey: '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',
+          region: 'ap-south-1'
+});
 
 const compressGalleryVideo = async (req, res, next) => {
-  try {
-    const compressedFiles = [];
+          try {
+                      const originalBucketName = 'soulipiebucket1';
+                      const compressedBucketName = 'soulipiebucket2';
 
-    for (const file of req.files) {
-      const inputFile = file.path;
-      const outputFile = '/var/www/html/Soulipie/Soulipie/sollipie/aftercompress/Chat/video/' + file.filename + '.webm';
+                      const originalFiles = req.files;
+                      const compressedFiles = [];
 
-      await new Promise((resolve, reject) => {
-        FFmpeg(inputFile)
-          .videoCodec('libvpx')
-          .audioCodec('libvorbis')
-          .videoBitrate('1000k')
-         
-          .format('webm')
-          .on('error', (err) => {
-            console.log('An error occurred: ' + err.message);
-            reject(err);
-          })
-          .on('progress', (progress) => {
-            console.log('... frames: ' + progress.frames);
-          })
-          .on('end', () => {
-            console.log('Finished processing');
-            compressedFiles.push(outputFile);
-            resolve();
-          })
-          .save(outputFile);
-      });
-    }
+                      for (const originalFile of originalFiles) {
+                                    const originalKey = `videos/${originalFile.fieldname}_${Date.now()}${path.extname(originalFile.originalname)}`;
 
-    req.compressedVideo = compressedFiles; 
-    next();
-  } catch (error) {
-    next(error);
-    console.log(error);
-  }
+                                    const uploadParams = {
+                                                    Bucket: originalBucketName,
+                                                    Key: originalKey,
+                                                    Body: originalFile.buffer,
+                                                    ContentType: originalFile.mimetype,
+                                                  };
+                                    const originalUploadResult = await s3.upload(uploadParams).promise();
+                                    const originalMediaPath = originalUploadResult.Key.replace('videos/', '');
+
+                                    let outputBuffer;
+                                    let contentType;
+
+                                    if (originalFile.mimetype.startsWith('video/') && !originalFile.mimetype.endsWith('mp4')) {
+                                                    outputBuffer = await sharp(originalFile.buffer).resize({ height: 720 }).toFormat('mp4').toBuffer();
+                                                    contentType = 'video/mp4';
+                                                  } else {
+                                                                  outputBuffer = originalFile.buffer;
+                                                                  contentType = originalFile.mimetype;
+                                                                }
+
+                                    const compressedKey = `${originalKey}`;
+                                    const compressedParams = {
+                                                    Bucket: compressedBucketName,
+                                                    Key: compressedKey,
+                                                    Body: outputBuffer,
+                                                    ContentType: contentType,
+                                                  };
+                                    await s3.upload(compressedParams).promise();
+                                    compressedFiles.push(compressedKey.replace('videos/', ''));
+                                  }
+
+                      req.compressedFiles = compressedFiles;
+                      req.files.forEach((file, index) => file.filename = compressedFiles[index].replace('videos/', ''));
+                      next();
+                    } catch (error) {
+                                next();
+                                console.log(error);
+                              }
 };
 
-
-
-
-module.exports =  {uploadVideo,compressGalleryVideo}
+module.exports = { uploadVideo, compressGalleryVideo };

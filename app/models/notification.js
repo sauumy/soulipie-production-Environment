@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { replyCommentlike } = require('../controllers/registration');
 
 const Schema = mongoose.Schema;
 
@@ -8,27 +9,34 @@ user_id:{
     default:" "
 },
 request:{
-    type:Array,
+    type:Object,
     default:""
 },
 accpeted:{
-    type:Array,
-    default:""
+    type:Object,
 },
 likespost:{
-    type:Array,
-    default:""
+    type:Object,
 },
 likecomment:{
-    type:Array,
-    default:""
+    type:Object,
 },
 taggedppl:{
-    type:Array,
-    default:""
+    type:Object,
+},
+comment:{
+    type:Object,
+},
+mentioned:{
+    type:Object,
+},
+replyCommentlike:{
+    type:Object,
+},
+replyComment:{
+    type:Object,
 }
-
-});
+},{ timestamps: true });
 
 module.exports = mongoose.model('notification', userSchema, 'notification');
 

@@ -1,62 +1,74 @@
- const multer = require('multer');
- const fs=require('fs')
- const path = require('path')
- const webp=require('webp-converter');
- const storage=multer.diskStorage({
-     destination:function(req,res,cb){
+const AWS = require('aws-sdk');
+const sharp = require('sharp');
+const { promisify } = require('util');
+const multer = require('multer');
+const path = require('path')
+const uploadPosts= multer()
 
-         cb(null,'/var/www/html/Soulipie/Soulipie/sollipie/beforecompress/Posts/')
-     },
-     filename:(req,file,cb)=>{
-     var name=file.fieldname+"_"+Date.now()+path.extname(file.originalname)
-       
-     console.log(file)
-     cb(null,name)
+const s3 = new AWS.S3({
+  accessKeyId: 'AKIA3BU5MVVZR3OTTNUO',
+  secretAccessKey: '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',
+  region: 'ap-south-1'
+});
+
+
+const compressPOstsImg = async (req, res, next) => {
+  try {
+    const originalBucketName = 'soulipiebucket1';
+    const compressedBucketName = 'soulipiebucket2';
+
+    const originalFiles = req.files;
+    const compressedFiles = [];
+
+    for (const originalFile of originalFiles) {
+      const originalKey = `images/${originalFile.fieldname}_${Date.now()}${path.extname(originalFile.originalname)}`
+
+      const uploadParams = {
+        Bucket: originalBucketName,
+        Key: originalKey,
+        Body: originalFile.buffer,
+        ContentType: originalFile.mimetype,
+      };
+      const originalUploadResult = await s3.upload(uploadParams).promise();
+      const originalImagePath = originalUploadResult.Key.replace('images/', '');
+
+      let outputBuffer;
+      let contentType;
+
+      if (originalFile.mimetype === 'image/heic' || originalFile.mimetype === 'image/HEIC') {
+        outputBuffer = await sharp(originalFile.buffer).jpeg({ quality: 50 }).toBuffer();
+        contentType = 'image/jpeg';
+      } else {
+        outputBuffer = await sharp(originalFile.buffer).webp({ quality: 80 }).toBuffer();
+        contentType = 'image/webp';
+      }
+
+      const compressedKey = `${originalKey}`;
+      const compressedParams = {
+        Bucket: compressedBucketName,
+        Key: compressedKey,
+        Body: outputBuffer,
+        ContentType: contentType,
+      };
+      await s3.upload(compressedParams).promise();
+      compressedFiles.push(compressedKey.replace('images/', ''));
+    }
+
+    req.compressedFiles = compressedFiles;
+    req.files.forEach((file, index) => file.filename = compressedFiles[index]);
+    next();
+  } catch (error) {
+    next();
+    console.log(error);
+  }
+};
+
+module.exports = { uploadPosts, compressPOstsImg };
+
+
  
-     }
- })
- const uploadPosts=multer({
-     storage:storage,
-     fileFilter:function(req,file,cb){
-         if(file.mimetype==='image/png'||file.mimetype==='image/jpg'||file.mimetype==='image/jpeg'){
-             cb(null,true)
-         }else{
-             console.log('only jpg & png file supported');
-             cb(null,false)
-         }
-     },
-   
- })
- 
-   var compressPOstsImg = async (req, res, next) => {
-     try {
-       for (let file of req.files) {
-         let result;
-         if (file) {
-           if (file.mimetype === 'image/heic' || file.mimetype === 'image/HEIC') {
-             let output_path = "/var/www/html/Soulipie/Soulipie/sollipie/aftercompress/Posts/" + file.filename
-             const inputBuffer = await promisify(fs.readFile)(file.path);
-             const outputBuffer = await convert({
-               buffer: inputBuffer, 
-               format: 'JPEG',      
-               quality: 0.5         
-             });
-             await promisify(fs.writeFile)(output_path, outputBuffer);
-           } else {
-             var output_path = "/var/www/html/Soulipie/Soulipie/sollipie/aftercompress/Posts/" + file.filename
-             result = await webp.cwebp(file.path, output_path, "-q 40", logging = "-v")
-             console.log(result)
-           }
-         }
-       }
-       next();
-     } catch (error) {
-       next()
-       console.log(error);
-     }
-   }
-   
- 
- 
-  module.exports={uploadPosts,compressPOstsImg}
+
+
+
+
  
