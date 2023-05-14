@@ -5,7 +5,7 @@ router.get('/', async (_req, res, _next) => {
     const healthcheck = {
         uptime: process.uptime(),
         message: 'OK',
-        timestamp: Date.now()
+        timestampp: Date.now()
     };
     try {
         res.send(healthcheck);
