@@ -310,8 +310,41 @@ exports.video=async(req,res,next)=>{
           
             if(result)
             {
-		console.log(result)
-                res.send({status:"Success",message:"Video Uploaded Successfully",result})
+              const userdata=await chatModule.findOne({room_id:room_id},{_id:0,sender_id:1,other_id:1})
+              console.log(userdata)
+              const id=userdata.sender_id.toString()
+              console.log(id)
+              if (id === sender_id) {
+                const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1})
+                const token=tokens.token
+                console.log(token)
+                const notification = {
+                  title: `Soulipie`,
+                  body: `${senderName} Send A Video ${message}`,
+                }
+                  const data={
+                    body: `${message}`
+                  }
+                const response=await admin.messaging().sendToDevice(token,{notification,data});
+  
+                return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
+              } else {
+                const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1})
+                const token=tokens.token
+                console.log(token)
+                const notification = {
+                  title: `Soulipie`,
+                  body: `${senderName} Send A Video ${message}`,
+                };
+                const payload = {
+                  notification: notification,
+                  data: {
+                    body: `${message}`,
+                  }
+                };
+                const response=await admin.messaging().sendToDevice(token,payload);
+                return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
+              }
             }
         }
         else{
@@ -411,89 +444,89 @@ exports.deleteOneManyMesage=async(req,res)=>{
 }
 }
 
-exports.messageHistory=async(req,res)=>{
-    var user_id = req.body.user_id;
-    try{
-        const result= await chatModule.find({user_id:{$eq:user_id}},{_id:0,room_id:1,other_id:1,user_id:1})
+// exports.messageHistory=async(req,res)=>{
+//     var user_id = req.body.sender_id;
+//     try{
+//         const result= await chatModule.find({sender_id:{$eq:user_id}},{_id:0,room_id:1,other_id:1,sender_id:1})
       
-        const other_id1 = result.map(doc => doc.other_id);
+//         const other_id1 = result.map(doc => doc.other_id);
      
-       const result5= await chatModule.find({other_id:{$eq:user_id}},{_id:0,room_id:1,user_id:1})
+//        const result5= await chatModule.find({other_id:{$eq:user_id}},{_id:0,room_id:1,sender_id:1})
       
-       const user_id1 = result5.map(doc => doc.user_id);
+//        const user_id1 = result5.map(doc => doc.user_id);
     
-      const roomIds3 = result5.map(doc => doc.room_id);
+//       const roomIds3 = result5.map(doc => doc.room_id);
    
 
-        const roomIds = result.map(doc => doc.room_id);
+//         const roomIds = result.map(doc => doc.room_id);
 
-const result1Promise = chatModule.aggregate([
-    {
-      $match: {
-        other_id: { $in: other_id1 },
-        room_id: { $in: roomIds }
-      }
-    },
-    {
-      $lookup: {
-        from: "usermasters",
-        localField: "other_id",
-        foreignField: "_id",
-        as: "otherdata"
-      }
-    },
-    {
-      $lookup: {
-        from: "storemsgs",
-        localField: "room_id",
-        foreignField: "room_id",
-        as: "data"
-      }
-    }
-  ]);
-  console.log()
-  const result2Promise = chatModule.aggregate([
-    {
-      $match: {
-        user_id: { $in: user_id1 },
-        room_id: { $in: roomIds3 }
-      }
-    },
-    {
-      $lookup: {
-        from: "usermasters",
-        localField: "user_id",
-        foreignField: "_id",
-        as: "otherdata"
-      }
-    },
-    {
-      $lookup: {
-        from: "storemsgs",
-        localField: "room_id",
-        foreignField: "room_id",
-        as: "data"
-      }
-    }
-  ]);
+// const result1Promise = chatModule.aggregate([
+//     {
+//       $match: {
+//         other_id: { $in: other_id1 },
+//         room_id: { $in: roomIds }
+//       }
+//     },
+//     {
+//       $lookup: {
+//         from: "usermasters",
+//         localField: "other_id",
+//         foreignField: "_id",
+//         as: "otherdata"
+//       }
+//     },
+//     {
+//       $lookup: {
+//         from: "storemsgs",
+//         localField: "room_id",
+//         foreignField: "room_id",
+//         as: "data"
+//       }
+//     }
+//   ]);
+//   console.log()
+//   const result2Promise = chatModule.aggregate([
+//     {
+//       $match: {
+//         user_id: { $in: user_id1 },
+//         room_id: { $in: roomIds3 }
+//       }
+//     },
+//     {
+//       $lookup: {
+//         from: "usermasters",
+//         localField: "user_id",
+//         foreignField: "_id",
+//         as: "otherdata"
+//       }
+//     },
+//     {
+//       $lookup: {
+//         from: "storemsgs",
+//         localField: "room_id",
+//         foreignField: "room_id",
+//         as: "data"
+//       }
+//     }
+//   ]);
   
-  const [result8, result9] = await Promise.all([result1Promise, result2Promise]);
+//   const [result8, result9] = await Promise.all([result1Promise, result2Promise]);
   
-  const combinedResult = [...result8, ...result9];
-  console.log(combinedResult);
-const response=combinedResult
-if(response){
-  res.send({status:true,message:"Get Data Succesfully",response})
+//   const combinedResult = [...result8, ...result9];
+//   console.log(combinedResult);
+// const response=combinedResult
+// if(response){
+//   res.send({status:true,message:"Get Data Succesfully",response})
  
-}else{
-    res.status(400).send({message:"somthing is wrong",err})
-}
+// }else{
+//     res.status(400).send({message:"somthing is wrong",err})
+// }
 
-  }  catch(err){
-    console.log(err);
-    return res.status(400).json({status:'Error',message:'somthing went wrong',err})
-}
-}
+//   }  catch(err){
+//     console.log(err);
+//     return res.status(400).json({status:'Error',message:'somthing went wrong',err})
+// }
+// }
 
 exports.reportUser=async(req,res)=>{
     try{
@@ -525,3 +558,97 @@ console.log(data)
     return res.status(400).json({status:'Error',message:'somthing went wrong',err})
 }
 }
+
+
+exports.messageHistory = async (req, res) => {
+  var sender_id = req.body.sender_id;
+  try {
+    const result = await chatModule.find(
+      { sender_id: { $eq: sender_id } },
+      { _id: 0, room_id: 1, other_id: 1, sender_id: 1 }
+    );
+
+    const other_id1 = result.map((doc) => doc.other_id);
+
+    const result5 = await chatModule.find(
+      { other_id: { $eq: sender_id } },
+      { _id: 0, room_id: 1, sender_id: 1 }
+    );
+
+    const sender_id1 = result5.map((doc) => doc.sender_id);
+
+    const roomIds3 = result5.map((doc) => doc.room_id);
+
+    const roomIds = result.map((doc) => doc.room_id);
+
+    const result1Promise = chatModule.aggregate([
+      {
+        $match: {
+          other_id: { $in: other_id1 },
+          room_id: { $in: roomIds },
+        },
+      },
+      {
+        $lookup: {
+          from: "usermasters",
+          localField: "other_id",
+          foreignField: "_id",
+          as: "otherdata",
+        },
+      },
+      {
+        $lookup: {
+          from: "storemsgs",
+          localField: "room_id",
+          foreignField: "room_id",
+          as: "data",
+        },
+      },
+    ]);
+
+    const result2Promise = chatModule.aggregate([
+      {
+        $match: {
+          sender_id: { $in: sender_id1 },
+          room_id: { $in: roomIds3 },
+        },
+      },
+      {
+        $lookup: {
+          from: "usermasters",
+          localField: "sender_id",
+          foreignField: "_id",
+          as: "otherdata",
+        },
+      },
+      {
+        $lookup: {
+          from: "storemsgs",
+          localField: "room_id",
+          foreignField: "room_id",
+          as: "data",
+        },
+      },
+    ]);
+
+    const [result8, result9] = await Promise.all([
+      result1Promise,
+      result2Promise,
+    ]);
+
+    const combinedResult = [...result8, ...result9];
+
+    const response = combinedResult;
+
+    if (response) {
+      res.send({ status: true, message: "Get Data Succesfully", response });
+    } else {
+      res.status(400).send({ message: "somthing is wrong", err });
+    }
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(400)
+      .json({ status: "Error", message: "somthing went wrong", err });
+  }
+};

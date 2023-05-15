@@ -2,6 +2,8 @@
 const story = require ('../models/story')
 const usermaster=require('../models/registration')
 const connectSchema=require('../models/connection')
+const mongoose=require('mongoose')
+
 exports.addstoryImage = async (req, res) => {
     try{
         
@@ -226,92 +228,222 @@ exports.updateViewers = async(req,res) =>{
     }
   }
   
-  exports.getAllStory = async (req, res) => {
-    try {
-      const{user_id}=req.body
-      const data=await usermaster.findOne({_id:user_id})
-      const connected=data.connected
-      console.log(connected)
-      if(data.connected===true){
-        const connectedppl= await connectSchema.findOne({user_id:user_id},{_id:0,connections:1})
-const connectedids=connectedppl?.connections?.map(connection => connection._id) || []
-console.log(connectedids)
-      const user = await story.find(
-        { sender_id: { $nin: await usermaster.find({private:true}).distinct("_id") } ,
-        sender_id: { $in: connectedids }
-      },
-        {
-          _id: 1,
-          sender_id: 1,
-          pic: 1,
-          text: 1,
-          video: 1,
-          totalViewers: 1,
-          deleteTime: 1
-        }
-      )
+// exports.getAllStory = async (req, res) => {
+//     try {
+//       const{user_id}=req.body
+//       const user_ids=mongoose.Types.ObjectId(user_id)
+//       //console.log(user_ids)
+// const seeinconnections=await connection.find({'connections._id':user_ids},{_id:0,user_id:1})
+// //console.log(seeinconnections)
+// const user_ids_array = seeinconnections.map(connection => connection.user_id);
+// console.log(user_ids_array)
+// const userss = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
+// console.log(userss)
+
+//       if(){
+//         const connectedppl= await connectSchema.findOne({user_id:user_id},{_id:0,connections:1})
+// const connectedids=connectedppl?.connections?.map(connection => connection._id) || []
+// console.log(connectedids)
+//       const user = await story.find(
+//         { sender_id: { $nin: await usermaster.find({private:true}).distinct("_id") } ,
+//         sender_id: { $in: connectedids }
+//       },
+//         {
+//           _id: 1,
+//           sender_id: 1,
+//           pic: 1,
+//           text: 1,
+//           video: 1,
+//           totalViewers: 1,
+//           deleteTime: 1
+//         }
+//       )
   
- // console.log(user)
-      const ids = user.map((doc) => doc.sender_id);
-      const names = await usermaster.find({ _id: { $in: ids } }, { _id: 1, name: 1 });
+//  // console.log(user)
+//       const ids = user.map((doc) => doc.sender_id);
+//       const names = await usermaster.find({ _id: { $in: ids } }, { _id: 1, name: 1 });
   
-      const nameMap = {};
-      names.forEach((name) => {
-        nameMap[name._id] = name.name;
-      });
+//       const nameMap = {};
+//       names.forEach((name) => {
+//         nameMap[name._id] = name.name;
+//       });
   
-      const updatedUser = user.map((doc) => {
-        const name = nameMap[doc.sender_id];
-        return {
-          ...doc.toObject(),
-          name: name,
-        };
-      });
+//       const updatedUser = user.map((doc) => {
+//         const name = nameMap[doc.sender_id];
+//         return {
+//           ...doc.toObject(),
+//           name: name,
+//         };
+//       });
   
-      await story.updateMany({}, { $set: { name: { $cond: { if: { $eq: ["$sender_id", "$sender_id"] }, then: "$name", else: nameMap["$sender_id"] } } } });
+//       await story.updateMany({}, { $set: { name: { $cond: { if: { $eq: ["$sender_id", "$sender_id"] }, then: "$name", else: nameMap["$sender_id"] } } } });
   
-      res.status(200).send({ Status: true, message: "story fetched successfully", users: updatedUser });
-    }else{
-      const privateIds = await usermaster.find({ private: true, connected: true })
-      console.log(privateIds)
-      if(privateIds.length>0){
-      const user = await story.find(
-          { sender_id: { $nin: privateIds } },
-        {
-          _id: 1,
-          sender_id: 1,
-          pic: 1,
-          text: 1,
-          video: 1,
-          totalViewers: 1,
-          deleteTime: 1
-        }
-      )
+//       res.status(200).send({ Status: true, message: "story fetched successfully", users: updatedUser });
+//     }else{
+//       const privateIds = await usermaster.find({ private: true, connected: true })
+//       console.log(privateIds)
+//       if(privateIds.length>0){
+//       const user = await story.find(
+//           { sender_id: { $nin: privateIds } },
+//         {
+//           _id: 1,
+//           sender_id: 1,
+//           pic: 1,
+//           text: 1,
+//           video: 1,
+//           totalViewers: 1,
+//           deleteTime: 1
+//         }
+//       )
   
- // console.log(user)
-      const ids = user.map((doc) => doc.sender_id);
-      const names = await usermaster.find({ _id: { $in: ids } }, { _id: 1, name: 1 });
+//  // console.log(user)
+//       const ids = user.map((doc) => doc.sender_id);
+//       const names = await usermaster.find({ _id: { $in: ids } }, { _id: 1, name: 1 });
   
-      const nameMap = {};
-      names.forEach((name) => {
-        nameMap[name._id] = name.name;
-      });
+//       const nameMap = {};
+//       names.forEach((name) => {
+//         nameMap[name._id] = name.name;
+//       });
   
-      const updatedUser = user.map((doc) => {
-        const name = nameMap[doc.sender_id];
-        return {
-          ...doc.toObject(),
-          name: name,
-        };
-      });
+//       const updatedUser = user.map((doc) => {
+//         const name = nameMap[doc.sender_id];
+//         return {
+//           ...doc.toObject(),
+//           name: name,
+//         };
+//       });
   
-      await story.updateMany({}, { $set: { name: { $cond: { if: { $eq: ["$sender_id", "$sender_id"] }, then: "$name", else: nameMap["$sender_id"] } } } });
+//       await story.updateMany({}, { $set: { name: { $cond: { if: { $eq: ["$sender_id", "$sender_id"] }, then: "$name", else: nameMap["$sender_id"] } } } });
   
-      res.status(200).send({ Status: true, message: "story fetched successfully", user: updatedUser });
-    }else{
-      const user = await story.find(
-        { sender_id: { $in: privateIds } },
-      {
+//       res.status(200).send({ Status: true, message: "story fetched successfully", user: updatedUser });
+//     }else{
+//       const user = await story.find(
+//         { sender_id: { $in: privateIds } },
+//       {
+//         _id: 1,
+//         sender_id: 1,
+//         pic: 1,
+//         text: 1,
+//         video: 1,
+//         totalViewers: 1,
+//         deleteTime: 1
+//       }
+//     )
+
+// // console.log(user)
+//     const ids = user.map((doc) => doc.sender_id);
+//     const names = await usermaster.find({ _id: { $in: ids } }, { _id: 1, name: 1 });
+
+//     const nameMap = {};
+//     names.forEach((name) => {
+//       nameMap[name._id] = name.name;
+//     });
+
+//     const updatedUser = user.map((doc) => {
+//       const name = nameMap[doc.sender_id];
+//       return {
+//         ...doc.toObject(),
+//         name: name,
+//       };
+//     });
+
+//     await story.updateMany({}, { $set: { name: { $cond: { if: { $eq: ["$sender_id", "$sender_id"] }, then: "$name", else: nameMap["$sender_id"] } } } });
+
+//     res.status(200).send({ Status: true, message: "story fetched successfully", user: updatedUser });
+//     }
+//   }
+//    } catch (error) {
+//       res.status(404).json({ message: error.message });
+//     }
+//   };
+  
+// exports.getAllStory = async (req, res) => {
+//   try {
+//     const stories = await story.find({}, {
+//       _id: 1,
+//       sender_id: 1,
+//       pic: 1,
+//       text: 1,
+//       video: 1,
+//       totalViewers: 1,
+//       deleteTime: 1
+//     });
+
+//     const senderIds = stories.map((story) => story.sender_id);
+//     const users = await usermaster.find({_id: {$in: senderIds}}, {_id: 1, name: 1});
+
+//     const updatedStories = stories.map((story) => {
+//       const user = users.find((user) => user._id.toString() === story.sender_id.toString());
+//       return {
+//         ...story.toObject(),
+//         name: user ? user.name : ''
+//       };
+//     });
+
+//     res.status(200).send({ Status: true, message: "story fetched successfully", users: updatedStories });
+//   } catch (error) {
+//     res.status(404).json({ message: error.message });
+//   }
+// };
+
+
+
+
+  
+  
+
+// exports.getAllStory = async (req, res) => {
+//   try {
+// const{user_id}=req.body
+// const user_ids=mongoose.Types.ObjectId(user_id)
+// console.log(user_ids)
+// const seeinconnections=await connectSchema.find({'connections._id':user_ids},{_id:0,user_id:1})
+// console.log(seeinconnections)
+// const user_ids_array = seeinconnections.map(connection => connection.user_id);
+// console.log(user_ids_array)
+// const userss = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
+// console.log(userss)
+// const user_idss = userss.map(user => user._id);
+// const data=await usermaster.find({public:true})
+// const isPrivatetrue = data.map(user => user._id)
+// console.log(isPrivatetrue)
+
+
+
+
+// const stories = await story.find({ user_id: { $in: user_idss } });
+// console.log(stories);
+
+
+// const stories1 = await story.find({ user_id: { $in: isPrivatetrue } });
+// console.log(stories);
+
+//  } catch (error) {
+//     res.status(404).json({ message: error.message });
+//   }
+// };
+
+
+exports.getAllStory = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    const user_ids = mongoose.Types.ObjectId(user_id);
+
+    const seeinconnections = await connectSchema.find(
+      { 'connections._id': user_ids },
+      { _id: 0, user_id: 1 }
+    );
+    const user_ids_array = seeinconnections.map(connection => connection.user_id);
+
+    const userss = await usermaster.find({ _id: { $in: user_ids_array }, connected: true }, { _id: 1 });
+    const user_idss = userss.map(user => user._id);
+
+    const data = await usermaster.find({ public: true }, { _id: 1 });
+    const isPrivatetrue = data.map(user => user._id);
+console.log(isPrivatetrue)
+    const storiesWithSenderName = await story.find({ sender_id: { $in: user_idss } })
+      .populate('sender_id', 'name')
+      .select({
         _id: 1,
         sender_id: 1,
         pic: 1,
@@ -319,36 +451,43 @@ console.log(connectedids)
         video: 1,
         totalViewers: 1,
         deleteTime: 1
-      }
-    )
+      })
+      .exec();
 
-// console.log(user)
-    const ids = user.map((doc) => doc.sender_id);
-    const names = await usermaster.find({ _id: { $in: ids } }, { _id: 1, name: 1 });
+    const privateStoriesWithSenderName = await story.find({ sender_id: { $in: isPrivatetrue } })
+      .populate('sender_id', 'name')
+      .select({
+        _id: 1,
+        sender_id: 1,
+        pic: 1,
+        text: 1,
+        video: 1,
+        totalViewers: 1,
+        deleteTime: 1,
+      })
+      .exec();
 
-    const nameMap = {};
-    names.forEach((name) => {
-      nameMap[name._id] = name.name;
-    });
+    const allStories = [...storiesWithSenderName, ...privateStoriesWithSenderName];
 
-    const updatedUser = user.map((doc) => {
-      const name = nameMap[doc.sender_id];
+    const senderIds = allStories.map((story) => story.sender_id);
+    const users = await usermaster.find({ _id: { $in: senderIds } }, { _id: 1, name: 1 });
+
+    const updatedStories = allStories.map((story) => {
+      const user = users.find((user) => user._id.toString() === story.sender_id.toString());
       return {
-        ...doc.toObject(),
-        name: name,
+        ...story.toObject(),
+        name: user ? user.name : ''
       };
-    });
+    }).filter((story, index, self) =>
+      index === self.findIndex(s => s._id.toString() === story._id.toString())
+    );
 
-    await story.updateMany({}, { $set: { name: { $cond: { if: { $eq: ["$sender_id", "$sender_id"] }, then: "$name", else: nameMap["$sender_id"] } } } });
-
-    res.status(200).send({ Status: true, message: "story fetched successfully", user: updatedUser });
-    }
+    console.log(updatedStories);
+    res.status(200).json(updatedStories);
+  } catch (error) {
+    console.error(error);
+    res.status(404).json({ message: error.message });
   }
-   } catch (error) {
-      res.status(404).json({ message: error.message });
-    }
-  };
-  
-  
+};
 
 

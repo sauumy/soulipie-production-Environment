@@ -88,7 +88,7 @@ const userSchema = new Schema({
       },
     private:{
     type:Boolean,
-    
+    default:true
     },   
         public:{
         type:Boolean,

@@ -131,11 +131,9 @@ route.get('/postYouHaveLiked',admincontroller.postYouHaveLiked)
 route.get('/totalPrivateAccount',admincontroller.totalPrivateAccount)
 route.get('/totalConnectedAccount',admincontroller.totalConnectedAccount)
 route.get('/totalPublicAccount',admincontroller.totalPublicAccount)
-route.get('/connectedppltotag',postsController.connectedppltotag)
+route.post('/connectedppltotag',postsController.connectedppltotag)
 
 route.post('/sendNotification',registrationController.sendNotification)
 //route.post('/checkToken',registrationController.checkToken)
-route.post('/healthcheck',registrationController.healthcheck)
-
 module.exports = route;
 

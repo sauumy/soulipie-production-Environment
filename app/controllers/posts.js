@@ -67,13 +67,14 @@ exports.getAllPostsofMe=async(req,res)=>{
             _id: 0,
             name:1,
             profile_img:1,
-            occupation:1,
+            addprounous:1,
             'posts.Post_img': 1,
           'posts.Post_discription':1,
           'posts._id':1,
           'posts.totallikesofpost':1,
           'posts.totalcomments':1,
-          'posts.likedpeopledata':1
+          'posts.likedpeopledata':1,
+          
             
           },
         },
@@ -297,9 +298,10 @@ exports.connectedppltotag=async(req,res)=>{
 try{
 const {_id}=req.body
 const response=await connectSchema.findOne({user_id:_id},{_id:0,connections:1})
-const taggedlist=response.connections.name
-if(taggedlist){
-  return res.status(200).json({ Status: true, message:'list',taggedlist });
+const connectionNames = response.connections.map(connection => connection);
+console.log(connectionNames);
+if(connectionNames){
+  return res.status(200).json({ Status: true, message:'list',connectionNames });
 }
 }catch (err) {
     console.log('err', err.message);
@@ -366,21 +368,16 @@ const postss = await post.find(
   { 'Tagged_people': name },
   { _id:0,user_id:1 }
 );
-//console.log(postss)
-const userIds = postss.map(post => post.user_id);
-console.log(userIds);
 
+const userIds = postss.map(post => post.user_id);
 
 const user_ids=mongoose.Types.ObjectId(user_id)
 const seeinconnections=await connection.find({'connections._id':user_ids},{_id:0,user_id:1})
-//console.log(seeinconnections)
+
 const user_ids_array = seeinconnections.map(connection => connection.user_id);
 const users = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
-//console.log(users)
-const user_id_strings = users.map(user => user._id);
-//console.log(user_id_strings);
 
-const blockedBy = await usermaster.find({'blockedContact': user_id})
+const user_id_strings = users.map(user => user._id);
 
 
 
@@ -389,6 +386,7 @@ const usersWithPostss= await usermaster.aggregate([
     $match: {
       private: { $ne: true },
       connected: { $ne: true }, 
+     
     }
   },
   {
@@ -403,7 +401,7 @@ const usersWithPostss= await usermaster.aggregate([
     $project: {
       _id: 1,
       name:1,
-      occupation:1,
+      addprounous:1,
       profile_img:1,
       'feed.Post_img': 1,
       'feed.Post_discription':1,
@@ -411,14 +409,23 @@ const usersWithPostss= await usermaster.aggregate([
       'feed.totallikesofpost':1,
       'feed.totalcomments':1,
       'feed.likedpeopledata':1,
-      'feed.Tagged_people':1
+      'feed.Tagged_people':1,
+      'feed.createdAt': 1,
+      'feed.addprounous': 1
+    },
+  },
+  {
+    $sort: {
+      'feed.createdAt': -1, // Sort by createdAt field in descending order (-1)
     },
   },
 ]);
 const usersWithPosts= await usermaster.aggregate([
   {
     $match: {
-     _id:{$in:user_id_strings}
+     _id:{$in:user_id_strings},
+   
+    
     }
   },
   {
@@ -433,7 +440,7 @@ const usersWithPosts= await usermaster.aggregate([
     $project: {
       _id: 1,
       name:1,
-      occupation:1,
+      addprounous:1,
       profile_img:1,
       'feed.Post_img': 1,
       'feed.Post_discription':1,
@@ -441,14 +448,21 @@ const usersWithPosts= await usermaster.aggregate([
       'feed.totallikesofpost':1,
       'feed.totalcomments':1,
       'feed.likedpeopledata':1,
-      'feed.Tagged_people':1
+      'feed.Tagged_people':1,
+      'feed.createdAt': 1,
+      'feed.addprounous': 1
+    },
+  },
+  {
+    $sort: {
+      'feed.createdAt': -1, // Sort by createdAt field in descending order (-1)
     },
   },
 ]);
 const usersWithPostsss= await usermaster.aggregate([
   {
     $match: {
-     _id:{$in:userIds}
+     _id:{$in:userIds},
     }
   },
   {
@@ -463,7 +477,7 @@ const usersWithPostsss= await usermaster.aggregate([
     $project: {
       _id: 1,
       name:1,
-      occupation:1,
+      addprounous:1,
       profile_img:1,
       'feed.Post_img': 1,
       'feed.Post_discription':1,
@@ -471,7 +485,14 @@ const usersWithPostsss= await usermaster.aggregate([
       'feed.totallikesofpost':1,
       'feed.totalcomments':1,
       'feed.likedpeopledata':1,
-      'feed.Tagged_people':1
+      'feed.Tagged_people':1,
+      'feed.createdAt': 1,
+      'feed.addprounous': 1
+    },
+  },
+  {
+    $sort: {
+      'feed.createdAt': -1, // Sort by createdAt field in descending order (-1)
     },
   },
 ]);

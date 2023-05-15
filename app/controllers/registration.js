@@ -9,7 +9,7 @@ const connection=require('../models/requests')
 const notifications=require('../models/notification')
 const users=require('../models/connection')
 const admin = require('firebase-admin');
-const serviceAccount = require('../../nita-8a544-firebase-adminsdk-p3pml-64ea0bb787.json');
+const serviceAccount = require('../../soulipie-6f717-firebase-adminsdk-eys0f-34c77da671.json');
 const post=require("../models/posts")
 const likespost=require('../models/likespost')
 const comment=require('../models/comments');
@@ -282,6 +282,8 @@ exports.registration = async (req, res) => {
       return res.status(400).send({Status:false,message:'You have already registerd with the Soulipie'})
     }else if (otp==='true'&&profile==='false'){
       return res.status(400).send({Status:false,message:'otp verified'})
+    }else if(otp==='false'&&profile==='false'){
+      return res.status(400).send({Status:true,message:'Otp sent on mobile Successfully'})
     }
    }else{
     const user=new Users({
@@ -1253,72 +1255,7 @@ exports.image = async (req, res, next) => {
 }
 
 
-exports.video=async(req,res,next)=>{
-  try{
-      console.log(req.file)
-      if(req.files && req.files.length > 0){
-          const sender_id=req.body.sender_id
-          const senderName=req.body.senderName
-          const room_id=req.body.room_id
-          const message=req.body.message
-          const video=req.files.map(file => file.filename)
-          const upload = video.map(({ path, duration }) => new storeMsg({
-            sender_id,
-            senderName,
-            room_id ,
-            message,
-            video: path,
-            duration
-          }));
-          const result = await storeMsg.insertMany(upload)
-          if(result)
-          {
-            const userdata=await chatModule.findOne({room_id:room_id},{_id:0,sender_id:1,other_id:1})
-            console.log(userdata)
-            const id=userdata.sender_id.toString()
-            console.log(id)
-            if (id === sender_id) {
-              const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1})
-              const token=tokens.token
-              console.log(token)
-              const notification = {
-                title: `Soulipie`,
-                body: `${senderName} Send A Video ${message}`,
-              }
-                const data={
-                  body: `${message}`
-                }
-              const response=await admin.messaging().sendToDevice(token,{notification,data});
 
-              return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
-            } else {
-              const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1})
-              const token=tokens.token
-              console.log(token)
-              const notification = {
-                title: `Soulipie`,
-                body: `${senderName} Send A Video ${message}`,
-              };
-              const payload = {
-                notification: notification,
-                data: {
-                  body: `${message}`,
-                }
-              };
-              const response=await admin.messaging().sendToDevice(token,payload);
-              return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
-            }
-          }
-      }
-      else{
-          res.send({ErrorMessage:'Please choose image and video file'})
-      }
-  }
-  catch(err){
-      console.log(err)
-      res.send({ErrorMessage:"Somthing Error",err})
-  }
-}
 
 
 exports.audio=async(req,res,next)=>{
@@ -1391,36 +1328,18 @@ exports.audio=async(req,res,next)=>{
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 exports.sendNotification = async (req, res) => {
   try {
     const { token } = req.body;
 
     const message = {
       notification: {
-        title: 'Soulipie',
-        body: 'This is a test notification',
-        image: 'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/profile_img_1683978094380.jpg', // URL to the image to display in the notification
+        title: 'New message',
+        body: 'You have a new message from John',
+       
       },
-      android: {
-        notification: {
-          color: '#008000', // Change the background color of the notification on Android
-        },
-      },
-      token: token,
+      token: token
     };
-
     const response = await admin.messaging().send(message);
     console.log('Notification sent:', response);
 
@@ -1431,19 +1350,74 @@ exports.sendNotification = async (req, res) => {
   }
 };
 
-exports.healthcheck= async (req, res) => {
-
-  const healthcheck = {
-      uptime: process.uptime(),
-      message: 'OK',
-      timestamp: Date.now()
-  };
-  try {
-      res.send(healthcheck);
-  } catch (error) {
-      healthcheck.message = error;
-      res.status(503).send();
-  }}
 
 
 
+
+exports.video=async(req,res,next)=>{
+
+  try{
+      console.log(req.file)
+      if(req.files && req.files.length > 0){
+          const sender_id=req.body.sender_id
+          const senderName=req.body.senderName
+          const room_id=req.body.room_id
+          const message=req.body.message
+          const video=req.files.map(file => file.filename)
+          const upload=video.map(v=> new storeMsg({
+              sender_id,
+              senderName,
+              room_id ,
+              message,
+              video:v
+          }))
+          const result = await storeMsg.insertMany(upload);
+        
+          if(result)
+          {
+            const userdata=await chatModule.findOne({room_id:room_id},{_id:0,sender_id:1,other_id:1})
+            console.log(userdata)
+            const id=userdata.sender_id.toString()
+            console.log(id)
+            if (id === sender_id) {
+              const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1})
+              const token=tokens.token
+              console.log(token)
+              const notification = {
+                title: `Soulipie`,
+                body: `${senderName} Send A Video ${message}`,
+              }
+                const data={
+                  body: `${message}`
+                }
+              const response=await admin.messaging().sendToDevice(token,{notification,data});
+
+              return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
+            } else {
+              const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1})
+              const token=tokens.token
+              console.log(token)
+              const notification = {
+                title: `Soulipie`,
+                body: `${senderName} Send A Video ${message}`,
+              };
+              const payload = {
+                notification: notification,
+                data: {
+                  body: `${message}`,
+                }
+              };
+              const response=await admin.messaging().sendToDevice(token,payload);
+              return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
+            }
+          }
+      }
+      else{
+          res.send({ErrorMessage:'Please choose image and video file'})
+      }
+  }
+  catch(err){
+    console.log(err)
+      res.send({ErrorMessage:"Somthing Error",err})
+  }
+}

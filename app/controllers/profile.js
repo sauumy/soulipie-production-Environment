@@ -831,19 +831,27 @@ exports.rejectExplore=async(req,res)=>{
               Hobbies: 1,
               private:1,
               public:1,
-              connected:1
+              connected:1,
+              blockContact:1,
+              addprounous:1
             }
           );
-          console.log(result)
+          //console.log(result)
           const isprivate=result.private
           console.log(isprivate)
           const isConnected=result.connected
           console.log(isConnected)
+          const isPublic=result.public
           const connectedppl=await connection.findOne({user_id:_id})
             const connectedids=connectedppl?.connections?.map(connection => connection._id) || []
-      console.log(connectedids)
+      //console.log(connectedids)
    const connectIdsStr = connectedids.map(id => id.toString());
-   console.log(connectIdsStr);
+ //  console.log(connectIdsStr);
+   const blockedIds=result.blockContact
+   console.log(blockedIds) 
+   if(blockedIds.includes(viewer_id)){
+    return res.status(400).json({status:false,message:'t'})
+   }
    if(isprivate===true){
       return res.status(400).json({status:false,message:'This is an Private Account'})
    }
@@ -873,20 +881,20 @@ exports.rejectExplore=async(req,res)=>{
             userIds.add(user._id.toString());
           });
           const matchesProfileCount = userIds.size;
-          console.log(matchesProfileCount);
+          //console.log(matchesProfileCount);
           const posts = postimages.length;
           const count = await connection.findOne(
             { user_id: _id },
             { _id: 0, connections: 1 }
           );
           const connections = count ? count.connections.length : 0;
-          console.log(connections);
+          //console.log(connections);
           const connect = count ? count.connections : [];
           const data = await usermaster.findOne(
             { _id: viewer_id },
             { _id: 1, token: 1, name: 1, profile_img: 1 }
           );
-          console.log(data);
+          //console.log(data);
           const filter = {
             $and: [
               {
@@ -939,7 +947,7 @@ exports.rejectExplore=async(req,res)=>{
             }
           }
          
-        }else if(isprivate===false&&isConnected===false){
+        }else if(isPublic===true){
          const Astro = result.AstroSign;
           const Hobbies = result.Hobbies;
           const respons = await usermaster.find({
@@ -955,7 +963,7 @@ exports.rejectExplore=async(req,res)=>{
             { user_id: { $eq: _id } },
             { _id: 0, Post_img: 1 }
           );
-          console.log(postimages);
+          //console.log(postimages);
           const userIds = new Set();
     
           respons.forEach((user) => {
@@ -965,20 +973,20 @@ exports.rejectExplore=async(req,res)=>{
             userIds.add(user._id.toString());
           });
           const matchesProfileCount = userIds.size;
-          console.log(matchesProfileCount);
+          //console.log(matchesProfileCount);
           const posts = postimages.length;
           const count = await connection.findOne(
             { user_id: _id },
             { _id: 0, connections: 1 }
           );
           const connections = count ? count.connections.length : 0;
-          console.log(connections);
+          //console.log(connections);
           const connect = count ? count.connections : [];
           const data = await usermaster.findOne(
             { _id: viewer_id },
             { _id: 1, token: 1, name: 1, profile_img: 1 }
           );
-          console.log(data);
+          //console.log(data);
           const filter = {
             $and: [
               {
@@ -1156,22 +1164,190 @@ console.log(user_id)
 //     }
 // }
 
+exports.explore = async (req, res) => {
+  try {
+     const {_id} = req.body;
+     const user_ids=mongoose.Types.ObjectId(_id)
+     const seeinconnections=await connection.find({'connections._id':user_ids},{_id:0,user_id:1})
+     console.log(seeinconnections)
+     const user_ids_array = seeinconnections.map(connection => connection.user_id);
+const users = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
+
+const user_id_strings = users.map(user => user._id);
+console.log(user_id_strings)
+
+
+
+
+
+     const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
+     const Astro = result.AstroSign;
+     const Hobbies = result.Hobbies;
+     const astroUsers = await usermaster.find({AstroSign: Astro, _id: {$ne: _id},private:false,connected:false,_id:{$in:user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+     const astroIds = astroUsers.map(doc => doc._id);
+
+     const hobbiesUsers = await usermaster.find({Hobbies: Hobbies, _id: {$ne: _id},private:false,connected:false,_id:{$in:user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+     const hobbiesIds = hobbiesUsers.map(doc => doc._id);
+    
+     const result1Promise = await usermaster.aggregate([
+        {
+           $match: {
+             _id: {$in: astroIds}
+           }
+         },
+         {
+           $lookup: {
+             from: "posts",
+             localField: "_id",
+             foreignField: "user_id",
+             as: "explore"
+           }
+         },
+         {
+           $project: {
+             _id: 1,
+             name: 1,
+             addprounous: 1,
+             profile_img: 1,
+             'explore.Post_img': 1,
+             'explore.Post_discription': 1,
+             'explore._id': 1,
+             'explore.likedpeopledata._id':1
+           },
+         },
+     ]);
+
+     const result2Promise = await usermaster.aggregate([
+        {
+           $match: {
+             _id: {$in: hobbiesIds}
+           }
+         },
+         {
+           $lookup: {
+             from: "posts",
+             localField: "_id",
+             foreignField: "user_id",
+             as: "explore"
+           }
+         },
+         {
+           $project: {
+             _id: 1,
+             name: 1,
+             addprounous: 1,
+             profile_img: 1,
+             'explore.Post_img': 1,
+             'explore.Post_discription': 1,
+             'explore._id': 1,
+             'explore.likedpeopledata._id':1
+           },
+         },
+     ]);
+
+     const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
+
+     const combinedResult = [...result1, ...result2];
+
+     const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
+    console.log(response)
+    
+     for (const item of response) {
+       
+        const existingExplore = await exploreModel.findOne({ user_id: _id, 'matchedprofiles._id': item._id});
+        if (!existingExplore) {
+          const newExplore = new exploreModel({
+            user_id:_id,
+            matchedprofiles:item
+          })
+
+           const savedExplore = await newExplore.save();
+
+           if (!savedExplore) {
+              return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
+           }
+        }else if (existingExplore){
+           const exists=await exploreModel.findOneAndUpdate({ user_id: _id, 'matchedprofiles._id': item._id },
+     { $set: { matchedprofiles: item } })
+           console.log(exists)
+        }
+     }
+     const results = await exploreModel.find({user_id:_id},{_id:0,matchedprofiles:1});
+     const ids=results.map(doc=>doc.matchedprofiles._id)
+   
+     
+        const filter = {
+           $and: [
+               {
+                 fromUser: _id,
+                 toUser: {$in:ids}
+               }
+             ]
+         };
+         const data=await request.find(filter);
+       
+         
+        const matchedProfileIds = data.flatMap(doc => [
+           mongoose.Types.ObjectId(doc.toUser).toString()
+         ]);
+         
+         const check = data.filter(doc => doc.requestPending === true);
+
+const toUserIds = check.map(doc => doc.toUser.toString());
+
+const checks = data.filter(doc => doc.requestPending === false);
+
+const toUserId = checks.map(doc => doc.toUser.toString());
+
+const tousersids=data.map(doc=>doc.toUser.toString())
+console.log(tousersids)
+         if(data.length>0){
+              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserIds}},{$set:{requested:true,connected:false}})
+              
+                      
+              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserId}},{$set:{connected:true,requested:false}})
+             
+          
+              const allToUserIds = [...toUserIds, ...toUserId];
+              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
+
+
+              const result=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1})
+              return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',result})
+           }else{
+            const result=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1})
+              return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',result})
+           
+  }
+  
+
+}catch(err){
+    console.log('err',err.message);
+    return res.status(400).json({Status:'Error',Error})
+  }
+
+}
+
+
 // exports.explore = async (req, res) => {
 //   try {
 //      const {_id} = req.body;
-// const data= await usermaster.findOne({_id:_id})
-// const isprivate=data.private
-// if(isprivate===true){
-// return res.status(400).json({Status:false, message: 'This is A'});
-// }
+//      const user_ids=mongoose.Types.ObjectId(_id)
+//      const seeinconnections=await connection.find({'connections._id':user_ids},{_id:0,user_id:1})
+//      console.log(seeinconnections)
+//      const user_ids_array = seeinconnections.map(connection => connection.user_id);
+// const users = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
+
+// const user_id_strings = users.map(user => user._id);
+// console.log(user_id_strings)
 
 //      const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
 //      const Astro = result.AstroSign;
 //      const Hobbies = result.Hobbies;
-//      const astroUsers = await usermaster.find({AstroSign: Astro, _id: {$ne: _id},private:false,connected:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+//      const astroUsers = await usermaster.find({AstroSign: Astro, _id: {$ne: _id},private:false,connected:false,_id: {$in: user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
 //      const astroIds = astroUsers.map(doc => doc._id);
 
-//      const hobbiesUsers = await usermaster.find({Hobbies: Hobbies, _id: {$ne: _id},private:false,connected:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+//      const hobbiesUsers = await usermaster.find({Hobbies: Hobbies, _id: {$ne: _id},private:false,connected:false,_id: {$in: user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
 //      const hobbiesIds = hobbiesUsers.map(doc => doc._id);
     
 //      const result1Promise = await usermaster.aggregate([
@@ -1252,10 +1428,10 @@ console.log(user_id)
 //               return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
 //            }
 //         }else if (existingExplore){
-//            const exists=await exploreModel.findOneAndUpdate({ user_id: _id, 'matchedprofiles._id': item._id },
+         
+//            const exists=await exploreModel.updateMany({ user_id: _id, 'matchedprofiles._id': item._id },
 //      { $set: { matchedprofiles: item } })
-//            console.log(exists)
-//         }
+    
 //      }
 //      const results = await exploreModel.find({user_id:_id},{_id:0,matchedprofiles:1});
 //      const ids=results.map(doc=>doc.matchedprofiles._id)
@@ -1300,165 +1476,10 @@ console.log(user_id)
 //   }
   
 // }
+// }
 // }catch(err){
 //     console.log('err',err.message);
 //     return res.status(400).json({Status:'Error',Error})
 //   }
 
 // }
-
-
-exports.explore = async (req, res) => {
-  try {
-     const {_id} = req.body;
-     const user_ids=mongoose.Types.ObjectId(_id)
-     const seeinconnections=await connection.find({'connections._id':user_ids},{_id:0,user_id:1})
-     console.log(seeinconnections)
-     const user_ids_array = seeinconnections.map(connection => connection.user_id);
-const users = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
-
-const user_id_strings = users.map(user => user._id);
-console.log(user_id_strings)
-
-     const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
-     const Astro = result.AstroSign;
-     const Hobbies = result.Hobbies;
-     const astroUsers = await usermaster.find({AstroSign: Astro, _id: {$ne: _id},private:false,connected:false,_id: {$in: user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-     const astroIds = astroUsers.map(doc => doc._id);
-
-     const hobbiesUsers = await usermaster.find({Hobbies: Hobbies, _id: {$ne: _id},private:false,connected:false,_id: {$in: user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-     const hobbiesIds = hobbiesUsers.map(doc => doc._id);
-    
-     const result1Promise = await usermaster.aggregate([
-        {
-           $match: {
-             _id: {$in: astroIds}
-           }
-         },
-         {
-           $lookup: {
-             from: "posts",
-             localField: "_id",
-             foreignField: "user_id",
-             as: "explore"
-           }
-         },
-         {
-           $project: {
-             _id: 1,
-             name: 1,
-             occupation: 1,
-             profile_img: 1,
-             'explore.Post_img': 1,
-             'explore.Post_discription': 1,
-             'explore._id': 1,
-             'explore.likedpeopledata._id':1
-           },
-         },
-     ]);
-
-     const result2Promise = await usermaster.aggregate([
-        {
-           $match: {
-             _id: {$in: hobbiesIds}
-           }
-         },
-         {
-           $lookup: {
-             from: "posts",
-             localField: "_id",
-             foreignField: "user_id",
-             as: "explore"
-           }
-         },
-         {
-           $project: {
-             _id: 1,
-             name: 1,
-             occupation: 1,
-             profile_img: 1,
-             'explore.Post_img': 1,
-             'explore.Post_discription': 1,
-             'explore._id': 1,
-             'explore.likedpeopledata._id':1
-           },
-         },
-     ]);
-
-     const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
-
-     const combinedResult = [...result1, ...result2];
-
-     const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
-    // console.log(response)
-    if(response){
-     for (const item of response) {
-       
-        const existingExplore = await exploreModel.findOne({ user_id: _id, 'matchedprofiles._id': item._id});
-        if (!existingExplore) {
-          const newExplore = new exploreModel({
-            user_id:_id,
-            matchedprofiles:item
-          })
-
-           const savedExplore = await newExplore.save();
-
-           if (!savedExplore) {
-              return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
-           }
-        }else if (existingExplore){
-         
-           const exists=await exploreModel.updateMany({ user_id: _id, 'matchedprofiles._id': item._id },
-     { $set: { matchedprofiles: item } })
-    
-     }
-     const results = await exploreModel.find({user_id:_id},{_id:0,matchedprofiles:1});
-     const ids=results.map(doc=>doc.matchedprofiles._id)
-   
-     if(results){
-        const filter = {
-           $and: [
-               {
-                 fromUser: _id,
-                 toUser: {$in:ids}
-               }
-             ]
-         };
-         const data=await request.find(filter);
-        // console.log(data)
-         
-        const matchedProfileIds = data.flatMap(doc => [
-           mongoose.Types.ObjectId(doc.toUser).toString()
-         ]);
-         //console.log(matchedProfileIds)
-         const check = data.filter(doc => doc.requestPending === true);
-//console.log(check);
-const toUserIds = check.map(doc => doc.toUser.toString());
-//console.log(toUserIds);
-const checks = data.filter(doc => doc.requestPending === false);
-//console.log(checks);
-const toUserId = checks.map(doc => doc.toUser.toString());
-//console.log(toUserId);
-         if(data.length>0&&check.length>0){
-              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserIds}},{$set:{requested:true,connected:false}})
-              const results=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1})
-             return res.status(200).json({Status: true, message: 'explore fetched successfully', results});
-           }else if (data.length>0&&checks.length>0){
-              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserId}},{$set:{connected:true,requested:false}})
-              const resultss=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1})
-           return res.status(200).json({Status: true, message: 'explore fetched successfully', resultss});
-           }else{
-              await exploreModel.updateMany({user_id:_id},{$set:{connected:false,requested:false}})
-              const resultsss=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1})
-           return res.status(200).json({Status: true, message: 'explore fetched successfully', resultsss});
-           }
-  }
-  
-}
-}
-}catch(err){
-    console.log('err',err.message);
-    return res.status(400).json({Status:'Error',Error})
-  }
-
-}

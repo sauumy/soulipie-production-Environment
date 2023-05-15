@@ -1,18 +1,15 @@
 const AWS = require('aws-sdk');
+const sharp = require('sharp');
+const { promisify } = require('util');
 const multer = require('multer');
 const path = require('path');
-const ffmpeg = require('fluent-ffmpeg');
-const { promisify } = require('util');
-const concat = require('concat-stream');
-
-const uploadVideoStory = multer()
+const uploadVideoStory = multer();
 
 const s3 = new AWS.S3({
-  accessKeyId: 'AKIA3BU5MVVZR3OTTNUO',
-  secretAccessKey: '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',
+  accessKeyId: 'AKIA3BU5MVVZWZHOTO4U',
+  secretAccessKey: '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',
   region: 'ap-south-1'
 });
-
 
 const compressVideoStroy = async (req, res, next) => {
   try {
@@ -32,48 +29,36 @@ const compressVideoStroy = async (req, res, next) => {
         ContentType: originalFile.mimetype,
       };
       const originalUploadResult = await s3.upload(uploadParams).promise();
-      const originalVideoPath = originalUploadResult.Key.replace('videos/', '');
+      const originalMediaPath = originalUploadResult.Key.replace('videos/', '');
+
+      let outputBuffer;
+      let contentType;
+
+      if (originalFile.mimetype.startsWith('video/') && !originalFile.mimetype.endsWith('mp4')) {
+        outputBuffer = await sharp(originalFile.buffer).resize({ height: 720 }).toFormat('mp4').toBuffer();
+        contentType = 'video/mp4';
+      } else {
+        outputBuffer = originalFile.buffer;
+        contentType = originalFile.mimetype;
+      }
 
       const compressedKey = `${originalKey}`;
-      const compressedVideoPath = compressedKey.replace('videos/', '');
-
-      const outputBuffer = async (inputBuffer) => {
-        return new Promise((resolve, reject) => {
-          ffmpeg(inputBuffer)
-            .videoCodec('libx264')
-            .audioCodec('aac')
-            .format('mp4')
-            .outputOptions('-crf 28')
-            .on('error', (err) => {
-              console.log('An error occurred: ' + err.message);
-              reject(err);
-            })
-            .on('end', (stdout, stderr) => {
-              resolve(stdout);
-            })
-            .toBuffer();
-        });
-      };
-
       const compressedParams = {
         Bucket: compressedBucketName,
         Key: compressedKey,
         Body: outputBuffer,
-        ContentType: 'video/mp4',
+        ContentType: contentType,
       };
       await s3.upload(compressedParams).promise();
-
-      compressedFiles.push(compressedVideoPath);
+      compressedFiles.push(compressedKey.replace('videos/', ''));
     }
 
-    req.compressedVideoPaths = compressedFiles;
+    req.compressedFiles = compressedFiles;
+    req.files.forEach((file, index) => file.filename = compressedFiles[index].replace('videos/', ''));
     next();
   } catch (error) {
-    next(error);
+    next();
+    console.log(error);
   }
 };
-
-
-
-
 module.exports = { uploadVideoStory, compressVideoStroy };
