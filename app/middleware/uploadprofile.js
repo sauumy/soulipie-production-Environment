@@ -6,14 +6,14 @@ const path = require('path')
 const uploadProfile= multer()
 
 const s3 = new AWS.S3({
-  accessKeyId: 'AKIA3BU5MVVZR3OTTNUO',
-  secretAccessKey: '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',
+  accessKeyId: 'AKIA4QQEYOZ2PG7KBFO4',
+  secretAccessKey: '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',
   region: 'ap-south-1'
 });
 const compressProfileImg = async (req, res, next) => {
   try {
-    const originalBucketName = 'soulipiebucket1';
-    const compressedBucketName = 'soulipiebucket2';
+    const originalBucketName = 'soulipieappbucket1';
+    const compressedBucketName = 'soulipieappbucket2';
 
     const originalFile = req.file;
     const originalKey = `images/${originalFile.fieldname}_${Date.now()}${path.extname(originalFile.originalname)}`

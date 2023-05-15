@@ -5,17 +5,17 @@ const multer = require('multer');
 const path = require('path')
 const uploadimagestory= multer()
 
-  const s3 = new AWS.S3({
-    accessKeyId: 'AKIA3BU5MVVZR3OTTNUO',
-    secretAccessKey: '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',
-    region: 'ap-south-1'
-  });
+const s3 = new AWS.S3({
+  accessKeyId: 'AKIA4QQEYOZ2PG7KBFO4',
+  secretAccessKey: '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',
+  region: 'ap-south-1'
+});
 
 
 const compressedImgstory = async (req, res, next) => {
   try {
-    const originalBucketName = 'soulipiebucket1';
-    const compressedBucketName = 'soulipiebucket2';
+    const originalBucketName = 'soulipieappbucket1';
+    const compressedBucketName = 'soulipieappbucket2';
 
     const originalFiles = req.files;
     const compressedFiles = [];

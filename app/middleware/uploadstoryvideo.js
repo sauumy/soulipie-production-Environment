@@ -6,15 +6,15 @@ const path = require('path');
 const uploadVideoStory = multer();
 
 const s3 = new AWS.S3({
-  accessKeyId: 'AKIA3BU5MVVZWZHOTO4U',
-  secretAccessKey: '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',
+  accessKeyId: 'AKIA4QQEYOZ2PG7KBFO4',
+  secretAccessKey: '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',
   region: 'ap-south-1'
 });
 
 const compressVideoStroy = async (req, res, next) => {
   try {
-    const originalBucketName = 'soulipiebucket1';
-    const compressedBucketName = 'soulipiebucket2';
+    const originalBucketName = 'soulipieappbucket1';
+    const compressedBucketName = 'soulipieappbucket2';
 
     const originalFiles = req.files;
     const compressedFiles = [];
