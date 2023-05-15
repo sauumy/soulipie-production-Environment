@@ -6,5 +6,5 @@
 
 
 module.exports = {
-   url:'mongodb://127.0.0.1/Souliepie'
+   url:'mongodb://soulipie:1234@15.206.13.51/Souliepie'
 }
