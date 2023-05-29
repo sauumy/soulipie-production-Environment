@@ -1,19 +1,25 @@
 const mongoose = require('mongoose');
-const { replyCommentlike } = require('../controllers/registration');
 
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
 user_id:{
-    type:Schema.Types.ObjectId,
-    default:" "
+    type:Schema.Types.ObjectId
 },
 request:{
-    type:Object,
-    default:""
+    type:Object
 },
 accpeted:{
     type:Object,
+},
+post_id:{
+    type:Schema.Types.ObjectId,
+},
+comment_id:{
+    type:Schema.Types.ObjectId,
+},
+replycomment_id:{
+    type:Schema.Types.ObjectId,
 },
 likespost:{
     type:Object,

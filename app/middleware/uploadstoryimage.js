@@ -6,17 +6,16 @@ const path = require('path')
 const uploadimagestory= multer()
 
 const s3 = new AWS.S3({
-  accessKeyId: 'AKIA4QQEYOZ2PG7KBFO4',
-  secretAccessKey: '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',
-  region: 'ap-south-1'
+  accessKeyId: process.env.accessKeyId,
+  secretAccessKey: process.env.secretAccessKey,
+  region: process.env.region
 });
 
 
 const compressedImgstory = async (req, res, next) => {
   try {
-    const originalBucketName = 'soulipieappbucket1';
-    const compressedBucketName = 'soulipieappbucket2';
-
+    const originalBucketName = process.env.bucket1;
+    const compressedBucketName = process.env.bucket2;
     const originalFiles = req.files;
     const compressedFiles = [];
 
@@ -59,7 +58,7 @@ const compressedImgstory = async (req, res, next) => {
     next();
   } catch (error) {
     next();
-    console.log(error);
+  
   }
 };
 

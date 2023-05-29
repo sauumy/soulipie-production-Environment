@@ -6,15 +6,15 @@ const path = require('path')
 const uploadAstro= multer()
 
 const s3 = new AWS.S3({
-  accessKeyId: 'AKIA4QQEYOZ2PG7KBFO4',
-  secretAccessKey: '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',
-  region: 'ap-south-1'
+  accessKeyId: process.env.accessKeyId,
+  secretAccessKey: process.env.secretAccessKey,
+  region: process.env.region
  
 });
 const compressedAstroImg = async (req, res, next) => {
   try {
-    const originalBucketName = 'soulipieappbucket1';
-    const compressedBucketName = 'soulipieappbucket2';
+    const originalBucketName = process.env.bucket1;
+    const compressedBucketName =process.env.bucket2;
 
     const originalFile = req.file;
     const originalKey = `images/${originalFile.fieldname}_${Date.now()}${path.extname(originalFile.originalname)}`
@@ -61,7 +61,7 @@ const compressedAstroImg = async (req, res, next) => {
     next();
   } catch (error) {
     next();
-    console.log(error);
+  
   }
 };
 

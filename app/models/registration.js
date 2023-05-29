@@ -88,7 +88,7 @@ const userSchema = new Schema({
       },
     private:{
     type:Boolean,
-    default:true
+    default:false
     },   
         public:{
         type:Boolean,
@@ -97,6 +97,7 @@ const userSchema = new Schema({
         },
         connected:{
             type:Boolean,
+            default:false
            
             }
 },{ timestamps: true });

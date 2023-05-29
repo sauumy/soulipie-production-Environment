@@ -35,7 +35,7 @@ exports.adminlogin=async(req,res)=>{
     const { user_name,password} = req.body;
     try {
       const user = await adminmodel.findOne({ user_name:user_name,password:password });
-      console.log(user)
+      
       if (!user) {
         return res.status(401).send({ message: 'invalid user_name' });
       }
@@ -46,7 +46,7 @@ exports.adminlogin=async(req,res)=>{
   
       return res.status(200).json({ Status:true,message:'Login successfull' ,user});
     } catch (error) {
-      console.error(error);
+     
       return res.status(500).json({ message: 'Internal server error' });
     }
   };
@@ -132,7 +132,7 @@ exports.matchesofUsers = async (req, res) => {
   
       return res.status(200).json({Status: true, message: 'matches fetched successfully', users: usersWithMatches});
     } catch (err) {
-      console.log('err', err.message);
+
       return res.status(400).json({Status: 'Error', Error: err.message});
     }
   }

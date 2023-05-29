@@ -38,42 +38,10 @@ exports.createProfile=async(req,res)=>{
         }
      
       catch(err){
-         console.log('err',err.message);
+        
          return res.status(400).json({Status:'Error',Error})
       }
  }
-// exports.createProfileImage=async(req,res)=>{
-//    try{
-//       const{_id}=req.body
-//    const profile_img=req.file.filename
-//    const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{profile_img:profile_img}})
-//    if(result){
-//       const result = await usermaster.findOne({_id:_id})
-//          return res.status(200).json({Status:true,message:'profile ctreated successfully',result})
-//       }else{
-//          return res.status(406).send({Status:false,message:'not found anything'})
-//       }
-//      }catch(err){
-//       console.log('err',err.message);
-//       return res.status(400).json({Status:'Error',Error})
-//    }
-// }
-
-
-//  exports.updateprofileImage=async(req,res)=>{
-//    try{
-//       const{_id}=req.body
-//    const profile_img=req.file.filename
-//    const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{profile_img:profile_img}})
-//    if(result){
-//       const result = await usermaster.findOneAndUpdate({_id:_id})
-//          return res.status(200).json({Status:true,message:'profile ctreated successfully',result})
-//       }
-//      }catch(err){
-//       console.log('err',err.message);
-//       return res.status(400).json({Status:'Error',Error})
-//    }
-// } 
 
 exports.getProfile=async(req,res)=>{
    try{
@@ -87,8 +55,7 @@ exports.getProfile=async(req,res)=>{
        const results=await post.find({user_id:{$eq:_id}},{_id:0,Post_img:1})
        const count=await connection.findOne({user_id:_id},{_id:0,connections:1})
        const Connection= count ? count.connections.length : 0;
-       console.log(Connection);
-      console.log(results)
+      
   const userIds = new Set();
 
   respons.forEach(user => {
@@ -99,13 +66,12 @@ exports.getProfile=async(req,res)=>{
   });
   const matchesProfileCount = userIds.size;
   
-  console.log(matchesProfileCount);
      const posts=results.length
-     console.log(posts);
+     
      
                 return res.status(200).json({Status:true,message:'profile fetched successfully',result,matchesProfileCount,Connection,posts})
   }catch(err){
-        console.log('err',err.message);
+        
         return res.status(400).json({Status:'Error',Error})
      }
 
@@ -129,7 +95,7 @@ exports.addAstroSign=async(req,res)=>{
          }
       }
    }catch(err){
-        console.log('err',err.message);
+      
         return res.status(400).json({Status:'Error',Error})
      }
 
@@ -154,7 +120,7 @@ exports.addHobbies=async(req,res)=>{
          }
       }
    }catch(err){
-        console.log('err',err.message);
+       
         return res.status(400).json({Status:'Error',Error})
      }
 
@@ -170,7 +136,7 @@ exports.getAstroSign=async(req,res)=>{
    }
 
 }catch(err){
-   console.log('err',err.message);
+  
    return res.status(400).json({Status:'Error',Error})
 }
 
@@ -185,7 +151,7 @@ exports.getHobbies=async(req,res)=>{
    }
 
 }catch(err){
-   console.log('err',err.message);
+  
    return res.status(400).json({Status:'Error',Error})
 }
 }
@@ -195,89 +161,13 @@ exports.getAllProfile=async(req,res)=>{
        const result = await usermaster.find()
                 return res.status(200).json({Status:true,message:'profile fetched successfully',result})
    }catch(err){
-        console.log('err',err.message);
+       
         return res.status(400).json({Status:'Error',Error})
      }
 
 }
 
-// exports.getOtherprofile=async(req,res)=>{
-//    try{
-//       const {_id}=req.body
 
-//      if(_id){ 
-// const result=await usermaster.findOne({_id:_id},{_id:0,profile_img:1,name:1,bio:1,AstroSign:1,Hobbies:1})
-// const Astro=result.AstroSign
-// const Hobbies=result.Hobbies
-// const respons = await usermaster.find({AstroSign:Astro, _id: { $ne: _id }})
-
-// const respond = await usermaster.find({Hobbies: Hobbies, _id: { $ne: _id } } )
-// const postimages=await post.find({user_id:{$eq:_id}},{_id:0,Post_img:1})
-// console.log(postimages)
-// const userIds = new Set();
-
-// respons.forEach(user => {
-//   userIds.add(user._id.toString());
-// });
-// respond.forEach(user => {
-//   userIds.add(user._id.toString());
-// });
-// const matchesProfileCount = userIds.size;
-// console.log(matchesProfileCount);
-// const posts=postimages.length
-// const count=await connection.findOne({user_id:_id},{_id:0,connections:1})
-//    const connections=count ? count.connections.length : 0;
-//                                    console.log(connections);
-
-// if(result){
-//    return res.status(200).json({Status:true,message:'profile fetched successfully',result,matchesProfileCount,connections,posts,postimages})
-// }
-//      }else{
-//       return res.status(400).json({Status:false,message:'provide id '})
-//      }
-//    }catch(err){
-//         console.log('err',err.message);
-//         return res.status(400).json({Status:'Error',Error})
-//      }
-// }
-// exports.savePost=async(req,res)=>{
-//    try{
-//       const {post_id,user_id}=req.body
-//       if(!post_id&&!user_id){
-//          return res.status(400).json({Status:false,message:'please provide all the details'})
-//       }
-//       else if(post_id&&user_id){
-//          const user=await bookmarks.findOne({user_id:user_id})
-//          console.log(user)
-//          if (!user){
-//             const data=new bookmarks({
-//                user_id:user_id,
-//                saved:post_id
-//             })
-//             const responses=await data.save()
-//             return res.status(200).json({Status:true,message:'Saved post successfully',responses})
-//          }
-//          else if (user) {
-//             const saved =user.saved
-//             console.log(saved)
-//             for (let i = 0; i < saved.length; i++) {
-//                if (saved[i] == post_id) {
-//                   const response=await bookmarks.updateOne({user_id:user_id},{$pull:{saved:post_id}})
-//                   return res.status(200).json({Status:false,message:'unsuccessfully',response})
-//                }
-               
-//              }
-//              return res.status(200).json({Status:false,message:'successfully'})
-//          }
-           
-//       }
-     
-//    }
-// catch(err){
-//         console.log('err',err.message);
-//         return res.status(400).json({Status:'Error',Error})
-//      }
-// }
 exports.savePost = async (req, res) => {
    try {
      const { post_id, user_id } = req.body;
@@ -287,7 +177,7 @@ exports.savePost = async (req, res) => {
       const datas=await post.findOne({_id:post_id},{_id:1,user_id:1,Post_img:1})
       if(datas){
        const user = await bookmarks.findOne({ user_id: user_id ,saved:datas});
-       console.log(user);
+     
      
        if (!user) {
          const data = new bookmarks({
@@ -314,241 +204,28 @@ exports.savePost = async (req, res) => {
        }
       }  
 }catch (err) {
-   console.log('err', err.message);
+ 
    return res.status(400).json({ Status: 'Error', message: err.message });
  }
 }
 exports.getSavedPost=async(req,res)=>{
 try{
    const {_id}=req.params
-   const response=await bookmarks.find({user_id:_id},{_id:0,saved:1})
-   console.log(response)
-   const result=response.saved
+   const result=await bookmarks.find({user_id:_id},{_id:0,saved:1})
+  
+   
    if(result){
       return res.status(200).json({Status:true,message:'Saved fetch successfully',result})
    }else{
       return res.status(400).json({Status:false,message:'Error while fetching the saved'})
    }
 }catch(err){
-   console.log('err',err.message);
+ 
    return res.status(400).json({Status:'Error',Error})
 }
 }
 
 
-// exports.explore=async(req,res)=>{
-//    try{
-//       const {_id}=req.body
-//       const result=await usermaster.findOne({_id:_id},{_id:0,profile_img:1,name:1,bio:1,AstroSign:1,Hobbies:1})
-//       const Astro=result.AstroSign
-//       const Hobbies=result.Hobbies
-//       const respons = await usermaster.find({AstroSign:Astro, _id: { $ne: _id }},{_id:1,profile_img:1,occupation:1,name:1})
-//       const astros = respons.map(doc => doc._id);
-      
-//       const respond = await usermaster.find({Hobbies: Hobbies, _id: { $ne: _id } },{_id:1,profile_img:1,occupation:1,name:1} )
-//       const hobbies = respond.map(doc => doc._id)
-//       const result1Promise=await usermaster.aggregate([
-//          {
-//             $match: {
-//               _id: { $in: astros }
-//             }
-//           },
-//           {
-//             $lookup: {
-//               from: "posts",
-//               localField: "_id",
-//               foreignField: "user_id",
-//               as: "explore"
-//             }
-//           },
-//           {
-//             $project: {
-//               _id: 1,
-//               name:1,
-//               occupation:1,
-//               profile_img:1,
-//               'explore.Post_img': 1,
-//               'explore.Post_discription':1,
-//               'explore._id':1,
-//             },
-//           },
-//       ])
-//       console.log (result1Promise)
-//       const result2Promise=await usermaster.aggregate([
-//          {
-//             $match: {
-//               _id: { $in: hobbies }
-//             }
-//           },
-//           {
-//             $lookup: {
-//               from: "posts",
-//               localField: "_id",
-//               foreignField: "user_id",
-//               as: "explore"
-//             }
-//           },
-//           {
-//             $project: {
-//               _id: 1,
-//               name:1,
-//               occupation:1,
-//               profile_img:1,
-//               'explore.Post_img': 1,
-//               'explore.Post_discription':1,
-//               'explore._id':1,
-//             },
-//           },
-//       ])
-//       console.log (result2Promise)
-//       const [result8, result9] = await Promise.all([result1Promise, result2Promise]);
-  
-//       const combinedResult = [...result8, ...result9];
-//       console.log(combinedResult);
-  
-//       const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
-//       if(response){
-//          return res.status(200).json({Status:true,message:'explore fetched successfully',response})
-//       }
-     
-//    }catch(err){
-//      console.log('err',err.message);
-//      return res.status(400).json({Status:'Error',Error})
-//    }
-//  }
-
-
-// exports.explore = async (req, res) => {
-//    try {
-//       const {_id} = req.body;
-//       const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
-//       const Astro = result.AstroSign;
-//       const Hobbies = result.Hobbies;
-//       const astroUsers = await usermaster.find({AstroSign: Astro, _id: {$ne: _id}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-//       const astroIds = astroUsers.map(doc => doc._id);
-
-//       const hobbiesUsers = await usermaster.find({Hobbies: Hobbies, _id: {$ne: _id}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-//       const hobbiesIds = hobbiesUsers.map(doc => doc._id);
-
-//       const result1Promise = await usermaster.aggregate([
-//          {
-//             $match: {
-//               _id: {$in: astroIds}
-//             }
-//           },
-//           {
-//             $lookup: {
-//               from: "posts",
-//               localField: "_id",
-//               foreignField: "user_id",
-//               as: "explore"
-//             }
-//           },
-//           {
-//             $project: {
-//               _id: 1,
-//               name: 1,
-//               occupation: 1,
-//               profile_img: 1,
-//               'explore.Post_img': 1,
-//               'explore.Post_discription': 1,
-//               'explore._id': 1,
-//             },
-//           },
-//       ]);
-
-//       const result2Promise = await usermaster.aggregate([
-//          {
-//             $match: {
-//               _id: {$in: hobbiesIds}
-//             }
-//           },
-//           {
-//             $lookup: {
-//               from: "posts",
-//               localField: "_id",
-//               foreignField: "user_id",
-//               as: "explore"
-//             }
-//           },
-//           {
-//             $project: {
-//               _id: 1,
-//               name: 1,
-//               occupation: 1,
-//               profile_img: 1,
-//               'explore.Post_img': 1,
-//               'explore.Post_discription': 1,
-//               'explore._id': 1,
-//             },
-//           },
-//       ]);
-
-//       const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
-
-//       const combinedResult = [...result1, ...result2];
-
-//       const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
-
-//       // Loop through each object in the response and create a new document in the "explore" collection if it doesn't already exist
-//       for (const item of response) {
-//          const existingExplore = await exploreModel.findOne({user_id:_id,'matchedprofiles._id':item._id});
-
-//          if (!existingExplore) {
-//             const newExplore = new exploreModel({
-//                user_id:_id,
-//                matchedprofiles: item,
-//             });
-
-//             const savedExplore = await newExplore.save();
-
-//             if (!savedExplore) {
-//                return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
-//             }
-//          }
-      
-
-//       const results = await exploreModel.find({user_id:_id});
-//       if(results){
-//          const filter = {
-//             $or: [
-//                 {
-//                   fromUser: _id,
-//                   toUser: item._id
-//                 },
-//                 {
-//                   fromUser: item._id,
-//                   toUser: _id
-//                 }
-//               ]
-//           };
-//           const data=await request.findOne(filter);
-//           if(data){
-//       const check=data.requestPending
-//       console.log(check)
-//       if(check==true){
-//        await exploreModel.findOneAndUpdate({user_id:_id,'matchedprofiles._id':item._id},{$set:{requested:true,connected:false}})
-
-//       }else{
-//          await exploreModel.findOneAndUpdate({user_id:_id,'matchedprofiles._id':item._id},{$set:{connected:true,requested:false}})
-//       }
-//       const explore=await exploreModel.find({user_id:_id})
-//       return res.status(200).json({Status: true, message: 'explore fetched successfully', explore});
-
-//    }else{
-//       return res.status(400).json({Status:false,message:"couldnot find any data"})
-//    }
-// }else{
-//    return res.status(400).json({Status:false,message:"couldnot find any request"})
-// }
-//    } 
-// } 
-// catch(err){
-//      console.log('err',err.message);
-//      return res.status(400).json({Status:'Error',Error})
-//    }
-
-// }
 
 
 exports.dissconnect=async(req,res)=>{
@@ -557,6 +234,9 @@ const {user_id,follower_id}=req.body
 if(!user_id&&!follower_id){
    return res.status(400).json({status:false,message:'Please provide all the details'})
 }else{
+  const follower=await usermaster.findOne({_id:follower_id})
+  const name=follower.name
+  const profile_img=follower.profile_img
    const filter = {
       $or: [
           {
@@ -568,222 +248,31 @@ if(!user_id&&!follower_id){
             toUser: user_id
           }
         ]
-    };
+    }
     const data=await request.findOneAndDelete(filter)
     if(data){
-      const response= await connection.findOneAndUpdate({user_id:user_id},{$pull:{connections:{ _id: follower_id }}})
+      const response= await connection.findOneAndUpdate({user_id:follower_id},{$pull:{connections:{ _id: follower_id }}})
       if(response){
+        
+        const notifications={
+          title : "Soulipie",
+          body : `${name} accepte you request connection.`  ,
+          icon : profile_img
+  }
+await notification.findOneAndDelete({user_id:follower_id,accpeted:notifications})
          const response=await usermaster.findOne({_id:follower_id},{_id:0,name:1,profile_img:1})
          return res.status(200).json({status:true,message:'you have unfollowed this account',response})
       }
     }
 }
    }catch(err){
-     console.log('err',err.message);
+     
      return res.status(400).json({Status:'Error',Error})
    }
 }
 
 
-// exports.getOtherprofile=async(req,res)=>{
-//    try{
-//       const {_id,viewer_id}=req.body
 
-//       if(_id){ 
-//          const result=await usermaster.findOne({_id:_id},{_id:0,profile_img:1,name:1,bio:1,AstroSign:1,Hobbies:1})
-//          const Astro=result.AstroSign
-//          const Hobbies=result.Hobbies
-//          const respons = await usermaster.find({AstroSign:Astro, _id: { $ne: _id }})
-
-//          const respond = await usermaster.find({Hobbies: Hobbies, _id: { $ne: _id } } )
-//          const postimages=await post.find({user_id:{$eq:_id}},{_id:0,Post_img:1})
-//          console.log(postimages)
-//          const userIds = new Set();
-
-//          respons.forEach(user => {
-//             userIds.add(user._id.toString());
-//          });
-//          respond.forEach(user => {
-//             userIds.add(user._id.toString());
-//          });
-//          const matchesProfileCount = userIds.size;
-//          console.log(matchesProfileCount);
-//          const posts=postimages.length
-//          const count=await connection.findOne({user_id:_id},{_id:0,connections:1})
-//          const connections=count ? count.connections.length : 0;
-//          console.log(connections);
-//          const connect=count.connections
-//          const data=await usermaster.findOne({_id:viewer_id},{_id:1,token:1,name:1,profile_img:1})
-//          console.log(data)
-//          const filter = {
-//             $and: [
-//               {
-//                 fromUser:fromUser,
-//          toUser:toUser
-
-//               },
-//               {
-//                 requestPending: true
-//               }
-//             ]
-//           };
-//           const requestExists = await request.findOne(filter);
-//          if(connect.find(c => c._id.toString() === data._id.toString())){
-//             if(result){
-//                return res.status(200).json({Status:true,message:'profile fetched successfully',connect,result,matchesProfileCount,connections,posts,postimages, isConnected: true})
-//             }else{
-//                return res.status(400).json({Status:false,message:'error '})
-//             }
-//          }
-//          else{
-//             if(result){
-//                return res.status(200).json({Status:true,message:'profile fetched successfully',connect,result,matchesProfileCount,connections,posts,postimages, isConnected: false})
-//             }else{
-//                return res.status(400).json({Status:false,message:'error '})
-//             }
-//          }
-//       }
-//    }catch(err){
-//         console.log('err',err.message);
-//         return res.status(400).json({Status:'Error',Error})
-//    }
-// }
-
- 
-
-
-//  exports.explore = async (req, res) => {
-//    try {
-//       const {_id} = req.body;
-//       const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
-//       const Astro = result.AstroSign;
-//       const Hobbies = result.Hobbies;
-//       const astroUsers = await usermaster.find({AstroSign: Astro, _id: {$ne: _id}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-//       const astroIds = astroUsers.map(doc => doc._id);
-
-//       const hobbiesUsers = await usermaster.find({Hobbies: Hobbies, _id: {$ne: _id}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-//       const hobbiesIds = hobbiesUsers.map(doc => doc._id);
-
-//       const result1Promise = await usermaster.aggregate([
-//          {
-//             $match: {
-//               _id: {$in: astroIds}
-//             }
-//           },
-//           {
-//             $lookup: {
-//               from: "posts",
-//               localField: "_id",
-//               foreignField: "user_id",
-//               as: "explore"
-//             }
-//           },
-//           {
-//             $project: {
-//               _id: 1,
-//               name: 1,
-//               occupation: 1,
-//               profile_img: 1,
-//               'explore.Post_img': 1,
-//               'explore.Post_discription': 1,
-//               'explore._id': 1,
-//             },
-//           },
-//       ]);
-
-//       const result2Promise = await usermaster.aggregate([
-//          {
-//             $match: {
-//               _id: {$in: hobbiesIds}
-//             }
-//           },
-//           {
-//             $lookup: {
-//               from: "posts",
-//               localField: "_id",
-//               foreignField: "user_id",
-//               as: "explore"
-//             }
-//           },
-//           {
-//             $project: {
-//               _id: 1,
-//               name: 1,
-//               occupation: 1,
-//               profile_img: 1,
-//               'explore.Post_img': 1,
-//               'explore.Post_discription': 1,
-//               'explore._id': 1,
-//             },
-//           },
-//       ]);
-
-//       const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
-
-//       const combinedResult = [...result1, ...result2];
-
-//       const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
-// console.log
-//       // Loop through each object in the response and create a new document in the "explore" collection if it doesn't already exist
-//       for (const item of response) {
-//          const existingExplore = await exploreModel.findOne({user_id:_id,'matchedprofiles._id':item._id});
-
-//          if (!existingExplore) {
-//             const newExplore = new exploreModel({
-//                user_id:_id,
-//                matchedprofiles: item,
-//             });
-
-//             const savedExplore = await newExplore.save();
-
-//             if (!savedExplore) {
-//                return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
-//             }
-//          }
-      
-
-//       const results = await exploreModel.find({user_id:_id});
-//       if(results){
-//          const filter = {
-//             $or: [
-//                 {
-//                   fromUser: _id,
-//                   toUser: item._id
-//                 },
-//                 {
-//                   fromUser: item._id,
-//                   toUser: _id
-//                 }
-//               ]
-//           };
-//           const data=await request.findOne(filter);
-//           if(data){
-//       const check=data.requestPending
-//       console.log(check)
-//       if(check==true){
-//        await exploreModel.findOneAndUpdate({user_id:_id,'matchedprofiles._id':item._id},{$set:{requested:true,connected:false}})
-
-//       }else{
-//          await exploreModel.findOneAndUpdate({user_id:_id,'matchedprofiles._id':item._id},{$set:{connected:true,requested:false}})
-//       }
-//       const explore=await exploreModel.find({user_id:_id})
-//       return res.status(200).json({Status: true, message: 'explore fetched successfully', explore});
-
-//    }else{
-//       const explore=await exploreModel.find({user_id:_id})
-//       return res.status(200).json({Status: true, message: 'explore fetched successfully', explore});
-//    }
-// }else{
-//    return res.status(400).json({Status:false,message:"couldnot find any request"})
-// }
-//    } 
-// } 
-// catch(err){
-//      console.log('err',err.message);
-//      return res.status(400).json({Status:'Error',Error})
-//    }
-
-// }
 
 
 exports.rejectExplore=async(req,res)=>{
@@ -794,7 +283,7 @@ exports.rejectExplore=async(req,res)=>{
    }else{
       const data = await exploreModel.findOne({user_id:_id,'matchedprofiles._id':user_id})
       const check=data.rejected
-      console.log(check)
+     
       if(check==false){
       const response=await exploreModel.findOneAndUpdate({user_id:_id,'matchedprofiles._id':user_id},{$set:{rejected:true}})
       if(response){
@@ -808,14 +297,13 @@ exports.rejectExplore=async(req,res)=>{
    }
    }
 }catch(err){
-        console.log('err',err.message);
+        
         return res.status(400).json({Status:'Error',Error})
       }
    }
 
 
-
-   exports.getOtherprofile = async (req, res) => {
+exports.getOtherprofile = async (req, res) => {
       try {
         const { _id, viewer_id } = req.body;
     
@@ -836,19 +324,19 @@ exports.rejectExplore=async(req,res)=>{
               addprounous:1
             }
           );
-          //console.log(result)
+         
           const isprivate=result.private
-          console.log(isprivate)
+         
           const isConnected=result.connected
-          console.log(isConnected)
+          
           const isPublic=result.public
           const connectedppl=await connection.findOne({user_id:_id})
             const connectedids=connectedppl?.connections?.map(connection => connection._id) || []
-      //console.log(connectedids)
+      
    const connectIdsStr = connectedids.map(id => id.toString());
- //  console.log(connectIdsStr);
+ 
    const blockedIds=result.blockContact
-   console.log(blockedIds) 
+  
    if(blockedIds.includes(viewer_id)){
     return res.status(400).json({status:false,message:'t'})
    }
@@ -871,7 +359,7 @@ exports.rejectExplore=async(req,res)=>{
             { user_id: { $eq: _id } },
             { _id: 0, Post_img: 1 }
           );
-          console.log(postimages);
+       
           const userIds = new Set();
     
           respons.forEach((user) => {
@@ -881,20 +369,20 @@ exports.rejectExplore=async(req,res)=>{
             userIds.add(user._id.toString());
           });
           const matchesProfileCount = userIds.size;
-          //console.log(matchesProfileCount);
+          
           const posts = postimages.length;
           const count = await connection.findOne(
             { user_id: _id },
             { _id: 0, connections: 1 }
           );
           const connections = count ? count.connections.length : 0;
-          //console.log(connections);
+       
           const connect = count ? count.connections : [];
           const data = await usermaster.findOne(
             { _id: viewer_id },
             { _id: 1, token: 1, name: 1, profile_img: 1 }
           );
-          //console.log(data);
+       
           const filter = {
             $and: [
               {
@@ -963,7 +451,7 @@ exports.rejectExplore=async(req,res)=>{
             { user_id: { $eq: _id } },
             { _id: 0, Post_img: 1 }
           );
-          //console.log(postimages);
+          
           const userIds = new Set();
     
           respons.forEach((user) => {
@@ -973,20 +461,20 @@ exports.rejectExplore=async(req,res)=>{
             userIds.add(user._id.toString());
           });
           const matchesProfileCount = userIds.size;
-          //console.log(matchesProfileCount);
+         
           const posts = postimages.length;
           const count = await connection.findOne(
             { user_id: _id },
             { _id: 0, connections: 1 }
           );
           const connections = count ? count.connections.length : 0;
-          //console.log(connections);
+          
           const connect = count ? count.connections : [];
           const data = await usermaster.findOne(
             { _id: viewer_id },
             { _id: 1, token: 1, name: 1, profile_img: 1 }
           );
-          //console.log(data);
+         
           const filter = {
             $and: [
               {
@@ -1043,7 +531,7 @@ exports.rejectExplore=async(req,res)=>{
         }
       }
     } catch (err) {
-        console.log("err", err.message);
+       
         return res.status(400).json({ Status: "Error", Error });
       }
     };
@@ -1069,11 +557,11 @@ exports.rejectExplore=async(req,res)=>{
              const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{profile_img:profile_img,Hobbies:Hobbies,AstroSign:AstroSign,name:name,bio:bio,dob:dob,occupation:occupation,location:location,gender:gender,addprounous:addprounous,profile:true}},{new:true})
              const user_id = mongoose.Types.ObjectId(_id);
              if(result){
-console.log(user_id)
+
              const posts = await post.updateMany({
                "likedpeopledata._id": user_id
              },{$set:{'likedpeopledata.$.profile_img':profile_img,'likedpeopledata.$.name':name}});
-             console.log(posts)
+            
          const result = await usermaster.findOne({_id:_id})
          const likeposts=await likepost.updateOne({
           "likesofposts._id": user_id
@@ -1082,7 +570,7 @@ console.log(user_id)
         const comment= await comments.updateMany({
           "commentdetails._id": user_id
         },{$set:{'commentdetails.profile_img':profile_img,'commentdetails.name':name}});
-        console.log(comment)
+      
         
         const commentlike= await comments.updateMany({
           "commentlikerDetails._id": user_id
@@ -1113,88 +601,41 @@ console.log(user_id)
         
         
       catch(err){
-         console.log('err',err.message);
+        
          return res.status(400).json({Status:'Error',Error})
       }
  }
 
-// exports.updateProfile=async(req,res)=>{
-//   try{
-//       const {_id}=req.body
-//       const name=req.body.name
-//       const bio=req.body.bio
-//       const dob=req.body.dob
-//       const occupation=req.body.occupation
-//       const location=req.body.location
-//       const gender=req.body.gender
-//       const addpronous=req.body.addpronous
-//       const AstroSign=req.body.AstroSign
-//       const Hobbies=req.body.Hobbies
-//       const profile_img=req.file.filename
-                
-        
-//            const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{profile_img:profile_img,Hobbies:Hobbies,AstroSign:AstroSign,name:name,bio:bio,dob:dob,occupation:occupation,location:location,gender:gender,addpronous:addpronous,profile:true}},{new:true})
-//            const user_id = mongoose.Types.ObjectId(_id);
-//            if(result){
-// console.log(user_id)
 
-// const comment = await comments.updateMany(
-//   {
-//     "commentdetails._id": user_id,
-//   },
-//   {
-//     $set: {
-//       "commentdetails.profile_img": profile_img,
-//       "commentdetails.$.name": name,
-//     },
-//   }
-// );
-// console.log(comment);
-      
-
-
-//            return res.status(200).json({Status:true,message:'profile ctreated successfully',comment})
-//            }
-       
-
-//       }
-//     catch(err){
-//        console.log('err',err.message);
-//        return res.status(400).json({Status:'Error',Error})
-//     }
-// }
 
 exports.explore = async (req, res) => {
   try {
      const {_id} = req.body;
      const user_ids=mongoose.Types.ObjectId(_id)
-     const seeinconnections=await connection.find({'connections._id':user_ids},{_id:0,user_id:1})
-     console.log(seeinconnections)
+     const seeinconnections = await connection.find({'connections._id': user_ids,connected:true},{_id:0,user_id:1})
+   
      const user_ids_array = seeinconnections.map(connection => connection.user_id);
-const users = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
-
+     const users = await usermaster.find({_id:user_ids_array},{_id:1});
 const user_id_strings = users.map(user => user._id);
-console.log(user_id_strings)
-
-
-
-
 
      const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
      const Astro = result.AstroSign;
      const Hobbies = result.Hobbies;
-     const astroUsers = await usermaster.find({AstroSign: Astro, _id: {$ne: _id},private:false,connected:false,_id:{$in:user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+     const astroUsers = await usermaster.find({AstroSign: Astro, _id: { $ne: _id },private:false,connected:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
      const astroIds = astroUsers.map(doc => doc._id);
 
-     const hobbiesUsers = await usermaster.find({Hobbies: Hobbies, _id: {$ne: _id},private:false,connected:false,_id:{$in:user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+     const hobbiesUsers = await usermaster.find({Hobbies: Hobbies,_id: { $ne: _id },private:false,connected:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
      const hobbiesIds = hobbiesUsers.map(doc => doc._id);
     
      const result1Promise = await usermaster.aggregate([
-        {
-           $match: {
-             _id: {$in: astroIds}
-           }
-         },
+      {
+        $match: {
+          $or: [
+            { _id: { $in: astroIds } },
+            { $expr: { $and: [ { $not: { $isArray: "$user_ids_array" } }, { $eq: [ "$user_ids_array", [] ] } ] } }
+          ]
+        }
+      },
          {
            $lookup: {
              from: "posts",
@@ -1218,11 +659,14 @@ console.log(user_id_strings)
      ]);
 
      const result2Promise = await usermaster.aggregate([
-        {
-           $match: {
-             _id: {$in: hobbiesIds}
-           }
-         },
+      {
+        $match: {
+          $or: [
+            { _id: { $in: astroIds } },
+            { $expr: { $and: [ { $not: { $isArray: "$user_ids_array" } }, { $eq: [ "$user_ids_array", [] ] } ] } }
+          ]
+        }
+      },
          {
            $lookup: {
              from: "posts",
@@ -1250,7 +694,7 @@ console.log(user_id_strings)
      const combinedResult = [...result1, ...result2];
 
      const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
-    console.log(response)
+
     
      for (const item of response) {
        
@@ -1267,11 +711,23 @@ console.log(user_id_strings)
               return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
            }
         }else if (existingExplore){
-           const exists=await exploreModel.findOneAndUpdate({ user_id: _id, 'matchedprofiles._id': item._id },
+           const exists=await exploreModel.updateMany({ user_id: _id, 'matchedprofiles._id': item._id },
      { $set: { matchedprofiles: item } })
-           console.log(exists)
+          
+const idss=await exploreModel.find({},{_id:0,'matchedprofiles._id':1})
+const ids = idss.map(item => item.matchedprofiles._id);
+
+const datss=await usermaster.find({_id:{$in:ids},private:true},{_id:1})
+
+const mappedIds = datss.map(item => item._id.toString());
+
+const deletes=await exploreModel.deleteMany({'matchedprofiles._id':{$in:mappedIds}})
+
         }
+
+
      }
+     
      const results = await exploreModel.find({user_id:_id},{_id:0,matchedprofiles:1});
      const ids=results.map(doc=>doc.matchedprofiles._id)
    
@@ -1300,7 +756,7 @@ const checks = data.filter(doc => doc.requestPending === false);
 const toUserId = checks.map(doc => doc.toUser.toString());
 
 const tousersids=data.map(doc=>doc.toUser.toString())
-console.log(tousersids)
+
          if(data.length>0){
               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserIds}},{$set:{requested:true,connected:false}})
               
@@ -1322,164 +778,10 @@ console.log(tousersids)
   
 
 }catch(err){
-    console.log('err',err.message);
+    
     return res.status(400).json({Status:'Error',Error})
   }
 
 }
 
 
-// exports.explore = async (req, res) => {
-//   try {
-//      const {_id} = req.body;
-//      const user_ids=mongoose.Types.ObjectId(_id)
-//      const seeinconnections=await connection.find({'connections._id':user_ids},{_id:0,user_id:1})
-//      console.log(seeinconnections)
-//      const user_ids_array = seeinconnections.map(connection => connection.user_id);
-// const users = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
-
-// const user_id_strings = users.map(user => user._id);
-// console.log(user_id_strings)
-
-//      const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
-//      const Astro = result.AstroSign;
-//      const Hobbies = result.Hobbies;
-//      const astroUsers = await usermaster.find({AstroSign: Astro, _id: {$ne: _id},private:false,connected:false,_id: {$in: user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-//      const astroIds = astroUsers.map(doc => doc._id);
-
-//      const hobbiesUsers = await usermaster.find({Hobbies: Hobbies, _id: {$ne: _id},private:false,connected:false,_id: {$in: user_id_strings}}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-//      const hobbiesIds = hobbiesUsers.map(doc => doc._id);
-    
-//      const result1Promise = await usermaster.aggregate([
-//         {
-//            $match: {
-//              _id: {$in: astroIds}
-//            }
-//          },
-//          {
-//            $lookup: {
-//              from: "posts",
-//              localField: "_id",
-//              foreignField: "user_id",
-//              as: "explore"
-//            }
-//          },
-//          {
-//            $project: {
-//              _id: 1,
-//              name: 1,
-//              occupation: 1,
-//              profile_img: 1,
-//              'explore.Post_img': 1,
-//              'explore.Post_discription': 1,
-//              'explore._id': 1,
-//              'explore.likedpeopledata._id':1
-//            },
-//          },
-//      ]);
-
-//      const result2Promise = await usermaster.aggregate([
-//         {
-//            $match: {
-//              _id: {$in: hobbiesIds}
-//            }
-//          },
-//          {
-//            $lookup: {
-//              from: "posts",
-//              localField: "_id",
-//              foreignField: "user_id",
-//              as: "explore"
-//            }
-//          },
-//          {
-//            $project: {
-//              _id: 1,
-//              name: 1,
-//              occupation: 1,
-//              profile_img: 1,
-//              'explore.Post_img': 1,
-//              'explore.Post_discription': 1,
-//              'explore._id': 1,
-//              'explore.likedpeopledata._id':1
-//            },
-//          },
-//      ]);
-
-//      const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
-
-//      const combinedResult = [...result1, ...result2];
-
-//      const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
-//     // console.log(response)
-//     if(response){
-//      for (const item of response) {
-       
-//         const existingExplore = await exploreModel.findOne({ user_id: _id, 'matchedprofiles._id': item._id});
-//         if (!existingExplore) {
-//           const newExplore = new exploreModel({
-//             user_id:_id,
-//             matchedprofiles:item
-//           })
-
-//            const savedExplore = await newExplore.save();
-
-//            if (!savedExplore) {
-//               return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
-//            }
-//         }else if (existingExplore){
-         
-//            const exists=await exploreModel.updateMany({ user_id: _id, 'matchedprofiles._id': item._id },
-//      { $set: { matchedprofiles: item } })
-    
-//      }
-//      const results = await exploreModel.find({user_id:_id},{_id:0,matchedprofiles:1});
-//      const ids=results.map(doc=>doc.matchedprofiles._id)
-   
-//      if(results){
-//         const filter = {
-//            $and: [
-//                {
-//                  fromUser: _id,
-//                  toUser: {$in:ids}
-//                }
-//              ]
-//          };
-//          const data=await request.find(filter);
-//         // console.log(data)
-         
-//         const matchedProfileIds = data.flatMap(doc => [
-//            mongoose.Types.ObjectId(doc.toUser).toString()
-//          ]);
-//          //console.log(matchedProfileIds)
-//          const check = data.filter(doc => doc.requestPending === true);
-// //console.log(check);
-// const toUserIds = check.map(doc => doc.toUser.toString());
-// //console.log(toUserIds);
-// const checks = data.filter(doc => doc.requestPending === false);
-// //console.log(checks);
-// const toUserId = checks.map(doc => doc.toUser.toString());
-// //console.log(toUserId);
-//          if(data.length>0&&check.length>0){
-//               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserIds}},{$set:{requested:true,connected:false}})
-//               const results=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1})
-//              return res.status(200).json({Status: true, message: 'explore fetched successfully', results});
-//            }else if (data.length>0&&checks.length>0){
-//               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserId}},{$set:{connected:true,requested:false}})
-//               const resultss=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1})
-//            return res.status(200).json({Status: true, message: 'explore fetched successfully', resultss});
-//            }else{
-//               await exploreModel.updateMany({user_id:_id},{$set:{connected:false,requested:false}})
-//               const resultsss=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1})
-//            return res.status(200).json({Status: true, message: 'explore fetched successfully', resultsss});
-//            }
-//   }
-  
-// }
-// }
-// }catch(err){
-//     console.log('err',err.message);
-//     return res.status(400).json({Status:'Error',Error})
-//   }
-
-// }

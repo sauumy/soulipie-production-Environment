@@ -23,6 +23,7 @@ const userSchema = new Schema({
    },
    Tagged_people:{
     type:Array,
+    default:[]
    },
    totallikesofpost:{
     type:Number,
