@@ -823,8 +823,8 @@ const tousersids=data.map(doc=>doc.toUser.toString())
             const allToUserIds = [...toUserIds, ...toUserId];
               
               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
-            const results=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
-              return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',results})
+            const result=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
+              return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',result})
            
   }
   
