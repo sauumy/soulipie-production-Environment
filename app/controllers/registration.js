@@ -9,7 +9,7 @@ const connection=require('../models/requests')
 const notifications=require('../models/notification')
 const users=require('../models/connection')
 const admin = require('firebase-admin');
-const serviceAccount = require('../../soulipie-6f717-firebase-adminsdk-eys0f-34c77da671.json');
+const serviceAccount = require('../../soulipie-6f717-firebase-adminsdk-eys0f-f8f76936ff.json');
 const post=require("../models/posts")
 const likespost=require('../models/likespost')
 const comment=require('../models/comments');
@@ -19,15 +19,13 @@ const {chatModule}=require('../models/chatmodule')
 
 const notification = require('../models/notification');
 
+
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://soulipie-9ac7d-default-rtdb.firebaseio.com"
-  });
+  credential: admin.credential.cert(serviceAccount)
+});
 
   const messaging = admin.messaging();
   const fetch = require('node-fetch');
-
-
   
 exports.deeplink = async (req, res) => {
     try {
@@ -57,9 +55,7 @@ exports.deeplink = async (req, res) => {
       res.status(500).json({message: 'An error occurred while generating the Dynamic Link.',
       });
     }
-  };
-
-  
+}  
   exports.healthcheck = async (req, res) => {
     const healthcheck = {
         uptime: process.uptime(),
@@ -72,9 +68,7 @@ exports.deeplink = async (req, res) => {
         healthcheck.message = error;
         res.status(503).send();
     }
-};
-
-
+}
 exports.callID=async(req,res)=>{
     try{
 const {host_id,joiner_id,callerId}=req.body
@@ -136,9 +130,9 @@ if(host_id.length>10){
         return res.status(400).send({Status:'Error',message:'somthing went wrong'})
        }                    
  
-    }
-
+}
 exports.otpVerify = async (req, res) => {
+
 try{
     const {mobilenumber} = req.body
      if(mobilenumber){
@@ -165,7 +159,6 @@ try{
     return res.status(400).send({Status:'false',message:'somthing went wrong'})
            }
 }
-
 exports.registration = async (req, res) => {
   try{ 
    const {mobilenumber,token}=req.body
@@ -181,7 +174,7 @@ exports.registration = async (req, res) => {
     if(otp==='true'&&profile==='true'){
       return res.status(400).send({Status:false,message:'You have already registerd with the Soulipie'})
     }else if (otp==='true'&&profile==='false'){
-      return res.status(400).send({Status:false,message:'otp verified'})
+      return res.status(400).send({Status:false,message:'OTP verified'})
     }else if(otp==='false'&&profile==='false'){
       return res.status(200).send({Status:true,message:'Otp sent on mobile Successfully'})
     }
@@ -203,8 +196,7 @@ catch(err){
        
       return res.status(400).send({Status:'Error',message:'somthing went wrong'})
      }                    
-};
-  
+}  
 exports.sendRequest=async (req, res) => {
     
       try {
@@ -247,7 +239,7 @@ exports.sendRequest=async (req, res) => {
         if(update){
           const notification = {
               title: 'Soulipie',
-              body: `${name} would like to connect with you.`,
+              body: `${name} would like to connect with you`,
               icon:profile_img
             };
             const data={
@@ -256,6 +248,7 @@ exports.sendRequest=async (req, res) => {
             if(notification){
               const noti=new notifications({
                 user_id:toUser,
+                requested_id:fromUser,
                 request:notification
               })
               await noti.save()
@@ -274,7 +267,7 @@ exports.sendRequest=async (req, res) => {
           if(requestsent){
         const notification = {
             title: 'Soulipie',
-            body: `${name} would like to connect with you.`,
+            body: `${name} would like to connect with you`,
             icon:profile_img
           }
           const data={
@@ -285,6 +278,7 @@ exports.sendRequest=async (req, res) => {
             
             const noti=new notifications({
               user_id:toUser,
+              requested_id:fromUser,
               request:notification
             })
             await noti.save()
@@ -316,27 +310,28 @@ exports.sendRequest=async (req, res) => {
              
               return res.status(500).json({status:false, message: 'Internal server error.' });
       }
-  }
-  exports.getRequest=async(req, res)=>{
+}
+  exports.getRequest = async (req, res) => {
     try {
-    const {_id}=req.params
-     const request=await users.findOne({user_id:_id},{totalrequest:1,_id:0})
-    const requests=request?.totalrequest
-    if(request){
-    return res.status(200).json({status:true, message: 'requests fetch successfully.',requests });
-    }else{
-        return res.status(400).json({ status:false,message: 'Counldnt sind any request' });
+      const { _id } = req.params;
+      const request = await users
+        .findOne({ user_id: _id }, { totalrequest: 1, _id: 0 });
+      let requests = request?.totalrequest;
+      if (requests) {
+        requests.sort((a, b) => a.createdAt - b.createdAt); // Sort requests based on timing
+        requests.reverse(); // Reverse the order of the array
+        return res.status(200).json({ status: true, message: 'Requests fetched successfully.', requests });
+      } else {
+        return res.status(400).json({ status: false, message: 'Could not find any request' });
+      }
+    } catch (error) {
+      return res.status(500).json({ status: false, message: 'Internal server error.' });
     }
-    
-    }catch (error) {
-                
-                return res.status(500).json({status:false, message: 'Internal server error.' });
-        }
 }  
 exports.getNotification=async(req,res)=>{
   try{
     const {_id}=req.params
-    const response =await notifications.find({user_id:_id})
+    const response =await notifications.find({user_id:_id}).sort({ createdAt: -1 });
     if(response){
       return res.status(200).json({status:true ,message: `get notification successfully`,response});
     }else{
@@ -360,7 +355,7 @@ exports.getLikesOfPost=async(req,res)=>{
    
     return res.status(400).json({Status:'Error',Error})
   }
-  }
+}
 exports.getComment=async(req,res)=>{
   try{
 const {post_id}=req.body
@@ -388,7 +383,6 @@ exports.loginViaOtp = async (req, res) => {
         return res.status(400).send({Status:false,message:'Please provide Mobile number'})
   }else{
     const chek=await Users.findOne({mobilenumber:mobilenumber},{otp:1,profile:1})
-    console.log(chek)
     if(chek!==null){
     const otp=chek.otp
     const profile=chek.profile
@@ -401,7 +395,7 @@ exports.loginViaOtp = async (req, res) => {
       return res.status(400).send({Status:false,message:'Number does not exists'})
     }
   }else{
-    return res.status(400).send({Status:false,message:'Please register Once again'})
+    return res.status(400).send({Status:false,message:'We request you to re-register once more'})
   }
 }else{
   return res.status(400).send({Status:false,message:'Number does not exists'})
@@ -411,8 +405,7 @@ exports.loginViaOtp = async (req, res) => {
 
       return res.status(400).send({Status:'Error',message:'somthing went wrong'})
      }                    
-};
-
+}
 exports.likePost = async(req, res) => {
   try {
     const { post_id, liker_id } = req.body;
@@ -485,7 +478,8 @@ exports.likePost = async(req, res) => {
                                                             const noti=new notifications({
                                                               post_id:post_id,
                                                               user_id:data1,
-                                                              likespost:notification
+                                                              likespost:notification,
+                                                              post_liker_id:liker_id
                                                             })
                                                             await noti.save()
                                                           }
@@ -526,7 +520,9 @@ exports.likePost = async(req, res) => {
               const noti=new notifications({
                 post_id:post_id,
                 user_id:data1,
-                likespost:notification
+                likespost:notification,
+                post_liker_id:liker_id
+
               })
               await noti.save()
             }
@@ -583,6 +579,7 @@ if (!post_id || !commenter_id) {
           post_id:post_id,
           user_id:user_id,
           comment_id:comment_id,
+          post_commenter_id:commenter_id,
           comment:notification
         })
         await noti.save()
@@ -659,6 +656,7 @@ if (!post_id || !commenter_id||!comment_id||!text) {
           comment_id:comment_id,
           user_id:poster,
           replycomment_id:replycomment_id,
+          replyCommenter_id:commenter_id,
           replyComment:notification1
         })
         await noti.save()
@@ -667,12 +665,13 @@ if (!post_id || !commenter_id||!comment_id||!text) {
           comment_id:comment_id,
           user_id:user_id,
           replycomment_id:replycomment_id,
+          mentioner_id:commenter_id,
           mentioned:notification2
         })
         await notis.save()
       }
-    await admin.messaging().sendToDevice(token,{notification:notification1,data:data1});
-    await admin.messaging().sendToDevice(postertoken,{notification:notification2,data:data2});
+    await admin.messaging().sendToDevice(postertoken,{notification:notification1,data:data1});
+    await admin.messaging().sendToDevice(token,{notification:notification2,data:data2});
     const count =Number(await comment.find({ post_id: post_id }).countDocuments());
     const counts=Number(await replycomment.find({post_id:post_id}).countDocuments())
    
@@ -760,7 +759,8 @@ if(totallikes){
                                                       post_id:post_id,
                                                       user_id:user_id,
                                                       comment_id:comment_id,
-                                                      likecomment:notification
+                                                      likecomment:notification,
+                                                      commente_liker_id:liker_id
                                                     })
                                                     await noti.save()
                                                   }
@@ -850,7 +850,8 @@ if(totallikes){
                                                       comment_id:comment_id,
                                                       user_id:user_id,
                                                       replycomment_id:replycomment_id,
-                                                      replyCommentlike :notification
+                                                      replyCommentlike :notification,
+                                                      replyCommente_liker_id:liker_id
                                                     })
                                                     await noti.save()
                                                   }
@@ -866,58 +867,9 @@ if(totallikes){
 }
  } 
 }catch(err){
-    
+   
     return res.status(400).json({Status:'Error',Error})
   }
-}
-exports.rejectRequest=async(req,res)=>{
-  try{
-  const {fromUser,toUser}=req.body
-  if(!fromUser&&!toUser){
-    return res.status(400).json({status:false,message:'Please provide all the details'})
-  }
-  else{
-    const request=await connection.findOne({fromUser:fromUser,toUser:toUser})
-  
-    if(request){
-      const touser=request.toUser
-      const formuser=request.fromUser
-      const reject=await Users.findOne({_id:formuser},{_id:1,profile_img:1,name:1,token:1})
-      
-      const name=reject.name
-      const profile_img=reject.profile_img
-    
-      if(reject){
-      const data=await users.updateOne({user_id:touser},{$pull:{totalrequest:reject}})
-  
-      if(data){
-        const notification = {
-          title: 'Soulipie',
-          body: `${name} would like to connect with you.`,
-         icon:profile_img,
-        };
-        const data1=await notifications.findOneAndDelete({user_id:touser,request:notification})
-      if(data1){
-        const response=await connection.findOneAndDelete({fromUser:fromUser,toUser:toUser})
-        return res.status(200).json({status:true,message:'Request Rejected Successfully',response})
-      }else{
-        return res.status(400).json({status:false,message:'No notification found'})
-      }
-       
-      }else{
-        return res.status(400).json({status:false,message:'couldnot find request in userprofile'})
-      }
-  }else{
-    return res.status(400).json({status:false,message:'No request found'})
-  }
-}else{
-  return res.status(400).json({status:false,message:'count find user details'})
-}
-}
-}catch(err){
-
-    return res.status(400).json({status:'Error',message:'somthing went wrong',err})
-}
 }
 exports.acceptRequest=async (req, res) => {
   try {
@@ -951,6 +903,7 @@ else{
    const sender = await Users.findOne({ _id: fromUser },{_id:1,profile_img:1,token:1,name:1});
    const token = sender.token;
    const image=sender.profile_img
+   const names=sender.name
    if(sender){
    const totalrequest=await users.updateOne({user_id:toUser},{$pull:{totalrequest:sender}})
 
@@ -959,13 +912,14 @@ else{
      if(connection){
       const deleterequest= {
         title: 'Soulipie',
-        body: `${name} would like to connect with you.`,
+        body: `${names} would like to connect with you`,
         icon:image
-      };
+      }
+    
       await notifications.findOneAndDelete({user_id:toUser,request:deleterequest})
          const notification = {
              title: 'Soulipie',
-             body: `${name} accepte you request connection.`,
+             body: `${name} accepted your connection request`,
              icon:profile_img
            };
            const data={
@@ -974,6 +928,7 @@ else{
            if(notification){
              const noti=new notifications({
                user_id:fromUser,
+               accpeted_id:toUser,
                accpeted:notification
              })
              await noti.save()
@@ -996,84 +951,6 @@ else{
    return res.status(500).json({ message: 'Internal server error.' });
  }
 }
-exports.deleteComment = async (req, res) => {
-  try {
-    const { comment_id, deleter_id } = req.body;
-    if (!comment_id || !deleter_id) {
-        res.status(400).json({ Status: false, message: "Please provide all the details" });
-    } else{
-      const findtodelete = await comment.findOne({ _id: comment_id })
-      
-      const onlyreply=await replycomment.findOne({_id:comment_id})
-      
-      if(findtodelete !== null){
-      const post_id = findtodelete.post_id;
-      const poster = await post.findOne(
-        { _id: post_id },
-        { _id: 0, user_id: 1 }
-      );
-      const commentdetails = findtodelete.commentdetails;
- 
-      if (
-        commentdetails._id.toString() ===  deleter_id && poster
-        )
-       {
-        const response = await comment.findOneAndDelete({ _id: comment_id });
-        await replycomment.deleteMany({comment_id:comment_id})
-        await notification.deleteMany({comment_id:comment_id})
-const data= await comment.find({post_id:post_id})
-const data1=await replycomment.find({post_id:post_id})
-const overallLength = data.length + data1.length;
-
-const update=await post.findOneAndUpdate({_id:post_id},{$set:{totalcomments:overallLength}})
-        if (response) {
-            res.status(200).json({ Status: true, message: "Comment Deleted Successfully", response });
-        } else {
-res.status(400).json({ Status: false, message: "Could not delete any comment try again later" });
-        }
-      } else {
-        res.status(400).json({ Status: false, message: "You do not have permission to delete this comment" });
-      }
-    }else if(onlyreply!== null){
-       
-      const post_id = onlyreply.post_id;
-      const id =onlyreply._id
-     
-      const poster = await post.findOne(
-        { _id: post_id },
-        { _id: 0, user_id: 1 }
-      );
-     
-      const commentdetails =onlyreply .commentdetails;
-     
-      if (
-        commentdetails._id.toString() ===  deleter_id && poster
-        )
-       {
-        const response = await replycomment.findOneAndDelete({ _id: comment_id });
-        await notifications.deleteMany({replycomment_id:comment_id})
-        const data1=await replycomment.find({post_id:post_id})
-const overallLength =  data1.length;
-
-const update=await post.findOneAndUpdate({_id:post_id},{$set:{totalcomments:overallLength}})
-        if (response) {
-            res.status(200).json({ Status: true, message: "Comment Deleted Successfully", response });
-        } else {
-res.status(400).json({ Status: false, message: "Could not delete any comment try again later" });
-        }
-      } else {
-        res.status(400).json({ Status: false, message: "You do not have permission to delete this comment" });
-      }
-    }else{
-      res.status(400).json({ Status: false, message: "coudnot find a comment to delete" });
-    }
-  }
-  } catch (err) {
-   
-    return res.status(400).json({ Status: "Error", Error });
-  }
-};
-
 exports.Message=async(req,res)=>{
   try{
       const sender_id=req.body.sender_id
@@ -1185,7 +1062,7 @@ exports.image = async (req, res, next) => {
             const notification = {
               title: `Soulipie`,
               image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
-              body: `${names} Sent A meesage ${message}`,
+              body: `${names} Sent A meesage `,
               icon:profile_img
             };
             const data={
@@ -1202,7 +1079,7 @@ exports.image = async (req, res, next) => {
             const notification = {
               title: `Soulipie`,
               image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
-              body: `${names} Sent A meesage ${message}`,
+              body: `${names} Sent A meesage`,
               icon:profile_img
             };
             const data={
@@ -1229,7 +1106,6 @@ exports.image = async (req, res, next) => {
     
   }
 }
-
 exports.audio=async(req,res,next)=>{
   try{
      
@@ -1263,7 +1139,7 @@ exports.audio=async(req,res,next)=>{
              const token=tokens.token
                 const notification = {
                   title: `Soulipie`,
-                  body: `${names} Sent A Audio ${msg}`,
+                  body: `${names} Sent A Audio`,
                  icon:profile_img
                 }; 
                 const data={
@@ -1280,7 +1156,7 @@ exports.audio=async(req,res,next)=>{
                
                 const notification = {
                   title: `Soulipie`,
-                  body: `${names} Sent A Audio ${msg}`,
+                  body: `${names} Sent A Audio`,
                  icon:profile_img
 
                 };  
@@ -1303,8 +1179,6 @@ exports.audio=async(req,res,next)=>{
       res.send({ErrorMessage:"Somthing Error",err})
   }
 }
-
-
 exports.video=async(req,res,next)=>{
 
   try{
@@ -1340,7 +1214,7 @@ exports.video=async(req,res,next)=>{
               const token=tokens.token
               const notification = {
                 title: `Soulipie`,
-                body: `${names} Send A Video ${message}`,
+                body: `${names} Send A Video`,
                 icon:profile_img
               }
               const data={
@@ -1356,7 +1230,7 @@ exports.video=async(req,res,next)=>{
               const token=tokens.token
               const notification = {
                 title: `Soulipie`,
-                body: `${names} Send A Video ${message}`,
+                body: `${names} Send A Video`,
                 icon:profile_img
               };
               
@@ -1379,7 +1253,6 @@ exports.video=async(req,res,next)=>{
       res.send({ErrorMessage:"Somthing Error",err})
   }
 }
-
 exports.sendNotification = async (req, res) => {
   try {
     const { token } = req.body;
@@ -1400,4 +1273,209 @@ exports.sendNotification = async (req, res) => {
     
     res.status(500).send({ Status: false, message: 'Failed to send notification' });
   }
+}
+exports.deleteComment = async (req, res) => {
+  try {
+    const { comment_id, deleter_id } = req.body;
+    if (!comment_id || !deleter_id) {
+      return res.status(400).json({ Status: false, message: "Please provide all the details" });
+    } else {
+      const findToDelete = await comment.findOne({ _id: comment_id });
+      const onlyReply = await replycomment.findOne({ _id: comment_id });
+
+      if (findToDelete !== null) {
+        const post_id = findToDelete.post_id;
+        const poster = await post.findOne(
+          { _id: post_id },
+          { _id: 0, user_id: 1 }
+        );
+        const commentDetails = findToDelete.commentdetails;
+
+        if (poster && commentDetails && commentDetails._id.toString() === deleter_id || poster.user_id.toString() === deleter_id) {
+          const response = await comment.findOneAndDelete({ _id: comment_id });
+          await replycomment.deleteMany({ comment_id: comment_id });
+          await notification.deleteMany({ comment_id: comment_id });
+
+          const data = await comment.find({ post_id: post_id });
+          const data1 = await replycomment.find({ post_id: post_id });
+          const overallLength = data.length + data1.length;
+
+          await post.findOneAndUpdate({ _id: post_id }, { $set: { totalcomments: overallLength } });
+
+          if (response) {
+            return res.status(200).json({ Status: true, message: "Comment Deleted Successfully", response });
+          } else {
+            return res.status(400).json({ Status: false, message: "Could not delete any comment, please try again later" });
+          }
+        } else {
+          return res.status(400).json({ Status: false, message: "You do not have permission to delete this comment" });
+        }
+      } else if (onlyReply !== null) {
+        const post_id = onlyReply.post_id;
+        const id = onlyReply._id;
+
+        const poster = await post.findOne(
+          { _id: post_id },
+          { _id: 0, user_id: 1 }
+        );
+
+        const commentDetails = onlyReply.commentdetails;
+
+        if (poster && commentDetails && commentDetails._id.toString() === deleter_id && poster.user_id.toString() === deleter_id) {
+          const response = await replycomment.findOneAndDelete({ _id: comment_id });
+          await notification.deleteMany({ replycomment_id: comment_id });
+
+          const data1 = await replycomment.find({ post_id: post_id });
+          const overallLength = data1.length;
+
+          await post.findOneAndUpdate({ _id: post_id }, { $set: { totalcomments: overallLength } });
+
+          if (response) {
+            return res.status(200).json({ Status: true, message: "Comment Deleted Successfully", response });
+          } else {
+            return res.status(400).json({ Status: false, message: "Could not delete any comment, please try again later" });
+          }
+        } else {
+          return res.status(400).json({ Status: false, message: "You do not have permission to delete this comment" });
+        }
+      } else {
+        return res.status(400).json({ Status: false, message: "Could not find a comment to delete" });
+      }
+    }
+  } catch (err) {
+    return res.status(400).json({ Status: "Error", error: err });
+  }
 };
+exports.editPostDetails=async(req,res)=>{
+  try{
+  const {post_id,Post_discription,Tagged_people}=req.body  
+  if(post_id&&Post_discription&&!Tagged_people){
+  const respons=await post.findOneAndUpdate({_id:post_id},{$set:{Post_discription:Post_discription}})
+  if(respons){  
+  const response=await post.findOne({_id:post_id})
+    res.status(200).json({status:true,message:'Post edited Successfully',response})
+  }else{
+    return res.status(400).json({Status:false,message:'could not update details'})
+  }
+  }else if(post_id&&Tagged_people&&!Post_discription){
+  const data=await post.findOneAndUpdate({_id:post_id},{$push:{Tagged_people:{ $each: Tagged_people }}})
+  if(data){  
+    const hiii=await post.findOne({_id:post_id},{_id:0,user_id:1})
+    const userid=hiii.user_id
+    const ids=await Users.findOne({_id:userid},{_id:0,name:1,profile_img:1})
+    const name=ids.name
+    const profile_img=ids.profile_img
+    const names=await Users.find({name:{$in:Tagged_people}})
+    const userIds = names.map(doc => doc._id);
+const userTokens = names.map(doc => doc.token);
+
+const notification = {
+  title: `Soulipie`,
+  body: `${name} Tagged In Their Post`,
+  icon:profile_img
+}
+const data={
+  page_name:'Notification'
+}
+const notifydata=await admin.messaging().sendToDevice(userTokens,{notification,data});
+const notifyData = userIds.map((userId, index) => ({
+  user_id: userid,
+  post_id:post_id,
+tagged_post:notification,
+tagged_post_userid:userId
+}));
+await notifications.insertMany(notifyData)
+    const response=await post.findOne({_id:post_id})
+      res.status(200).json({status:true,message:'Post edited Successfully',response,notifydata})
+    }else{
+      return res.status(400).json({Status:false,message:'could not update details'})
+    }
+  }else{
+    const respons=await post.findOneAndUpdate({_id:post_id},{$set:{Post_discription:Post_discription}})
+    const data=await post.findOneAndUpdate({_id:post_id},{$push:{Tagged_people:{ $each: Tagged_people }}})
+    if(respons&&data){  
+      const hiii=await post.findOne({_id:post_id},{_id:0,user_id:1})
+      const userid=hiii.user_id
+      const ids=await Users.findOne({_id:userid},{_id:0,name:1,profile_img:1})
+      const name=ids.name
+      const profile_img=ids.profile_img
+      const names=await Users.find({name:{$in:Tagged_people}})
+      const userIds = names.map(doc => doc._id);
+  const userTokens = names.map(doc => doc.token);
+
+  const notification = {
+    title: `Soulipie`,
+    body: `${name} Tagged In Their Post`,
+    icon:profile_img
+  }
+  const data={
+    page_name:'Notification'
+  }
+  const notifydata=await admin.messaging().sendToDevice(userTokens,{notification,data});
+  const notifyData = userIds.map((userId, index) => ({
+    user_id: userId,
+    post_id:post_id,
+    tagged_post:notification,
+  tagged_post_userid:userid
+  }));
+  await notifications.insertMany(notifyData)
+      const response=await post.findOne({_id:post_id})
+        res.status(200).json({status:true,message:'Post edited Successfully',response,notifydata})
+      }else{
+        return res.status(400).json({Status:false,message:'could not update details'})
+      }
+  }  
+  }catch(err){
+    
+       return res.status(400).json({Status:'Error',Error})
+    }
+}
+exports.rejectRequest=async(req,res)=>{
+  try{
+  const {fromUser,toUser}=req.body
+  if(!fromUser&&!toUser){
+    return res.status(400).json({status:false,message:'Please provide all the details'})
+  }
+  else{
+    const request=await connection.findOne({fromUser:fromUser,toUser:toUser})
+  
+    if(request){
+      const touser=request.toUser
+      const formuser=request.fromUser
+      const reject=await Users.findOne({_id:formuser},{_id:1,profile_img:1,name:1,token:1})
+      
+      const name=reject.name
+      const profile_img=reject.profile_img
+    
+      if(reject){
+      const data=await users.updateOne({user_id:touser},{$pull:{totalrequest:reject}})
+  
+      if(data){
+        const notification = {
+          title: 'Soulipie',
+          body: `${name} would like to connect with you`,
+         icon:profile_img,
+        };
+        const data1=await notifications.findOneAndDelete({user_id:touser,request:notification})
+      if(data1){
+        const response=await connection.findOneAndDelete({fromUser:fromUser,toUser:toUser})
+        return res.status(200).json({status:true,message:'Request Rejected Successfully',response})
+      }else{
+        return res.status(400).json({status:false,message:'No notification found'})
+      }
+       
+      }else{
+        return res.status(400).json({status:false,message:'couldnot find request in userprofile'})
+      }
+  }else{
+    return res.status(400).json({status:false,message:'No request found'})
+  }
+}else{
+  return res.status(400).json({status:false,message:'count find user details'})
+}
+}
+}catch(err){
+
+    return res.status(400).json({status:'Error',message:'somthing went wrong',err})
+}
+}

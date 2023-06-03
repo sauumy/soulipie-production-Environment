@@ -76,6 +76,7 @@ route.post('/addstoryImage',uploadimagestory.array('story_img'),compressedImgsto
 route.post('/addstoryVideo',uploadVideoStory.array('story_video'),compressVideoStroy,storyController.addstoryVideo)
 route.post('/getstory',storyController.getstory)
 route.post('/getAllStory',storyController.getAllStory)
+route.post('/getAllStory1',storyController.getAllStory1)
 route.post('/updateViewers',storyController.updateViewers)
 route.delete('/deleteStory',storyController.deleteStory)
 
@@ -115,21 +116,15 @@ route.get('/requestCount/:_id',registrationController.requestCount)
 route.get('/getRequest/:_id',registrationController.getRequest)
 route.post('/dissconnect',profileController.dissconnect)
 route.post('/rejectRequest',registrationController.rejectRequest)
+route.post('/matchedList',profileController.matchedList)
 //createpost
 route.post('/connectedppltotag',postsController.connectedppltotag)
 route.post('/createPostImg',uploadPosts.array('post'),compressPOstsImg,postsController.createPostImg)
 route.post('/editPostImg',uploadProfile.single('post'),compressProfileImg,postsController.editPostImg)
 route.delete('/deletePost',postsController.deletePost)
 route.post('/getAllPostsofMe',postsController.getAllPostsofMe)
-route.post('/editPostDetails',postsController.editPostDetails)
-
+route.post('/editPostDetails',registrationController.editPostDetails)
 //extra
 route.post('/sendNotification',registrationController.sendNotification)
-
-
-
-
-
-
 module.exports = route;
 

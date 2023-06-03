@@ -38,8 +38,6 @@ else if(req.files && req.files.length > 0){
          return res.status(400).json({Status:'Error',Error})
       }
 }
-
-
 exports.editPostDetails=async(req,res)=>{
   try{
   const {post_id,Post_discription,Tagged_people}=req.body  
@@ -54,6 +52,10 @@ exports.editPostDetails=async(req,res)=>{
   }else if(post_id&&Tagged_people&&!Post_discription){
   const data=await post.findOneAndUpdate({_id:post_id},{$push:{Tagged_people:{ $each: Tagged_people }}})
   if(data){  
+    const names=await usermaster.find({name:{$in:Tagged_people}})
+    const userIds = names.map(doc => doc._id);
+const userTokens = names.map(doc => doc.token);
+
     const response=await post.findOne({_id:post_id})
       res.status(200).json({status:true,message:'Post edited Successfully',response})
     }else{
@@ -63,6 +65,11 @@ exports.editPostDetails=async(req,res)=>{
     const respons=await post.findOneAndUpdate({_id:post_id},{$set:{Post_discription:Post_discription}})
     const data=await post.findOneAndUpdate({_id:post_id},{$push:{Tagged_people:{ $each: Tagged_people }}})
     if(respons&&data){  
+      const names=await usermaster.find({name:{$in:Tagged_people}})
+      const userIds = names.map(doc => doc._id);
+  const userTokens = names.map(doc => doc.token);
+  
+  
       const response=await post.findOne({_id:post_id})
         res.status(200).json({status:true,message:'Post edited Successfully',response})
       }else{
@@ -70,6 +77,7 @@ exports.editPostDetails=async(req,res)=>{
       }
   }  
   }catch(err){
+    
        return res.status(400).json({Status:'Error',Error})
     }
 }
@@ -86,61 +94,59 @@ if(respons){
 }else{
   res.status(200).json({status:true,message:'Post couldnot be edited '})
 }
-    console.log(response)
     }
   }catch(err){
     return res.status(400).json({Status:'Error',Error})
   }
 }
 
+// exports.getAllPostsofMe=async(req,res)=>{
+//     try{
+//          const{user_id}=req.body
 
-exports.getAllPostsofMe=async(req,res)=>{
-    try{
-         const{user_id}=req.body
-
-        const id=await usermaster.findOne({_id:user_id})
-       const results= await usermaster.aggregate([
-        {
-          $match: {
-            _id: id._id
-          }
-        },
-        {
-          $lookup: {
-            from: 'posts',
-            localField: '_id',
-            foreignField: 'user_id',
-            as: 'posts',
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            name:1,
-            profile_img:1,
-            occupation:1,
-            'posts.Post_img': 1,
-          'posts.Post_discription':1,
-          'posts._id':1,
-          'posts.totallikesofpost':1,
-          'posts.totalcomments':1,
-          'posts.likedpeopledata':1
+//         const id=await usermaster.findOne({_id:user_id})
+//        const results= await usermaster.aggregate([
+//         {
+//           $match: {
+//             _id: id._id
+//           }
+//         },
+//         {
+//           $lookup: {
+//             from: 'posts',
+//             localField: '_id',
+//             foreignField: 'user_id',
+//             as: 'posts',
+//           },
+//         },
+//         {
+//           $project: {
+//             _id: 0,
+//             name:1,
+//             profile_img:1,
+//             occupation:1,
+//             'posts.Post_img': 1,
+//           'posts.Post_discription':1,
+//           'posts._id':1,
+//           'posts.totallikesofpost':1,
+//           'posts.totalcomments':1,
+//           'posts.likedpeopledata':1
             
-          },
-        },
-      ]);
+//           },
+//         },
+//       ]);
 
           
-          if(results){
-        return res.status(200).json({Status:true,message:'post fetched successfully',results})
-          }else{
-            return res.status(400).json({Status:false,message:'error fechting the file'})
-          }
-    }catch(err){
+//           if(results){
+//         return res.status(200).json({Status:true,message:'post fetched successfully',results})
+//           }else{
+//             return res.status(400).json({Status:false,message:'error fechting the file'})
+//           }
+//     }catch(err){
         
-         return res.status(400).json({Status:'Error',Error})
-      }
-}
+//          return res.status(400).json({Status:'Error',Error})
+//       }
+// }
 
 exports.deletePost=async(req,res)=>{
   try{
@@ -186,13 +192,45 @@ else{
 
 exports.viewpost = async (req, res) => {
   try {
-    const { post_id } = req.body;
-    if (!post_id) {
+    const { post_id ,viewer_id} = req.body;
+    if (!post_id&&!viewer_id) {
       return res.status(400).json({ status: false, message: 'Please provide all the details' });
     } else {
       const postResult = await post.findOne({ _id: post_id });
       const user_id = postResult.user_id;
-      const userDetails = await usermaster.findOne({ _id: user_id }, { _id: 0, name: 1, profile_img: 1 });
+      const userDetails = await usermaster.findOne({ _id: user_id }, { _id: 0, name: 1, profile_img: 1, private:1, connected:1 });
+     
+      if(userDetails.private===true){
+        return res.status(400).json({ status: false, message: 'This Account is Private' });
+      }else if(userDetails.connected===true){
+        const inclu=await connection.findOne({user_id:user_id},{_id:0,connections:1})
+       
+        if (!inclu || !inclu.connections) {
+          return res.status(400).json({ status: false, message: 'This Account is Set To Only Connections Of User' })
+        }else{
+          const connectionIds = inclu.connections.map(connection => connection._id.toString());
+         
+        if(connectionIds.includes(viewer_id)){
+          const commentResult = await comments.find({ post_id: post_id });
+
+          const commentIds = commentResult.map(comment => comment._id);
+          const replyCommentResult = await replycomments.find({ comment_id: { $in: commentIds } });
+    
+          const commentsWithReplies = commentResult.map(comment => {
+            const replies = replyCommentResult.filter(reply => String(reply.comment_id) === String(comment._id));
+            return { ...comment.toObject(), replies }; });
+
+            const likesOfPost = await likepost.findOne({ post_id: post_id });
+      
+            const result = { ...postResult.toObject(), userDetails, likes: likesOfPost, comments: commentsWithReplies };
+          
+            return res.status(200).json({ Status: true, message: 'Data fetched successfully', result });
+        }else{
+          return res.status(400).json({ status: false, message: 'This Account is Set To Only Connections Of User' })
+        }
+      }
+    }
+      else{
       const commentResult = await comments.find({ post_id: post_id });
 
       const commentIds = commentResult.map(comment => comment._id);
@@ -209,8 +247,9 @@ exports.viewpost = async (req, res) => {
     
       return res.status(200).json({ Status: true, message: 'Data fetched successfully', result });
     }
-  } catch (err) {
-   
+  } 
+}catch (err) {
+ 
     return res.status(400).json({ Status: 'Error', Error });
   }
 };
@@ -229,176 +268,6 @@ if(connectionNames){
     return res.status(400).json({ Status: 'Error', Error });
   }
 }
-
-exports.getPostsOfAll=async(req,res)=>{
-  try{
-    const{user_id}=req.body
-const data=await usermaster.findOne({_id:user_id})
-const name=data.name
-
-const postss = await post.find(
-  { 'Tagged_people': data.name },
-  { _id: 0, user_id: 1 }
-);
-const userIds = postss.map(post => post.user_id);
-
-
-
-
-const user_ids=mongoose.Types.ObjectId(user_id)
-const seeinconnections=await connection.find({'connections._id':user_ids},{_id:0,user_id:1})
-const user_ids_array = seeinconnections.map(connection => connection.user_id);
-const users = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
-
-const user_id_strings = users.map(user => user._id);
-
-const ids = user_id.toString();
-
-const blockedBy = await usermaster.find({'blockContact': ids}, {_id: 1});
-
-const blockedIds = blockedBy.map(user => user._id)
-
-
-
-const usersWithPostss= await usermaster.aggregate([
-  {
-    $match: {
-      private: { $ne: true },
-      connected: { $ne: true }, 
-      _id:{$nin:blockedIds}
-    }
-  },
-  {
-    $lookup: {
-      from: 'posts',
-      localField: '_id',
-      foreignField: 'user_id',
-      as: 'feed',
-    },
-  },
-  {
-    $project: {
-      _id: 1,
-      name:1,
-      addprounous:1,
-      profile_img:1,
-      'feed.Post_img': 1,
-      'feed.user_id': 1,
-      'feed.Post_discription':1,
-      'feed._id':1,
-      'feed.totallikesofpost':1,
-      'feed.totalcomments':1,
-      'feed.likedpeopledata':1,
-      'feed.Tagged_people':1,
-      'feed.createdAt': 1,
-    },
-  },
-  {
-    $sort: {
-      'feed.createdAt': -1, 
-    },
-  },
-]);
-const usersWithPosts= await usermaster.aggregate([
-  {
-    $match: {
-     _id:{$in:user_id_strings},
-     _id:{$nin:blockedIds},
-     private: { $ne: true },
-    
-    }
-  },
-  {
-    $lookup: {
-      from: 'posts',
-      localField: '_id',
-      foreignField: 'user_id',
-      as: 'feed',
-    },
-  },
-  {
-    $project: {
-      _id: 1,
-      name:1,
-      addprounous:1,
-      profile_img:1,
-      'feed.Post_img': 1,
-      'feed.user_id': 1,
-      'feed.Post_discription':1,
-      'feed._id':1,
-      'feed.totallikesofpost':1,
-      'feed.totalcomments':1,
-      'feed.likedpeopledata':1,
-      'feed.Tagged_people':1,
-      'feed.createdAt': 1,
-    },
-  },
-  {
-    $sort: {
-      'feed.createdAt': -1,
-    },
-  },
-]);
-const usersWithPostsss= await usermaster.aggregate([
-  {
-    $match: {
-      $and: [
-        { _id: { $in: userIds } },
-        { _id: { $nin: blockedIds } }
-      ]
-    },
-  },
-
-  {
-    $lookup: {
-      from: 'posts',
-      localField: '_id',
-      foreignField: 'user_id',
-      as: 'feed',
-    },
-  },
-  {
-    $project: {
-      _id: 1,
-      name:1,
-      addprounous:1,
-      profile_img:1,
-      'feed.Post_img': 1,
-      'feed.Post_discription':1,
-      'feed._id':1,
-      'feed.user_id': 1,
-      'feed.totallikesofpost':1,
-      'feed.totalcomments':1,
-      'feed.likedpeopledata':1,
-      'feed.Tagged_people':1,
-      'feed.createdAt': 1,
-    },
-  },
-  {
-    $sort: {
-      'feed.createdAt': -1, 
-    },
-  },
-]);
-
-const mergedUsersWithPosts = [
-  ...usersWithPosts,
-  ...usersWithPostss,
-  ...usersWithPostsss,
-];
-
-const UsersWithPosts = Array.from(new Set(mergedUsersWithPosts.map(JSON.stringify))).map(JSON.parse);
-
-
-
-return res.status(200).json({ Status: true, message: 'Posts fetched successfully',UsersWithPosts})
-}catch(err){
-   
-   return res.status(400).json({Status:'Error',Error})
-}
-}
-
-
 exports.deletePost=async(req,res)=>{
   try{
 const {_id}=req.body
@@ -417,8 +286,433 @@ if(response){
   return res.status(400).json({Status:'Error',Error})
 }
 }
+// exports.getPostsOfAll=async(req,res)=>{
+//   try{
+//     const{user_id}=req.body
+// const data=await usermaster.findOne({_id:user_id})
+// const name=data.name
+
+// const postss = await post.find(
+//   { 'Tagged_people': data.name },
+//   { _id: 0, user_id: 1 }
+// );
+// const userIds = postss.map(post => post.user_id);
 
 
+
+
+// const user_ids=mongoose.Types.ObjectId(user_id)
+// const seeinconnections=await connection.find({'connections._id':user_ids},{_id:0,user_id:1})
+// const user_ids_array = seeinconnections.map(connection => connection.user_id);
+// const users = await usermaster.find({ _id: { $in: user_ids_array },connected:true },{_id:1});
+
+// const user_id_strings = users.map(user => user._id);
+
+// const ids = user_id.toString();
+
+// const blockedBy = await usermaster.find({'blockContact': ids}, {_id: 1});
+
+// const blockedIds = blockedBy.map(user => user._id)
+
+
+
+// const usersWithPostss= await usermaster.aggregate([
+//   {
+//     $match: {
+//       private: { $ne: true },
+//       connected: { $ne: true }, 
+//       _id:{$nin:blockedIds}
+//     }
+//   },
+//   {
+//     $lookup: {
+//       from: 'posts',
+//       localField: '_id',
+//       foreignField: 'user_id',
+//       as: 'feed',
+//     },
+//   },
+//   {
+//     $project: {
+//       _id: 1,
+//       name:1,
+//       addprounous:1,
+//       profile_img:1,
+//       'feed.Post_img': 1,
+//       'feed.user_id': 1,
+//       'feed.Post_discription':1,
+//       'feed._id':1,
+//       'feed.totallikesofpost':1,
+//       'feed.totalcomments':1,
+//       'feed.likedpeopledata':1,
+//       'feed.Tagged_people':1,
+//       'feed.createdAt': 1,
+//     },
+//   },
+//   {
+//     $sort: {
+//       'feed.createdAt': -1, 
+//     },
+//   },
+// ]);
+// const usersWithPosts= await usermaster.aggregate([
+//   {
+//     $match: {
+//      _id:{$in:user_id_strings},
+//      _id:{$nin:blockedIds},
+//      private: { $ne: true },
+    
+//     }
+//   },
+//   {
+//     $lookup: {
+//       from: 'posts',
+//       localField: '_id',
+//       foreignField: 'user_id',
+//       as: 'feed',
+//     },
+//   },
+//   {
+//     $project: {
+//       _id: 1,
+//       name:1,
+//       addprounous:1,
+//       profile_img:1,
+//       'feed.Post_img': 1,
+//       'feed.user_id': 1,
+//       'feed.Post_discription':1,
+//       'feed._id':1,
+//       'feed.totallikesofpost':1,
+//       'feed.totalcomments':1,
+//       'feed.likedpeopledata':1,
+//       'feed.Tagged_people':1,
+//       'feed.createdAt': 1,
+//     },
+//   },
+//   {
+//     $sort: {
+//       'feed.createdAt': -1,
+//     },
+//   },
+// ]);
+// const usersWithPostsss= await usermaster.aggregate([
+//   {
+//     $match: {
+//       $and: [
+//         { _id: { $in: userIds } },
+//         { _id: { $nin: blockedIds } }
+//       ]
+//     },
+//   },
+
+//   {
+//     $lookup: {
+//       from: 'posts',
+//       localField: '_id',
+//       foreignField: 'user_id',
+//       as: 'feed',
+//     },
+//   },
+//   {
+//     $project: {
+//       _id: 1,
+//       name:1,
+//       addprounous:1,
+//       profile_img:1,
+//       'feed.Post_img': 1,
+//       'feed.Post_discription':1,
+//       'feed._id':1,
+//       'feed.user_id': 1,
+//       'feed.totallikesofpost':1,
+//       'feed.totalcomments':1,
+//       'feed.likedpeopledata':1,
+//       'feed.Tagged_people':1,
+//       'feed.createdAt': 1,
+//     },
+//   },
+//   {
+//     $sort: {
+//       'feed.createdAt': -1, 
+//     },
+//   },
+// ]);
+
+// const mergedUsersWithPosts = [
+//   ...usersWithPosts,
+//   ...usersWithPostss,
+//   ...usersWithPostsss,
+// ];
+
+// const UsersWithPosts = Array.from(new Set(mergedUsersWithPosts.map(JSON.stringify))).map(JSON.parse);
+
+
+
+// return res.status(200).json({ Status: true, message: 'Posts fetched successfully',UsersWithPosts})
+// }catch(err){
+   
+//    return res.status(400).json({Status:'Error',Error})
+// }
+// }
+
+exports.getPostsOfAll = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    const data = await usermaster.findOne({ _id: user_id });
+    const name = data.name;
+
+    const postss = await post.find(
+      { 'Tagged_people': data.name },
+      { _id: 0, user_id: 1 }
+    );
+    const userIds = postss.map(post => post.user_id);
+
+    const user_ids = mongoose.Types.ObjectId(user_id);
+    const seeinconnections = await connection.find({ 'connections._id': user_ids }, { _id: 0, user_id: 1 });
+    const user_ids_array = seeinconnections.map(connection => connection.user_id);
+    const users = await usermaster.find({ _id: { $in: user_ids_array }, connected: true }, { _id: 1 });
+
+    const user_id_strings = users.map(user => user._id);
+ 
+
+    const ids = user_id.toString();
+
+    const blockedBy = await usermaster.find({ 'blockContact': ids }, { _id: 1 });
+
+    const blockedIds = blockedBy.map(user => user._id);
+
+    const usersWithPostss = await usermaster.aggregate([
+      {
+        $match: {
+          $and: [
+            { private: { $ne: true } },
+            { connected: { $ne: true } },
+            { _id: { $nin: data.blockContact } },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "posts",
+          let: { user_id: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$user_id", "$$user_id"] },
+              },
+            },
+            {
+              $sort: { createdAt: -1 },
+            },
+          ],
+          as: "feed",
+        },
+      },
+      {
+        $unwind: "$feed",
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          addprounous: 1,
+          profile_img: 1,
+          "feed.Post_img": 1,
+          "feed.Post_discription": 1,
+          "feed._id": 1,
+          "feed.user_id": 1,
+          "feed.totallikesofpost": 1,
+          "feed.totalcomments": 1,
+          "feed.likedpeopledata": 1,
+          "feed.Tagged_people": 1,
+          "feed.createdAt": 1,
+        },
+      },
+      {
+        $sort: {
+          "feed.createdAt": -1,
+        },
+      },
+    ]);
+
+    const usersWithPosts = await usermaster.aggregate([
+      {
+        $match: {
+          $and: [
+            { _id: { $in: user_id_strings } },
+            { _id: { $nin: blockedIds } }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'posts',
+          localField: '_id',
+          foreignField: 'user_id',
+          as: 'feed',
+        },
+      },
+      {
+        $unwind: "$feed",
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          addprounous: 1,
+          profile_img: 1,
+          "feed.Post_img": 1,
+          "feed.Post_discription": 1,
+          "feed._id":          1,
+          "feed.user_id": 1,
+          "feed.totallikesofpost": 1,
+          "feed.totalcomments": 1,
+          "feed.likedpeopledata": 1,
+          "feed.Tagged_people": 1,
+          "feed.createdAt": 1,
+        },
+      },
+      {
+        $sort: {
+          "feed.createdAt": -1,
+        },
+      },
+    ]);
+
+    const usersWithPostsss = await usermaster.aggregate([
+      {
+        $match: {
+          $and: [
+            { _id: { $in: userIds } },
+            { _id: { $nin: blockedIds } }
+          ]
+        },
+      },
+      {
+        $lookup: {
+          from: "posts",
+          let: { user_id: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$user_id", "$$user_id"] },
+                    { $in: [name, "$Tagged_people"] }
+                  ]
+                },
+              },
+            },
+            {
+              $sort: { createdAt: -1 },
+            },
+          ],
+          as: "feed",
+        },
+      },
+      {
+        $unwind: "$feed",
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          addprounous: 1,
+          profile_img: 1,
+          "feed.Post_img": 1,
+          "feed.Post_discription": 1,
+          "feed._id": 1,
+          "feed.user_id": 1,
+          "feed.totallikesofpost": 1,
+          "feed.totalcomments": 1,
+          "feed.likedpeopledata": 1,
+          "feed.Tagged_people": 1,
+          "feed.createdAt": 1,
+        },
+      },
+      {
+        $sort: {
+          "feed.createdAt": -1,
+        },
+      },
+    ]);
+
+    const mergedUsersWithPosts = [
+      ...usersWithPosts,
+      ...usersWithPostss,
+      ...usersWithPostsss,
+    ];
+
+    const UsersWithPosts = Array.from(new Set(mergedUsersWithPosts.map(JSON.stringify))).map(JSON.parse);
+
+    return res.status(200).json({ Status: true, message: 'Posts fetched successfully', UsersWithPosts });
+  } catch (err) {
+    return res.status(400).json({ Status: 'Error', Error: err });
+  }
+};
+
+
+
+exports.getAllPostsofMe = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+    const id = await usermaster.findOne({ _id: user_id });
+    const results = await usermaster.aggregate([
+      {
+        $match: {
+          _id: id._id,
+        },
+      },
+      {
+        $lookup: {
+          from: 'posts',
+          localField: '_id',
+          foreignField: 'user_id',
+          as: 'posts',
+        },
+      },
+      {
+        $unwind: '$posts',
+      },
+      {
+        $sort: {
+          'posts.createdAt': -1, // Sort in descending order based on createdAt field
+        },
+      },
+      {
+        $group: {
+          _id: '$_id',
+          name: { $first: '$name' },
+          profile_img: { $first: '$profile_img' },
+          occupation: { $first: '$occupation' },
+          posts: { $push: '$posts' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          profile_img: 1,
+          occupation: 1,
+          'posts.Post_img': 1,
+          'posts.Post_discription': 1,
+          'posts._id': 1,
+          'posts.totallikesofpost': 1,
+          'posts.totalcomments': 1,
+          'posts.likedpeopledata': 1,
+        },
+      },
+    ]);
+
+    if (results) {
+      return res.status(200).json({ Status: true, message: 'post fetched successfully', results });
+    } else {
+      return res.status(400).json({ Status: false, message: 'error fetching the file' });
+    }
+  } catch (err) {
+    return res.status(400).json({ Status: 'Error', Error });
+  }
+};
 
 
 

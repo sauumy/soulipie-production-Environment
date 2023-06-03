@@ -136,20 +136,19 @@ exports.chaneNumber = async (req, res) => {
       if (!req.body.mobilenumber||!req.body._id) {
         return res.status(406).send({ Status: false, message: 'Mobilenumber&name is required field' });
       } else {
+        const data=await Users.findOne({mobilenumber:req.body.mobilenumber})
+        if(data){
+            return res.status(406).send({ Status: false, message: 'This Number Is already Exists' });
+        }else{
         let account;
         account = await Users.findOne({_id:req.body._id});
         if (!account) {
-          return res.status(406).send({ Status: false, message: 'You dont have any account' });
+          return res.status(406).send({ Status: false, message: 'You donot have any account' });
         } else {
-        const existmobilenumber=account.mobilenumber
-     
-        if(req.body.mobilenumber==existmobilenumber){
-            return res.status(406).send({ Status: false, message: 'this your current mobilenumber' });
-        }else{
             return res.status(406).send({ Status: true, message: 'otp sent Successfully on the number' });
-        }
       }
     }
+}
 }catch(err){
        return res.status(400).send({Status:'Error',message:'somthing went wrong'})
       }  

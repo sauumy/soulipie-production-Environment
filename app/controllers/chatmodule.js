@@ -129,106 +129,9 @@ const data1=await usermaster.findOne({_id:report_id})
      }
     }
 }catch(err){
-    
     return res.status(400).json({status:'Error',message:'somthing went wrong',err})
 }
 }
-
-
-exports.messageHistory = async (req, res) => {
-  var sender_id = req.body.sender_id;
-  try {
-    const result = await chatModule.find(
-      { sender_id: { $eq: sender_id } },
-      { _id: 0, room_id: 1, other_id: 1, sender_id: 1 }
-    );
-
-    const other_id1 = result.map((doc) => doc.other_id);
-
-    const result5 = await chatModule.find(
-      { other_id: { $eq: sender_id } },
-      { _id: 0, room_id: 1, sender_id: 1 }
-    );
-
-    const sender_id1 = result5.map((doc) => doc.sender_id);
-
-    const roomIds3 = result5.map((doc) => doc.room_id);
-
-    const roomIds = result.map((doc) => doc.room_id);
-
-    const result1Promise = chatModule.aggregate([
-      {
-        $match: {
-          other_id: { $in: other_id1 },
-          room_id: { $in: roomIds },
-        },
-      },
-      {
-        $lookup: {
-          from: "usermasters",
-          localField: "other_id",
-          foreignField: "_id",
-          as: "otherdata",
-        },
-      },
-      {
-        $lookup: {
-          from: "storemsgs",
-          localField: "room_id",
-          foreignField: "room_id",
-          as: "data",
-        },
-      },
-    ]);
-
-    const result2Promise = chatModule.aggregate([
-      {
-        $match: {
-          sender_id: { $in: sender_id1 },
-          room_id: { $in: roomIds3 },
-        },
-      },
-      {
-        $lookup: {
-          from: "usermasters",
-          localField: "sender_id",
-          foreignField: "_id",
-          as: "otherdata",
-        },
-      },
-      {
-        $lookup: {
-          from: "storemsgs",
-          localField: "room_id",
-          foreignField: "room_id",
-          as: "data",
-        },
-      },
-    ]);
-
-    const [result8, result9] = await Promise.all([
-      result1Promise,
-      result2Promise,
-    ]);
-
-    const combinedResult = [...result8, ...result9];
-
-    const response = combinedResult;
-
-    if (response) {
-      res.send({ status: true, message: "Get Data Succesfully", response });
-    } else {
-      res.status(400).send({ message: "somthing is wrong", err });
-    }
-  } catch (err) {
-   
-    return res
-      .status(400)
-      .json({ status: "Error", message: "somthing went wrong", err });
-  }
-};
-
-
 exports.createChat=async(req,res)=>{
   try{
     const {sender_id,other_id}=req.body
@@ -238,8 +141,8 @@ exports.createChat=async(req,res)=>{
     else{
       const isuser = await usermaster.findOne({ _id: sender_id })
       const isotherUser = await usermaster.findOne({ _id: other_id })
-      const isuserblocked = isuser.blockContact.includes(other_id);
-      const isotheruserblocked = isotherUser.blockContact.includes(sender_id);
+      const isuserblocked = isuser.blockContact.includes(other_id)|| false
+      const isotheruserblocked = isotherUser.blockContact.includes(sender_id)|| false
         if(isuserblocked||isotheruserblocked){
           res.send({status:false,Message: "Blocked Contact, cannot createChat" })
         }else{
@@ -363,3 +266,337 @@ if(sender_id.length>10){
       return res.status(400).send({ErrorMessage:"somthing error"})
   }
 } 
+
+// exports.messageHistory = async (req, res) => {
+//   var sender_id = req.body.sender_id;
+//   try {
+//     const result = await chatModule.find(
+//       { sender_id: { $eq: sender_id } },
+//       { _id: 0, room_id: 1, other_id: 1, sender_id: 1 }
+//     );
+
+//     const other_id1 = result.map((doc) => doc.other_id);
+
+//     const result5 = await chatModule.find(
+//       { other_id: { $eq: sender_id } },
+//       { _id: 0, room_id: 1, sender_id: 1 }
+//     );
+
+//     const sender_id1 = result5.map((doc) => doc.sender_id);
+
+//     const roomIds3 = result5.map((doc) => doc.room_id);
+
+//     const roomIds = result.map((doc) => doc.room_id);
+
+// // ...
+
+// const result1Promise = chatModule.aggregate([
+//   {
+//     $match: {
+//       other_id: { $in: other_id1 },
+//       room_id: { $in: roomIds },
+//     },
+//   },
+//   {
+//     $lookup: {
+//       from: "usermasters",
+//       localField: "other_id",
+//       foreignField: "_id",
+//       as: "otherdata",
+//     },
+//   },
+//   {
+//     $lookup: {
+//       from: "storemsgs",
+//       localField: "room_id",
+//       foreignField: "room_id",
+//       as: "data",
+//     },
+//   },
+//   {
+//     $unwind: "$data" // Unwind the "data" array field
+//   },
+//   {
+//     $sort: { "data.createdAt": -1 } // Sort based on "createdAt" field in descending order
+//   },
+//   {
+//     $group: {
+//       _id: "$_id",
+//       // ... Include other fields you want to keep
+//       room_id: { $first: "$room_id" },
+//       other_id: { $first: "$other_id" },
+//       sender_id: { $first: "$sender_id" },
+//       otherdata: { $first: "$otherdata" },
+//       data: { $push: "$data" } // Push sorted "data" array back
+//     }
+//   },
+// ]);
+
+// const result2Promise = chatModule.aggregate([
+//   {
+//     $match: {
+//       sender_id: { $in: sender_id1 },
+//       room_id: { $in: roomIds3 },
+//     },
+//   },
+//   {
+//     $lookup: {
+//       from: "usermasters",
+//       localField: "sender_id",
+//       foreignField: "_id",
+//       as: "otherdata",
+//     },
+//   },
+//   {
+//     $lookup: {
+//       from: "storemsgs",
+//       localField: "room_id",
+//       foreignField: "room_id",
+//       as: "data",
+//     },
+//   },
+//   {
+//     $unwind: "$data" // Unwind the "data" array field
+//   },
+//   {
+//     $sort: { "data.createdAt": -1 } // Sort based on "createdAt" field in descending order
+//   },
+//   {
+//     $group: {
+//       _id: "$_id",
+//       // ... Include other fields you want to keep
+//       room_id: { $first: "$room_id" },
+//       sender_id: { $first: "$sender_id" },
+//       otherdata: { $first: "$otherdata" },
+//       data: { $push: "$data" } // Push sorted "data" array back
+//     }
+//   },
+// ]);
+
+// // ...
+
+    
+
+//     const [result8, result9] = await Promise.all([
+//       result1Promise,
+//       result2Promise,
+//     ]);
+
+//     const combinedResult = [...result8, ...result9];
+
+//     const response = combinedResult;
+
+//     if (response) {
+//       res.send({ status: true, message: "Get Data Succesfully", response });
+//     } else {
+//       res.status(400).send({ message: "somthing is wrong", err });
+//     }
+//   } catch (err) {
+   
+//     return res
+//       .status(400)
+//       .json({ status: "Error", message: "somthing went wrong", err });
+//   }
+// };
+
+// exports.messageHistory = async (req, res) => {
+//   var sender_id = req.body.sender_id;
+//   try {
+//     const result = await chatModule.find(
+//       { sender_id: { $eq: sender_id } },
+//       { _id: 0, room_id: 1, other_id: 1, sender_id: 1 }
+//     );
+
+//     const other_id1 = result.map((doc) => doc.other_id);
+
+//     const result5 = await chatModule.find(
+//       { other_id: { $eq: sender_id } },
+//       { _id: 0, room_id: 1, sender_id: 1 }
+//     );
+
+//     const sender_id1 = result5.map((doc) => doc.sender_id);
+
+//     const roomIds3 = result5.map((doc) => doc.room_id);
+
+//     const roomIds = result.map((doc) => doc.room_id);
+
+//     const result1Promise = chatModule.aggregate([
+//       {
+//         $match: {
+//           other_id: { $in: other_id1 },
+//           room_id: { $in: roomIds },
+//         },
+//       },
+//       {
+//         $lookup: {
+//           from: "storemsgs",
+//           localField: "room_id",
+//           foreignField: "room_id",
+//           as: "data",
+//         },
+//       },
+//       {
+//         $lookup: {
+//           from: "usermasters",
+//           localField: "other_id",
+//           foreignField: "_id",
+//           as: "otherdata",
+//         },
+//       },
+//     ]);
+
+//     const result2Promise = chatModule.aggregate([
+//       {
+//         $match: {
+//           sender_id: { $in: sender_id1 },
+//           room_id: { $in: roomIds3 },
+//         },
+//       },
+//       {
+//         $lookup: {
+//           from: "storemsgs",
+//           localField: "room_id",
+//           foreignField: "room_id",
+//           as: "data",
+//         },
+//       },
+//       {
+//         $lookup: {
+//           from: "usermasters",
+//           localField: "other_id",
+//           foreignField: "_id",
+//           as: "otherdata",
+//         },
+//       },
+//     ]);
+
+//     const [result8, result9] = await Promise.all([
+//       result1Promise,
+//       result2Promise,
+//     ]);
+
+//     const combinedResult = [...result8, ...result9];
+
+//     // Sort the combinedResult based on the createdAt property of the most recent message in the data array
+//     combinedResult.sort((a, b) => {
+//       const aRecentMessage = a.data.length > 0 ? a.data[a.data.length - 1].createdAt : 0;
+//       const bRecentMessage = b.data.length > 0 ? b.data[b.data.length - 1].createdAt : 0;
+//       return bRecentMessage - aRecentMessage;
+//     });
+
+//     const response = combinedResult;
+
+//     if (response) {
+//       res.send({ status: true, message: "Get Data Successfully", response });
+//     } else {
+//       res.status(400).send({ message: "Something is wrong", err });
+//     }
+//   } catch (err) {
+//     return res
+//       .status(400)
+//       .json({ status: "Error", message: "Something went wrong", err });
+//   }
+// };
+
+
+     
+exports.messageHistory = async (req, res) => {
+  var sender_id = req.body.sender_id;
+  try {
+    const result = await chatModule.find(
+      { sender_id: { $eq: sender_id } },
+      { _id: 0, room_id: 1, other_id: 1, sender_id: 1 }
+    );
+
+    const other_id1 = result.map((doc) => doc.other_id);
+
+    const result5 = await chatModule.find(
+      { other_id: { $eq: sender_id } },
+      { _id: 0, room_id: 1, sender_id: 1 }
+    );
+
+    const sender_id1 = result5.map((doc) => doc.sender_id);
+
+    const roomIds3 = result5.map((doc) => doc.room_id);
+
+    const roomIds = result.map((doc) => doc.room_id);
+
+    const result1Promise = chatModule.aggregate([
+      {
+        $match: {
+          other_id: { $in: other_id1 },
+          room_id: { $in: roomIds },
+        },
+      },
+      {
+        $lookup: {
+          from: "storemsgs",
+          localField: "room_id",
+          foreignField: "room_id",
+          as: "data",
+        },
+      },
+      {
+        $lookup: {
+          from: "usermasters",
+          localField: "other_id",
+          foreignField: "_id",
+          as: "otherdata",
+        },
+      },
+    ]);
+
+    const result2Promise = chatModule.aggregate([
+      {
+        $match: {
+          sender_id: { $in: sender_id1 },
+          room_id: { $in: roomIds3 },
+        },
+      },
+      {
+        $lookup: {
+          from: "storemsgs",
+          localField: "room_id",
+          foreignField: "room_id",
+          as: "data",
+        },
+      },
+      {
+        $lookup: {
+          from: "usermasters",
+          localField: "sender_id",
+          foreignField: "_id",
+          as: "otherdata",
+        },
+      },
+    ]);
+
+    const [result8, result9] = await Promise.all([
+      result1Promise,
+      result2Promise,
+    ]);
+
+    const combinedResult = [...result8, ...result9];
+
+    combinedResult.sort((a, b) => {
+      const aRecentMessage = a.data.length > 0 ? a.data[a.data.length - 1].createdAt : 0;
+      const bRecentMessage = b.data.length > 0 ? b.data[b.data.length - 1].createdAt : 0;
+      return bRecentMessage - aRecentMessage;
+    });
+
+    const filteredResult = combinedResult.filter(item => item.data.length > 0);
+
+    if (filteredResult.length > 0) {
+      res.send({ status: true, message: "Get Data Successfully", response: filteredResult });
+    } else {
+      res.status(400).send({ message: "No data found" });
+    }
+  } catch (err) {
+    return res
+      .status(400)
+      .json({ status: "Error", message: "Something went wrong", err });
+  }
+};
+
+
+

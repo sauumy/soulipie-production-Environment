@@ -21,17 +21,23 @@ app.use(function (req, res, next) {
 const http=require('http');
 const server = http.createServer(app);
 const io = require('socket.io')(server);
-//const path=require('path');
-//const staticPath=path.join(__dirname,'/public');
+const path=require('path');
+const staticPath=path.join(__dirname,'/public');
 const dbConfig = require('./config/database.config.js');
 const mongoose = require('mongoose');
-// app.use(express.static(staticPath))
-// app.get('', function(req, res,next) {  
-//     res.sendFile(__dirname + "/public/index.html");
-// });
+app.use(express.static(staticPath))
+app.get('', function(req, res,next) {  
+    res.sendFile(__dirname + "/public/index.html");
+});
 let usersJoin={}
 io.on('connection',(socket)=>{
-  
+    console.log('Socket connected:', socket.id);
+    socket.on('userLoggedIn', ({ userId }) => {
+        console.log(`User logged in: ${userId}`);
+        usersJoin[socket.id] = userId;
+    
+        io.emit('userStatusChanged', { userId, status: 'online' });
+      });
     socket.on('joinRoom',(room)=>{
        
         socket.join(room);
@@ -74,14 +80,16 @@ io.on('connection',(socket)=>{
                 io.to(data.room_id).emit('user audio',{ ...data, time: new Date().toLocaleTimeString() })
             })
 	
-socket.on('disconnect',()=>{
-    let id=usersJoin[socket.id];
-    let time = new Date().toLocaleString();
-   
-    delete usersJoin[socket.id];
-    io.emit('userLeft', {id, time});
- });
-})
+            socket.on('disconnect', () => {
+                if (usersJoin.hasOwnProperty(socket.id)) {
+                  const userId = usersJoin[socket.id];
+                  let time = new Date().toLocaleString();
+            
+                  delete usersJoin[socket.id];
+                  io.emit('userStatusChanged', { userId, time ,status:'offline'});
+                }
+              });
+            });
 mongoose.Promise = global.Promise;
 mongoose.connect(dbConfig.url, {
     useNewUrlParser: true
@@ -95,9 +103,9 @@ const route =require('./app/routers/index');
 const databaseConfig = require('./config/database.config.js');
 app.use('/', route);
 
-// app.get('/', (req, res) => {
-//     res.json({"message": "This is for testing"});
-// });
+app.get('/', (req, res) => {
+    res.json({"message": "This is for testing"});
+});
 
 server.listen(4000,()=>
 {
