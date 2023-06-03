@@ -198,7 +198,7 @@ exports.viewpost = async (req, res) => {
     } else {
       const postResult = await post.findOne({ _id: post_id });
       const user_id = postResult.user_id;
-      const userDetails = await usermaster.findOne({ _id: user_id }, { _id: 0, name: 1, profile_img: 1, private:1, connected:1 });
+      const userDetails = await usermaster.findOne({ _id: user_id }, { _id: 0, name: 1, profile_img: 1, addprounous:1, private:1, connected:1 });
      
       if(userDetails.private===true){
         return res.status(400).json({ status: false, message: 'This Account is Private' });
