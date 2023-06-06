@@ -71,6 +71,8 @@ route.delete('/deleteComment',registrationController.deleteComment)
 route.post('/addReplyComment',registrationController.addReplyComment)
 route.post('/replyCommentlike',registrationController.replyCommentlike)
 route.post('/reportPost',postsController.reportPost)
+route.post('/bockPost',postsController.bockPost)
+route.post('/feedback',postsController.feedback)
 //storyModule
 route.post('/addstoryImage',uploadimagestory.array('story_img'),compressedImgstory,storyController.addstoryImage)
 route.post('/addstoryVideo',uploadVideoStory.array('story_video'),compressVideoStroy,storyController.addstoryVideo)
