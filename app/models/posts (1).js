@@ -36,6 +36,10 @@ const userSchema = new Schema({
     likedpeopledata:{
         type:Array,
         defualt:" "
+    },
+    post_blocked:{
+        type:Array,
+        defualt:[ ]
     }
 
 },{ timestamps: true });
