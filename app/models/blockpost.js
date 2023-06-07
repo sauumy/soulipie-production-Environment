@@ -3,21 +3,20 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
+    post_owner:{
+        type:Schema.Types.ObjectId
+    },
 post_id:{
     type:Schema.Types.ObjectId,
     default:" "
 },
-reporter_id:{
+blocker_id:{
     type:Schema.Types.ObjectId,
     default:" "
 },
-reportreason:{
+blocking_reason:{
 type:String,
 default:''
-},
-reporter_email:{
-    type:String,
-    default:''  
 }
 },{ timestamps: true });
-module.exports = mongoose.model('reportpost', userSchema, 'reportpost');
+module.exports = mongoose.model('blockpost', userSchema, 'blockpost');

@@ -1,22 +1,22 @@
 
 const tokenService = require('./app/services/jwt-service')
-const Refresh = require('./app/models/refresh-model') //RefreshModel for Token
+const Refresh = require('./app/models/refresh-model') 
 
 const VerifyJwtToken = async(req,res,next)=>{
     try{
-        //console.log(req.cookies);
+        
         const accessToken = req.headers['authorization'].split(' ')[1]
         if(!accessToken){
             console.log("accessToken",accessToken);
             throw new Error();
         }
         let account = await Refresh.findOne({token:accessToken})
-        //console.log("account",account);
+        
         if(!account){
             return res.status(401).json({Status:false,message:'You are Logout Please Login'})
         }else{
             const userData = tokenService.verifyAccessToken(accessToken)
-           // console.log(userData);   
+            
 
             if(!userData){
                 throw new Error();

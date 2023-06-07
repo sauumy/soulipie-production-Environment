@@ -9,26 +9,25 @@ const connection=require('../models/requests')
 const notifications=require('../models/notification')
 const users=require('../models/connection')
 const admin = require('firebase-admin');
-const serviceAccount = require('../../soulipie-6f717-firebase-adminsdk-eys0f-34c77da671.json');
+const serviceAccount = require('../../soulipie-6f717-firebase-adminsdk-eys0f-f8f76936ff.json');
 const post=require("../models/posts")
 const likespost=require('../models/likespost')
 const comment=require('../models/comments');
 const replycomment=require('../models/replycomment')
 const storeMsg=require('../models/storemssage')
 const {chatModule}=require('../models/chatmodule')
+const mongoose=require('mongoose');
+
 
 const notification = require('../models/notification');
 
+
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://soulipie-9ac7d-default-rtdb.firebaseio.com"
-  });
+  credential: admin.credential.cert(serviceAccount)
+});
 
   const messaging = admin.messaging();
   const fetch = require('node-fetch');
-
-
-
   
 exports.deeplink = async (req, res) => {
     try {
@@ -51,128 +50,27 @@ exports.deeplink = async (req, res) => {
         }),
       });
      const data = await response.json();
-      console.log(`Generated Dynamic Link: ${data.shortLink}`);
+   
       
       res.json({Status:true,message:"deep link created",shortLink: data.shortLink,_id: _id,});
-    } catch (error) {console.error(error);
+    } catch (error) {
       res.status(500).json({message: 'An error occurred while generating the Dynamic Link.',
       });
     }
-  };
-
-
-  
-
-
-//     try{  
-//         if(req.body.email){
-//             if(!req.body.email){
-//                 return res.status(406).send({Status:false,message:'Email is required field'})
-//             }
-//             else{
-//             let account;
-//             account = await chaservice.findAccount(req.body.email)
-//             if(account){
-//                 return res.status(406).send({Status:false,message:'You have already registerd with souliepie please login'})
-//             }
-//             else if(!account){
-//         const user=new Users({
-//             email:req.body.email,
-//         });
-       
-//         if(user)
-//             {
-//                 const account1 = await user.save()
-//                 account= account1 
-//                 account = await chaservice.findByMobileNumber(req.body.mobilenumber)
-//                 const Authorization  = jwtTokenService.generateJwtToken({user_id:account._id,LoggedIn:true})
-//                 await jwtTokenService.storeRefreshToken(Authorization,account._id)
-                                     
-//                                      let otp = Math.floor(1000 + Math.random() * 9000);
-//                                      const emails = await service.sendmail(req.body.email,otp)                  
-//                 let time = 1000*60*5
-//                 let expires = Date.now()+time
-//                 let data = `${req.body.email}.${otp}.${expires}`
-//                 let result = otpService.hashData(data)
-//                                     return res.status(200).send({
-//                                         Status:true,
-//                                         message:'otp send sucessfully on email',
-//                                         name:req.body.name,
-//                                         hashdata:`${result}.${expires}`,
-//                                         otp,
-//                                         email:req.body.email
-//                                     })
-                                    
-//                                 }else{
-//                                     return res.status(400).send({Status:false,message:'account is not found',Error})
-//                                 }
-//                             }
-          
-//         }
-//     }
-//        else  if(req.body.mobilenumber){
-//       if(!req.body.mobilenumber){
-//             return res.status(406).send({Status:false,message:'Mobilenumber is required field'})
-//         }
-//         else {
-//             let account;
-//             account = await chaservice.findByMobileNumber(req.body.mobilenumber)
-//             if(account){
-//                 return res.status(406).send({Status:false,message:'You have already registerd with souliepie please login'})
-//             }
-//             else{
-//             if (!account){
-//                 const user=new Users({   
-//                     mobilenumber:req.body.mobilenumber,
-                    
-                     
-//                           })
-                          
-                          
-                          
-//                             const account1 = await user.save()
-//                             account= account1 
-//                             account = await chaservice.findByMobileNumber(req.body.mobilenumber)
-//                             const Authorization  = jwtTokenService.generateJwtToken({user_id:account._id,LoggedIn:true})
-//                             await jwtTokenService.storeRefreshToken(Authorization,account._id)
-                
-//             }
-//         }
-    
-//             let mobilenumber;
-           
-//             let otp = otpService.generateOtp(1000,9999)
-            
-//                    mobilenumber = await service.sendOtpOnMobile(req.body.mobilenumber,otp)
-                
-//                 let time = 1000*60*5
-//                 let expires = Date.now()+time
-//                 let data = `${req.body.mobilenumber}.${otp}.${expires}`
-//                 let result = otpService.hashData(data)
-//                 if(mobilenumber===true){
-//                     return res.status(200).send({
-//                         Status:true,
-//                         message:'otp send sucessfully on mobilenumber',
-//                         name:req.body.name,
-//                         hashdata:`${result}.${expires}`,
-//                         otp,
-//                         mobilenumber:req.body.mobilenumber,
-                        
-//                     })
-//                 }
-//                 else{
-//                     return res.status(406).send({Status:false,message:'name ormobilenumber is not Valid'})
-//                 }
-           
-            
-//     }
-//     }
-// }
-//     catch(err){
-//          console.log('registrtion error',err);
-//         return res.status(400).send({Status:'Error',message:'somthing went wrong'})
-//        }                    
-//  };
+}  
+  exports.healthcheck = async (req, res) => {
+    const healthcheck = {
+        uptime: process.uptime(),
+        message: 'OK',
+        timestamp: Date.now()
+    };
+    try {
+        res.send(healthcheck);
+    } catch (error) {
+        healthcheck.message = error;
+        res.status(503).send();
+    }
+}
 exports.callID=async(req,res)=>{
     try{
 const {host_id,joiner_id,callerId}=req.body
@@ -181,7 +79,7 @@ if(!host_id|| !joiner_id){
     res.send({ErrorMessage:"Please Before Provide user_id and other_id"})
    }
 else{
-console.log(host_id,typeof host_id ,joiner_id,typeof joiner_id)
+
 if(host_id.length>10){
      let l = host_id.length 
      if(l===12){
@@ -200,12 +98,12 @@ if(host_id.length>10){
         joiner_id = joiner_id.substring(3)
       }
   }
-console.log(joiner_id,host_id)
+
   var response=await callerID.find({
         $or:[{host_id:host_id,joiner_id:joiner_id},{host_id:joiner_id,joiner_id:host_id}]
   });
   if(response.length!=0){
- console.log(response)
+
       res.status(200).send({status:"Success",message:"room created",response})
   }
 
@@ -219,7 +117,7 @@ console.log(joiner_id,host_id)
     const result=await user.save();
      if(result)
      {
-  console.log(result)
+ 
   let response=[result]
           res.send({status:"Success",message:"room created",response})
      }
@@ -230,14 +128,13 @@ console.log(joiner_id,host_id)
 }
 }
     catch(err){
-         console.log('LoginViaOtperror',err);
+      
         return res.status(400).send({Status:'Error',message:'somthing went wrong'})
        }                    
  
-    }
-
-
+}
 exports.otpVerify = async (req, res) => {
+
 try{
     const {mobilenumber} = req.body
      if(mobilenumber){
@@ -253,19 +150,17 @@ try{
         }
         
         }else{
-                    return res.status(400).send({Status:'false',message:'otp verified already'})
+                    const response=await Users.findOne({mobilenumber:mobilenumber})
+                    return res.status(400).send({Status:'false',message:'otp verified already',response})
         }
 }else{
   return res.status(400).send({Status:'false',message:'please provide mobilenumber'})
 }
 }catch(err){
-    console.log(err);
+   
     return res.status(400).send({Status:'false',message:'somthing went wrong'})
            }
 }
-
-
-
 exports.registration = async (req, res) => {
   try{ 
    const {mobilenumber,token}=req.body
@@ -281,9 +176,9 @@ exports.registration = async (req, res) => {
     if(otp==='true'&&profile==='true'){
       return res.status(400).send({Status:false,message:'You have already registerd with the Soulipie'})
     }else if (otp==='true'&&profile==='false'){
-      return res.status(400).send({Status:false,message:'otp verified'})
+      return res.status(400).send({Status:false,message:'OTP verified'})
     }else if(otp==='false'&&profile==='false'){
-      return res.status(400).send({Status:true,message:'Otp sent on mobile Successfully'})
+      return res.status(200).send({Status:true,message:'Otp sent on mobile Successfully'})
     }
    }else{
     const user=new Users({
@@ -300,12 +195,10 @@ exports.registration = async (req, res) => {
   }
 } 
 catch(err){
-       console.log('registrtion error',err);
+       
       return res.status(400).send({Status:'Error',message:'somthing went wrong'})
      }                    
-};
-  
-
+}  
 exports.sendRequest=async (req, res) => {
     
       try {
@@ -337,10 +230,10 @@ exports.sendRequest=async (req, res) => {
         const sender = await Users.findOne({ _id: fromUser },{_id:1,profile_img:1,token:1,name:1});
         const profile_img=sender.profile_img
         const name=sender.name
-        console.log(name)
+     
         const data=await Users.findOne({_id:toUser},{_id:0,token:1})
         const token=data.token
-        console.log(token)
+      
       const touser=await users.findOne({user_id:toUser})
       if(touser){
         const update=await users.findOneAndUpdate({user_id:toUser},{$push:{totalrequest:sender}})
@@ -348,17 +241,21 @@ exports.sendRequest=async (req, res) => {
         if(update){
           const notification = {
               title: 'Soulipie',
-              body: `${name} would like to connect with you.`,
-              icon: profile_img,
+              body: `${name} would like to connect with you`,
+              icon:profile_img
             };
+            const data={
+              page_name:'Notification'
+            }
             if(notification){
               const noti=new notifications({
                 user_id:toUser,
+                requested_id:fromUser,
                 request:notification
               })
               await noti.save()
             }
-          await admin.messaging().sendToDevice(token,{notification});
+          await admin.messaging().sendToDevice(token,{notification,data});
           return res.status(200).json({status:true, message: 'Connection request sent successfully',response,notification});
         }
       }
@@ -372,17 +269,18 @@ exports.sendRequest=async (req, res) => {
           if(requestsent){
         const notification = {
             title: 'Soulipie',
-            body: `${name} would like to connect with you.`,
-            icon: profile_img,
+            body: `${name} would like to connect with you`,
+            icon:profile_img
           }
           const data={
-            page_name:'send_request'
+            page_name:'Notification'
           }
         
           if(notification){
             
             const noti=new notifications({
               user_id:toUser,
+              requested_id:fromUser,
               request:notification
             })
             await noti.save()
@@ -394,128 +292,58 @@ exports.sendRequest=async (req, res) => {
     } 
   }
   }catch (error) {
-        console.log(error);
+       
         return res.status(500).json({ status:false,message: 'Internal server error.' });
       }
-    }
-
+}
   exports.requestCount=async(req, res)=>{
   try {
   const {_id}=req.params
    const request=await users.findOne({user_id:_id},{totalrequest:1,_id:0})
-  const requests=request.totalrequest
-  const requestcount=requests.length
-  if(request){
-  return res.status(200).json({status:true, message: 'requests fetch successfully.',requestcount });
+   if (request && request.totalrequest !== null) {
+    const requests = request.totalrequest;
+    const requestCount = requests.length;
+  return res.status(200).json({status:true, message: 'requests fetch successfully.',requestCount });
   }else{
       return res.status(400).json({ status:false,message: 'Counldnt sind any request' });
   }
   
   }catch (error) {
-              console.log(error);
+             
               return res.status(500).json({status:false, message: 'Internal server error.' });
       }
-  }
-  exports.getRequest=async(req, res)=>{
+}
+  exports.getRequest = async (req, res) => {
     try {
-    const {_id}=req.params
-     const request=await users.findOne({user_id:_id},{totalrequest:1,_id:0})
-    const requests=request.totalrequest
-    
-    if(request){
-    return res.status(200).json({status:true, message: 'requests fetch successfully.',requests });
-    }else{
-        return res.status(400).json({ status:false,message: 'Counldnt sind any request' });
-    }
-    
-    }catch (error) {
-                console.log(error);
-                return res.status(500).json({status:false, message: 'Internal server error.' });
-        }
-    }
-   
-  exports.acceptRequest=async (req, res) => {
-       try {
-        
-        const { fromUser, toUser } = req.body;
-        const filter = {
-          $and: [
-            {
-              fromUser:fromUser,
-       toUser:toUser
-
-            },
-            {
-              requestPending: true
-            }
-          ]
-        };
-        const requestExists = await connection.findOne(filter);
-        if (!requestExists) {
-          return res.status(400).json({status:false, message: 'Connection request does not exist.' });
-        }
-    else{
-       
-        const update = { $set: { requestPending: false } };
-        const accept = await connection.updateOne(filter,update);
-        
-        if(accept){
-        const receiver=await Users.findOne({_id:toUser})
-        const name=receiver.name
-        const profile_img=receiver.profile_img
-        const sender = await Users.findOne({ _id: fromUser },{_id:1,profile_img:1,token:1,name:1});
-        const token = sender.token;
-        if(sender){
-        const totalrequest=await users.updateOne({user_id:toUser},{$pull:{totalrequest:sender}})
-       
-        console.log(totalrequest)
-        if(totalrequest){
-          const connection=await users.updateOne({user_id:toUser},{$push:{connections:sender}})
-          if(connection){
-              const notification = {
-                  title: 'Soulipie',
-                  body: `${name} accepte you request connection.`,
-                  icon:profile_img
-                };
-                if(notification){
-                  const noti=new notifications({
-                    user_id:fromUser,
-                    accpeted:notification
-                  })
-                  await noti.save()
-                }
-               
-              await admin.messaging().sendToDevice(token,{notification});
-        return res.status(200).json({status:true, message: `Connection request accepted successfully.`,notification});
-      } else{
-        return res.status(400).json({ status:false,message: 'something wrog while accepting' });
+      const { _id } = req.params;
+      const request = await users
+        .findOne({ user_id: _id }, { totalrequest: 1, _id: 0 });
+      let requests = request?.totalrequest;
+      if (requests) {
+        requests.sort((a, b) => a.createdAt - b.createdAt); // Sort requests based on timing
+        requests.reverse(); // Reverse the order of the array
+        return res.status(200).json({ status: true, message: 'Requests fetched successfully.', requests });
+      } else {
+        return res.status(400).json({ status: false, message: 'Could not find any request' });
       }
-    }else{
-      return res.status(400).json({ status:false,message: 'Connection request error.' });
+    } catch (error) {
+      return res.status(500).json({ status: false, message: 'Internal server error.' });
     }
-  }
-}
-}
-}catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: 'Internal server error.' });
-      }
-    }
+}  
 exports.getNotification=async(req,res)=>{
   try{
     const {_id}=req.params
-    const response =await notifications.find({user_id:_id})
+    const response =await notifications.find({user_id:_id}).sort({ createdAt: -1 });
     if(response){
       return res.status(200).json({status:true ,message: `get notification successfully`,response});
     }else{
       return res.status(400).json({ status:false,message: 'Coulnt load notification' });
     }
   }catch (error) {
-        console.log(error);
+        
         return res.status(500).json({status:false, message: 'Internal server error.' });
       }
 }
-
 exports.getLikesOfPost=async(req,res)=>{
     try{
   const{post_id}=req.body
@@ -526,11 +354,30 @@ exports.getLikesOfPost=async(req,res)=>{
     return res.status(400).json({Status:false,message:'couldnot find the post'})
   }
     }catch(err){
-    console.log('err',err.message);
+   
     return res.status(400).json({Status:'Error',Error})
   }
+}
+exports.getComment=async(req,res)=>{
+  try{
+const {post_id}=req.body
+if (!post_id) {
+  return res.status(400).json({ Status: false, message: 'Please provide all the details' });
+}else{
+  const respons=await comment.find({post_id:post_id})
+  const responses=await replycomment.find({post_id:post_id})
+  const response=respons.concat(responses)
+  if(response){
+    return res.status(200).json({ Status: true, message: 'All the Comments of Post',response });
+  }else{
+    return res.status(400).json({ Status: false, message: 'Couldnot find Any Comment For The Post' });
   }
-  
+}
+}catch(err){
+   
+    return res.status(400).json({Status:'Error',Error})
+  }
+}
 exports.likePost = async(req, res) => {
   try {
     const { post_id, liker_id } = req.body;
@@ -540,23 +387,23 @@ exports.likePost = async(req, res) => {
       const liker = await Users.findOne({_id: liker_id }, { _id:1, name: 1, profile_img: 1, token: 1 });
       const name=liker.name
       const profile_img=liker.profile_img
-      const data=await post.findOne({post_id:post_id},{_id:0,user_id:1})
+      const data=await post.findOne({_id:post_id},{_id:0,user_id:1})
       const data1=data.user_id
       
       const user_id=await Users.findOne({_id:data1},{_id:0,token:1})
       const token=user_id.token
       const likesPost = await likespost.findOne({ post_id: post_id });
-      console.log(likesPost)
+    
       if (likesPost) {
         const likesOfPosts = likesPost.likesofposts;
-        console.log(likesOfPosts);
+        
         if (likesOfPosts.length>0&&likesOfPosts.some((obj) => obj._id.toString() === liker_id)) {
           const response=await likespost.updateOne({ post_id: post_id }, { $pull: { likesofposts: liker } });
-          console.log('Liker removed from likesofposts',response);
+         
           if(response){
             const count=await likespost.findOne({post_id:post_id})
             const likes=count?count.likesofposts.length : 0
-            console.log(likes)
+          
             const totallikes=await likespost.findOneAndUpdate({post_id:post_id},{$set:{totallikesofpost:likes}})
             await post.findOneAndUpdate({_id:post_id},{$set:{totallikesofpost:likes}})
             await post.updateOne({_id:post_id},{ $pull:{likedpeopledata:liker}})
@@ -564,10 +411,11 @@ exports.likePost = async(req, res) => {
               const notification = {
                 title: 'Soulipie',
                 body: `${name} Liked your Post`,
-                icon: profile_img,
+                icon:profile_img
               };
+              
               if(notification){
-                await notifications.findOneAndDelete({user_id:data1,likespost:notification})
+                await notifications.findOneAndDelete({post_id:post_id,likespost:notification})
                 const result=await likespost.findOne({post_id:post_id})
               return res.status(200).json({ Status: true, message: 'Liker removed from likesofposts',result });
               }else{
@@ -581,11 +429,11 @@ exports.likePost = async(req, res) => {
           }
         } else {
           const response=await likespost.updateOne({ post_id: post_id }, { $push: { likesofposts: liker } });
-          console.log('Liker added to likesofposts',response);
+         
           if(response){
             const count=await likespost.findOne({post_id:post_id})
         const likes=count?count.likesofposts.length : 0
-        console.log(likes)
+       
         const totallikes=await likespost.findOneAndUpdate({post_id:post_id},{$set:{totallikesofpost:likes}})
         const total=await post.updateOne({_id:post_id},{$set:{totallikesofpost:likes}})
         await post.updateOne({_id:post_id},{ $push:{likedpeopledata:liker}})
@@ -593,19 +441,24 @@ exports.likePost = async(req, res) => {
             const notification = {
                                       title: 'Soulipie',
                                       body: `${name} Liked your Post`,
-                                      icon: profile_img,
+                                      icon:profile_img
                                     };
+                                    const data={
+                                      page_name:'Notification'
+                                    }
                                                           if(notification){
                                                             const noti=new notifications({
+                                                              post_id:post_id,
                                                               user_id:data1,
-                                                              likespost:notification
+                                                              likespost:notification,
+                                                              post_liker_id:liker_id
                                                             })
                                                             await noti.save()
                                                           }
-                                                        await admin.messaging().sendToDevice(token,{notification});
+                                                        await admin.messaging().sendToDevice(token,{notification,data});
                                               return res.status(200).json({Status:true,message:'liked your post',notification})
           }else{
-            return res.status(400).json({ Status: true, message: 'coudnt Liker added to likesofposts' });
+            return res.status(200).json({ Status: true, message: 'coudnt Liker added to likesofposts' });
           }
         }else{
             return res.status(400).json({ Status: false, message: 'Eoror while Liker adding to likesofposts' });
@@ -614,14 +467,15 @@ exports.likePost = async(req, res) => {
       } else {
         const data = new likespost({
           post_id: post_id,
+          user_id:data1,
           likesofposts: liker
         });
         const response=await data.save();
-        console.log(response);
+  
         if(response){
           const count=await likespost.findOne({post_id:post_id})
           const likes=count?count.likesofposts.length : 0
-          console.log(likes)
+         
           const totallikes=await likespost.findOneAndUpdate({post_id:post_id},{$set:{totallikesofpost:likes}})
           const total=await post.updateOne({_id:post_id},{$set:{totallikesofpost:likes}})
           await post.updateOne({_id:post_id},{ $push:{likedpeopledata:liker}})
@@ -629,16 +483,22 @@ exports.likePost = async(req, res) => {
             const notification = {
               title: 'Soulipie',
               body: `${name} Liked your Post`,
-              icon: profile_img,
+              icon:profile_img
             };
+            const data={
+              page_name:'Notification'
+            }
             if(notification){
               const noti=new notifications({
+                post_id:post_id,
                 user_id:data1,
-                likespost:notification
+                likespost:notification,
+                post_liker_id:liker_id
+
               })
               await noti.save()
             }
-          await admin.messaging().sendToDevice(token,{notification});
+          await admin.messaging().sendToDevice(token,{notification,data});
 return res.status(200).json({Status:true,message:'liked your post',notification})
           }else{
             return res.status(400).json({ Status: false, message: 'Eoror while Liker adding to likesofposts' });
@@ -650,11 +510,10 @@ return res.status(200).json({Status:true,message:'liked your post',notification}
     }
     }
   } catch (err) {
-    console.log('err', err.message);
+   
     return res.status(400).json({ Status: 'Error', Error });
   }
 }
-
 exports.addComment=async(req,res)=>{
   try{
 const {post_id,commenter_id,text}=req.body
@@ -664,7 +523,7 @@ if (!post_id || !commenter_id) {
   const commenter = await Users.findOne({ _id: commenter_id }, { _id: 1, name: 1, profile_img: 1, token: 1 });
   const name=commenter.name
   const profile_img=commenter.profile_img
-  const data=await post.findOne({post_id:post_id},{_id:0,user_id:1})
+  const data=await post.findOne({_id:post_id},{_id:0,user_id:1})
   const user_id=data.user_id
   const data1=await Users.findOne({_id:user_id},{_id:0,token:1})
   const token=data1.token
@@ -675,25 +534,33 @@ if (!post_id || !commenter_id) {
       text:text
     })
     const response=await data.save()
+    const comment_id = response._id
+  
     if(response){
       const notification = {
         title: 'Soulipie',
         body: `${name} Commented On your Post`,
-        icon: profile_img,
+        icon:profile_img
       };
+      const data={
+        page_name:'Notification'
+      }
       
       if(notification){
         const noti=new notifications({
+          post_id:post_id,
           user_id:user_id,
+          comment_id:comment_id,
+          post_commenter_id:commenter_id,
           comment:notification
         })
         await noti.save()
       }
-    await admin.messaging().sendToDevice(token,{notification});
+    await admin.messaging().sendToDevice(token,{notification,data});
     
     const count =Number(await comment.find({ post_id: post_id }).countDocuments());
     const counts=Number(await replycomment.find({post_id:post_id}).countDocuments())
-    console.log(count,counts)
+    
     const total=count+counts
     await post.findOneAndUpdate({_id:post_id},{$set:{totalcomments:total}})
 return res.status(200).json({Status:true,message:'Commented On Your POst',response,notification})
@@ -708,118 +575,10 @@ return res.status(200).json({Status:true,message:'Commented On Your POst',respon
 }
 
 }catch(err){
-    console.log('err',err.message);
-    return res.status(400).json({Status:'Error',Error})
-}
-}
-
-exports.likeComment=async(req,res)=>{
-  try{
-const {post_id,comment_id,liker_id}=req.body
-if (!post_id || !comment_id||!liker_id) {
-  return res.status(400).json({ Status: false, message: 'Please provide all the details' });
-}else{
-const response= await comment.findOne({post_id:post_id,_id:comment_id})
-const liker = await Users.findOne({ _id: liker_id }, { _id: 1, name: 1, profile_img: 1, token: 1 });
-  const name=liker.name
-  const profile_img=liker.profile_img
-  const data=await comment.findOne({post_id:post_id , comment_id:comment_id},{_id:0,commentdetails:1})
-  console.log(data)
-  const user_id = data.commentdetails._id
-  const token = data.commentdetails.token
-  console.log(user_id)
   
-  console.log(token)
-if(response){
-  const commentlikerDetails = response.commentlikerDetails;
-        console.log(commentlikerDetails);
-  if (commentlikerDetails.some((obj) => obj._id.toString() === liker_id)) {
-  const response=await comment.updateOne({post_id:post_id,_id:comment_id},{$pull:{commentlikerDetails:liker}})
-  if(response){
-    const count=await comment.findOne({post_id:post_id,_id:comment_id})
-    const likes=count?count.commentlikerDetails.length : 0
-    console.log(likes)
-    const totallikes=await comment.findOneAndUpdate({post_id:post_id,_id:comment_id},{$set:{totallikesofcomments:likes}})
-    if(totallikes){
-      const notification = {
-        title: 'Soulipie',
-        body: `${name} Liked your Comment`,
-        icon: profile_img,
-      };
-      
-      if(notification){
-        await notifications.findOneAndDelete({user_id:user_id,likecomment:notification})
-        const result=await comment.findOne({post_id:post_id,_id:comment_id})
-      return res.status(200).json({ Status: true, message: 'Liker removed from Your Comment',result });
-      }else{
-        return res.status(400).json({ Status: false, message: 'Eoror Coudnot find Notification' });
-      }
-    }else{
-      return res.status(400).json({ Status: false, message: 'Eoror while Liker removed from Comments' });
-    }
-  }else{
-    return res.status(400).json({ Status: false, message: 'Coudnot Like The Comment' });
-  }
-}else{
-  const response=await comment.updateOne({ post_id: post_id,_id:comment_id }, { $push: { commentlikerDetails:liker} });
-  console.log('Liker added to likesofposts',response);
-  if(response){
-    const count=await comment.findOne({post_id:post_id,_id:comment_id})
-const likes=count?count.commentlikerDetails.length : 0
-console.log(likes)
-const totallikes=await comment.findOneAndUpdate({post_id:post_id,_id:comment_id},{$set:{totallikesofcomments:likes}})
-if(totallikes){
-    const notification = {
-                              title: 'Soulipie',
-                              body: `${name} Liked your Comment`,
-                              icon: profile_img,
-                            };
-                            
-                                                  if(notification){
-                                                    const noti=new notifications({
-                                                      user_id:user_id,
-                                                      likecomment:notification
-                                                    })
-                                                    await noti.save()
-                                                  }
-                                                await admin.messaging().sendToDevice(token,{notification});
-                                      return res.status(200).json({Status:true,message:'liked your Comment',notification})
-  }else{
-    return res.status(400).json({ Status: false, message: 'coudnt Liker added to comment' });
-  }
-}else{
-    return res.status(400).json({ Status: false, message: 'Eoror while Liker adding to comment' });
-  }
-}
-}
- } 
-}catch(err){
-    console.log('err',err.message);
     return res.status(400).json({Status:'Error',Error})
-  }
 }
-
-exports.getComment=async(req,res)=>{
-  try{
-const {post_id}=req.body
-if (!post_id) {
-  return res.status(400).json({ Status: false, message: 'Please provide all the details' });
-}else{
-  const respons=await comment.find({post_id:post_id})
-  const responses=await replycomment.find({post_id:post_id})
-  const response=respons.concat(responses)
-  if(response){
-    return res.status(400).json({ Status: true, message: 'All the Comments of Post',response });
-  }else{
-    return res.status(400).json({ Status: false, message: 'Couldnot find Any Comment For The Post' });
-  }
 }
-}catch(err){
-    console.log('err',err.message);
-    return res.status(400).json({Status:'Error',Error})
-  }
-}
-
 exports.addReplyComment=async(req,res)=>{
   try{
 const {post_id,comment_id,commenter_id,text}=req.body
@@ -833,7 +592,7 @@ if (!post_id || !commenter_id||!comment_id||!text) {
   const user_id=data.commentdetails._id
   const data1=await Users.findOne({_id:user_id},{_id:0,token:1})
   const token=data1.token
-  const posting=await post.findOne({post_id:post_id},{_id:0,user_id:1})
+  const posting=await post.findOne({_id:post_id},{_id:0,user_id:1})
   const poster=posting.user_id
   const postd=await Users.findOne({_id:poster},{_id:0,token:1})
   const postertoken=postd.token
@@ -845,37 +604,52 @@ if (!post_id || !commenter_id||!comment_id||!text) {
       text:text
     })
     const response=await data.save()
+    const replycomment_id=response._id
     if(response){
-      const notification = {
+      const notification1 = {
         title: 'Soulipie',
         body: `${name} Commented On your Post`,
-        icon: profile_img,
+        icon:profile_img
       };
-      const data= {
+      const data1={
+        page_name:'Notification'
+      }
+      const notification2= {
         title: 'Soulipie',
         body: `${name} Mentioned You On Comment`,
-        icon: profile_img,
+        icon:profile_img
       };
-      if(notification&&data){
+      const data2={
+        page_name:'Notification'
+      }
+      if(notification1&&data1){
         const noti=new notifications({
+          post_id:post_id,
+          comment_id:comment_id,
           user_id:poster,
-          replyComment:notification
+          replycomment_id:replycomment_id,
+          replyCommenter_id:commenter_id,
+          replyComment:notification1
         })
         await noti.save()
         const notis=new notifications({
+          post_id:post_id,
+          comment_id:comment_id,
           user_id:user_id,
-          mentioned:data
+          replycomment_id:replycomment_id,
+          mentioner_id:commenter_id,
+          mentioned:notification2
         })
         await notis.save()
       }
-    await admin.messaging().sendToDevice(token,{notification});
-    await admin.messaging().sendToDevice(postertoken,{data});
+    await admin.messaging().sendToDevice(postertoken,{notification:notification1,data:data1});
+    await admin.messaging().sendToDevice(token,{notification:notification2,data:data2});
     const count =Number(await comment.find({ post_id: post_id }).countDocuments());
     const counts=Number(await replycomment.find({post_id:post_id}).countDocuments())
-    console.log(count,counts)
+   
     const total=count+counts
     await post.findOneAndUpdate({_id:post_id},{$set:{totalcomments:total}})
-return res.status(200).json({Status:true,message:'Commented On Your POst',response,notification,data})
+return res.status(200).json({Status:true,message:'Commented On Your POst',response,notification1,data1,notification2,data2})
 
     }else{
  return res.status(400).json({ Status: false, message: 'Eoror while Commenting the Data' });
@@ -885,13 +659,99 @@ return res.status(200).json({Status:true,message:'Commented On Your POst',respon
     return res.status(400).json({ Status: false, message: 'nno post found' });
   }
 }
-
 }catch(err){
-    console.log('err',err.message);
+    
     return res.status(400).json({Status:'Error',Error})
 }
 }
+exports.likeComment=async(req,res)=>{
+  try{
+const {post_id,comment_id,liker_id}=req.body
+if (!post_id || !comment_id||!liker_id) {
+  return res.status(400).json({ Status: false, message: 'Please provide all the details' });
+}else{
+const response= await comment.findOne({post_id:post_id,_id:comment_id})
+const liker = await Users.findOne({ _id: liker_id }, { _id: 1, name: 1, profile_img: 1, token: 1 });
+  const name=liker.name
+  const profile_img=liker.profile_img
+  const data=await comment.findOne({post_id:post_id , comment_id:comment_id},{_id:0,commentdetails:1})
+ 
+  const user_id = data.commentdetails._id
+  const token = data.commentdetails.token
+ 
+if(response){
+  const commentlikerDetails = response.commentlikerDetails;
+       
+  if (commentlikerDetails.some((obj) => obj._id.toString() === liker_id)) {
+  const response=await comment.updateOne({post_id:post_id,_id:comment_id},{$pull:{commentlikerDetails:liker}})
+  if(response){
+    const count=await comment.findOne({post_id:post_id,_id:comment_id})
+    const likes=count?count.commentlikerDetails.length : 0
+    
+    const totallikes=await comment.findOneAndUpdate({post_id:post_id,_id:comment_id},{$set:{totallikesofcomments:likes}})
+    if(totallikes){
+      const notification = {
+        title: 'Soulipie',
+        body: `${name} Liked your Comment`,
+        icon:profile_img
+      };
+      if(notification){
+        await notifications.findOneAndDelete({post_id:post_id,comment_id:comment_id,likecomment:notification})
+        const result=await comment.findOne({post_id:post_id,_id:comment_id})
+      return res.status(200).json({ Status: true, message: 'Liker removed from Your Comment',result });
+      }else{
+        return res.status(400).json({ Status: false, message: 'Eoror Coudnot find Notification' });
+      }
+    }else{
+      return res.status(400).json({ Status: false, message: 'Eoror while Liker removed from Comments' });
+    }
+  }else{
+    return res.status(400).json({ Status: false, message: 'Coudnot Like The Comment' });
+  }
+}else{
+  const response=await comment.updateOne({ post_id: post_id,_id:comment_id }, { $push: { commentlikerDetails:liker} });
+ 
+  if(response){
+    const count=await comment.findOne({post_id:post_id,_id:comment_id})
+const likes=count?count.commentlikerDetails.length : 0
 
+const totallikes=await comment.findOneAndUpdate({post_id:post_id,_id:comment_id},{$set:{totallikesofcomments:likes}})
+if(totallikes){
+    const notification = {
+                              title: 'Soulipie',
+                              body: `${name} Liked your Comment`,
+                              icon:profile_img
+                            };
+                            const data={
+                              page_name:'Notification'
+                            }
+                                                  if(notification){
+                                                    
+                                                    const noti=new notifications({
+                                                      post_id:post_id,
+                                                      user_id:user_id,
+                                                      comment_id:comment_id,
+                                                      likecomment:notification,
+                                                      commente_liker_id:liker_id
+                                                    })
+                                                    await noti.save()
+                                                  }
+                                                await admin.messaging().sendToDevice(token,{notification,data});
+                                      return res.status(200).json({Status:true,message:'liked your Comment',notification})
+  }else{
+    return res.status(400).json({ Status: false, message: 'coudnt Liker added to comment' });
+  }
+}else{
+    return res.status(400).json({ Status: false, message: 'Eoror while Liker adding to comment' });
+  }
+}
+}
+ } 
+}catch(err){
+    
+    return res.status(400).json({Status:'Error',Error})
+  }
+}
 exports.replyCommentlike=async(req,res)=>{
   try{
 const {post_id,comment_id,replycomment_id,liker_id}=req.body
@@ -903,30 +763,31 @@ const liker = await Users.findOne({ _id: liker_id }, { _id: 1, name: 1, profile_
   const name=liker.name
   const profile_img=liker.profile_img
   const data=await replycomment.findOne({_id:replycomment_id},{_id:0,commentdetails:1})
-  console.log(data)
+  
   const token=data.commentdetails.token
-  console.log(token)
+
   const user_id=data.commentdetails._id
-  console.log(user_id)
+ 
 if(response){
   const commentlikerDetails = response.commentlikerDetails;
-        console.log(commentlikerDetails);
+       
   if (commentlikerDetails.some((obj) => obj._id.toString() === liker_id)) {
   const response=await replycomment.updateOne({_id:replycomment_id},{$pull:{commentlikerDetails:liker}})
   if(response){
     const count=await replycomment.findOne({_id:replycomment_id})
     const likes=count?count.commentlikerDetails.length : 0
-    console.log(likes)
+   
     const totallikes=await replycomment.findOneAndUpdate({_id:replycomment_id},{$set:{totallikesofcomments:likes}})
     if(totallikes){
       const notification = {
         title: 'Soulipie',
         body: `${name} Liked your Comment`,
-        icon: profile_img,
+        icon:profile_img
       };
+     
       
       if(notification){
-        await notifications.findOneAndDelete({user_id:user_id,replyCommentlike:notification}) 
+        await notifications.findOneAndDelete({ post_id:post_id,comment_id:comment_id,replycomment_id:replycomment_id,replyCommentlike:notification}) 
         const result=await replycomment.findOne({_id:replycomment_id})
       return res.status(200).json({ Status: true, message: 'Liker removed from Your Comment',result });
       }else{
@@ -940,26 +801,33 @@ if(response){
   }
 }else{
   const response=await replycomment.updateOne({_id:replycomment_id}, { $push: { commentlikerDetails:liker} });
-  console.log('Liker added to likesofposts',response);
+  
   if(response){
     const count=await replycomment.findOne({_id:replycomment_id})
 const likes=count?count.commentlikerDetails.length : 0
-console.log(likes)
+
 const totallikes=await replycomment.findOneAndUpdate({_id:replycomment_id},{$set:{totallikesofcomments:likes}})
 if(totallikes){
     const notification = {
                               title: 'Soulipie',
                               body: `${name} Liked your Comment`,
-                              icon: profile_img,
+                              icon:profile_img
                             };
+                            const data={
+                              page_name:'Notification'
+                            }
                                                   if(notification){
                                                     const noti=new notifications({
+                                                      post_id:post_id,
+                                                      comment_id:comment_id,
                                                       user_id:user_id,
-                                                      replyCommentlike :notification
+                                                      replycomment_id:replycomment_id,
+                                                      replyCommentlike :notification,
+                                                      replyCommente_liker_id:liker_id
                                                     })
                                                     await noti.save()
                                                   }
-                                                await admin.messaging().sendToDevice(token,{notification});
+                                                await admin.messaging().sendToDevice(token,{notification,data});
                                       return res.status(200).json({Status:true,message:'liked your Comment',notification})
   }else{
     return res.status(400).json({ Status: false, message: 'coudnt Liker added to comment' });
@@ -971,158 +839,102 @@ if(totallikes){
 }
  } 
 }catch(err){
-    console.log('err',err.message);
+   
     return res.status(400).json({Status:'Error',Error})
   }
 }
-exports.rejectRequest=async(req,res)=>{
-  try{
-  const {fromUser,toUser}=req.body
-  if(!fromUser&&!toUser){
-    return res.status(400).json({status:false,message:'Please provide all the details'})
-  }
-  else{
-    const request=await connection.findOne({fromUser:fromUser,toUser:toUser})
-    console.log(request)
-    if(request){
-      const touser=request.toUser
-      const formuser=request.fromUser
-      const reject=await Users.findOne({_id:formuser},{_id:1,profile_img:1,name:1,token:1})
-      console.log(reject)
-      const name=reject.name
-      const profile_img=reject.profile_img
-      console.log(reject)
-      if(reject){
-      const data=await users.updateOne({user_id:touser},{$pull:{totalrequest:reject}})
-      console.log(data)
-      if(data){
-        const notification = {
-          title: 'Soulipie',
-          body: `${name} would like to connect with you.`,
-          icon: profile_img,
-        };
-        const data1=await notifications.findOneAndDelete({user_id:touser,request:notification})
-      if(data1){
-        const response=await connection.findOneAndDelete({fromUser:fromUser,toUser:toUser})
-        return res.status(400).json({status:true,message:'Request Rejected Successfully',response})
-      }else{
-        return res.status(400).json({status:false,message:'No notification found'})
-      }
-       
-      }else{
-        return res.status(400).json({status:false,message:'couldnot find request in userprofile'})
-      }
-  }else{
-    return res.status(400).json({status:false,message:'No request found'})
-  }
-}else{
-  return res.status(400).json({status:false,message:'count find user details'})
-}
-}
-}catch(err){
-    console.log(err);
-    return res.status(400).json({status:'Error',message:'somthing went wrong',err})
-}
-}
-
-exports.deleteComment = async (req, res) => {
+exports.acceptRequest=async (req, res) => {
   try {
-    const { comment_id, deleter_id,notification_id } = req.body;
-    if (!comment_id || !deleter_id) {
-        res.status(400).json({ Status: false, message: "Please provide all the details" });
-    } else{
-      const findtodelete = await comment.findOne({ _id: comment_id })
-      const findtodeletes = await replycomment.find({ _id:{$in:comment_id}  });
-      if(findtodelete){
-      const post_id = findtodelete.post_id;
-      const poster = await post.findOne(
-        { _id: post_id },
-        { _id: 0, user_id: 1 }
-      );
-      const commentdetails = findtodelete.commentdetails;
-      console.log(commentdetails);
-      if (
-        commentdetails._id.toString() ===  deleter_id && poster
-        )
+   
+   const { fromUser, toUser } = req.body;
+   const filter = {
+     $and: [
        {
-        const response = await comment.findOneAndDelete({ _id: comment_id });
-        await replycomment.deleteMany({comment_id:comment_id})
+         fromUser:fromUser,
+  toUser:toUser
 
-        await notifications.deleteMany({_id:{$in:notification_id}})
-        if (response) {
-            res.status(400).json({ Status: true, message: "Comment Deleted Successfully", response });
-        } else {
-res.status(400).json({ Status: false, message: "Could not delete any comment try again later" });
-        }
-      } else {
-        res.status(400).json({ Status: false, message: "You do not have permission to delete this comment" });
-      }
-    }else if(findtodeletes){
-      const post_id = findtodeletes.post_id;
-      const poster = await post.findOne(
-        { _id: post_id },
-        { _id: 0, user_id: 1 }
-      );
-      const commentdetails = findtodeletes.commentdetails;
-      console.log(commentdetails);
-      if (
-        commentdetails._id.toString() ===  deleter_id && poster
-        )
+       },
        {
-        const response = await replycomment.findOneAndDelete({ _id: comment_id });
-        await notifications.findOneAndDelete({_id:notification_id})
-        if (response) {
-            res.status(400).json({ Status: true, message: "Comment Deleted Successfully", response });
-        } else {
-res.status(400).json({ Status: false, message: "Could not delete any comment try again later" });
-        }
-      } else {
-        res.status(400).json({ Status: false, message: "You do not have permission to delete this comment" });
-      }
-    }else{
-      res.status(400).json({ Status: false, message: "coudnot find a comment to delete" });
-    }
-  }
-  } catch (err) {
-    console.log("err", err.message);
-    return res.status(400).json({ Status: "Error", Error });
-  }
-};
+         requestPending: true
+       }
+     ]
+   };
+   const requestExists = await connection.findOne(filter);
+   if (!requestExists) {
+     return res.status(400).json({status:false, message: 'Connection request does not exist.' });
+   }
+else{
+  
+   const update = { $set: { requestPending: false } };
+   const accept = await connection.updateOne(filter,update);
+   
+   if(accept){
+   const receiver=await Users.findOne({_id:toUser})
+   const name=receiver.name
+   const profile_img=receiver.profile_img
+   const sender = await Users.findOne({ _id: fromUser },{_id:1,profile_img:1,token:1,name:1});
+   const token = sender.token;
+   const image=sender.profile_img
+   const names=sender.name
+   if(sender){
+   const totalrequest=await users.updateOne({user_id:toUser},{$pull:{totalrequest:sender}})
 
-exports.loginViaOtp = async (req, res) => {             
-  try{
-      const {mobilenumber,token}=req.body
-      if(!mobilenumber&&!token){
-        return res.status(400).send({Status:false,message:'Please provide Mobile number'})
-  }else{
-    const data=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{token:token}})
-    const response=await Users.findOne({mobilenumber:mobilenumber},{_id:1,name:1})
-    if(response){
-      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber',response})
-    }else{
-      return res.status(400).send({Status:false,message:'Number does not exists'})
-    }
-  }
+   if(totalrequest){
+     const connection=await users.updateOne({user_id:toUser},{$push:{connections:sender}})
+     if(connection){
+      const deleterequest= {
+        title: 'Soulipie',
+        body: `${names} would like to connect with you`,
+        icon:image
+      }
+    
+      await notifications.findOneAndDelete({user_id:toUser,request:deleterequest})
+         const notification = {
+             title: 'Soulipie',
+             body: `${name} accepted your connection request`,
+             icon:profile_img
+           };
+           const data={
+             page_name:'Notification'
+           }
+           if(notification){
+             const noti=new notifications({
+               user_id:fromUser,
+               accpeted_id:toUser,
+               accpeted:notification
+             })
+             await noti.save()
+           }
+          
+         await admin.messaging().sendToDevice(token,{notification,data});
+         
+   return res.status(200).json({status:true, message: `Connection request accepted successfully.`,notification});
+ } else{
+   return res.status(400).json({ status:false,message: 'something wrog while accepting' });
+ }
+}else{
+ return res.status(400).json({ status:false,message: 'Connection request error.' });
 }
-  catch(err){
-       console.log('LoginViaOtperror',err);
-      return res.status(400).send({Status:'Error',message:'somthing went wrong'})
-     }                    
-};
-
-
+}
+}
+}
+}catch (error) {
+ 
+   return res.status(500).json({ message: 'Internal server error.' });
+ }
+}
 exports.Message=async(req,res)=>{
   try{
-      const otherid=req.body.sender_id
+      const sender_id=req.body.sender_id
       const name=req.body.senderName
       const msg=req.body.msg
       const roomid=req.body.room_id
-if(!otherid ||!name || !roomid){
+if(!sender_id ||!name || !roomid){
   res.status(406).json({message:"sender_id ,senderName,room_id"})
 }
 else{
         const store=storeMsg({
-          sender_id:otherid,
+          sender_id:sender_id,
           senderName:name,
           message:msg,
           room_id:roomid,
@@ -1133,55 +945,64 @@ else{
       const result= await store.save();
       if(result)
       {
+        const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
+        const names=datas.name
+        const profile_img=datas.profile_img
           const userdata=await chatModule.findOne({room_id:roomid},{_id:0,sender_id:1,other_id:1})
-          console.log(userdata)
+        
            const id=userdata.sender_id.toString()
-           console.log(id)
-          if (id === otherid) {
-              const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1})
-              const token=tokens.token
-              console.log(token)
+           
+          if (id === sender_id) {
+              
+           const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
+           const token=tokens.token
+    
+            
               const notification = {
-                title: `${name} Sent A meesage`,
-                body: `${msg}`
+                title: `${names} Sent A meesage`,
+                body: `${msg}`,
+                icon:profile_img
                 
               };
               const data={
-                body: `${msg}`
-              }
+                type:'Chat',
+                other_id:sender_id,
+                name:names
+               }
               const response=await admin.messaging().sendToDevice(token,{notification,data});
                
           return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
             } else {
-              const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1})
+              const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_img:1})
               const token=tokens.token
-              console.log(token)
               const notification = {
-                title: `${name} Sent A meesage`,
-                body: `${msg}`
+                title: `${names} Sent A meesage`,
+                body: `${msg}`,
+                icon:profile_img
               };  
               const data={
-                body: `${msg}`
-              }
+                type:'Chat',
+                other_id:sender_id,
+                name:names
+               }
               const response=await admin.messaging().sendToDevice(token,{notification,data});
               return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
               
             }
          
       }else{
-  return res.status(400).json({stauts:"Success",message:"Some Technical Issue"})
+
+  return res.status(200).json({stauts:"Success",message:"Some Technical Issue"})
 }
    }
   }
   catch(err){
-      console.log(err)
       return res.status(400).send({ErrorMessage:"Somthing Wrong"})
   }
 }
-
 exports.image = async (req, res, next) => {
   try {
-    console.log(req.files);
+    
     if (req.files && req.files.length > 0) {
       const sender_id = req.body.sender_id;
       const senderName = req.body.senderName;
@@ -1199,41 +1020,45 @@ exports.image = async (req, res, next) => {
       
       const result = await storeMsg.insertMany(upload);
       if(result){
-          
+        const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
+        const names=datas.name
+        const profile_img=datas.profile_img
         const userdata=await chatModule.findOne({room_id:room_id},{_id:0,sender_id:1,other_id:1})
-        console.log(userdata)
+      
          const id=userdata.sender_id.toString()
-         console.log(id)
+      
         if (id === sender_id) {
-            const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1})
+            const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
             const token=tokens.token
-            console.log(token)
+            
             const notification = {
               title: `Soulipie`,
               image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
-              body: `${senderName} Sent A meesage ${message}`
-              
+              body: `${names} Sent A meesage `,
+              icon:profile_img
             };
             const data={
-              image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
-              body: `${senderName} Sent A meesage ${message}`
-            }
+              type:'Chat',
+              other_id:sender_id,
+              name:names
+             }
             const response=await admin.messaging().sendToDevice(token,{notification,data});
              
         return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
           } else {
-            const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1})
+            const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_img:1})
             const token=tokens.token
-            console.log(token)
             const notification = {
               title: `Soulipie`,
               image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
-              body: `${senderName} Sent A meesage ${message}`
-            };  
+              body: `${names} Sent A meesage`,
+              icon:profile_img
+            };
             const data={
-              image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
-              body: `${message}`
-            }
+              type:'Chat',
+              other_id:sender_id,
+              name:names
+             }
             const response=await admin.messaging().sendToDevice(token,{notification,data});
             return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
             
@@ -1242,25 +1067,20 @@ exports.image = async (req, res, next) => {
        
       }
       else{
-        return res.status(400).json({stauts:"Success",message:"Some Technical Issue"})
+        return res.status(200).json({stauts:"Success",message:"Some Technical Issue"})
       }
   }else{
       res.send({status:"faluier",message:"couldnt upload"})
   } 
 }catch (err) {
-  console.log(err)
+  
     res.send({ ErrorMessage: "Something Error", err });
     
   }
 }
-
-
-
-
-
 exports.audio=async(req,res,next)=>{
   try{
-      console.log(req.file)
+     
       if(req.file){
           const sender_id=req.body.sender_id
           const name=req.body.senderName
@@ -1277,39 +1097,46 @@ exports.audio=async(req,res,next)=>{
           const result= await store.save();
           if(result)
           {
+
+            const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
+            const names=datas.name
+            const profile_img=datas.profile_img
+
             const userdata=await chatModule.findOne({room_id:roomid},{_id:0,sender_id:1,other_id:1})
-            console.log(userdata)
+        
              const id=userdata.sender_id.toString()
-             console.log(id)
+          
             if (id === sender_id) {
-                const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1})
-                const token=tokens.token
-                console.log(token)
+             const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
+             const token=tokens.token
                 const notification = {
                   title: `Soulipie`,
-                  body: `${name} Sent A Audio ${msg}`,
-                 
+                  body: `${names} Sent A Audio`,
+                 icon:profile_img
                 }; 
                 const data={
-                  body: `${msg}`
-                }
+                  type:'Chat',
+                  other_id:sender_id,
+                  name:names
+                 }
                 const response=await admin.messaging().sendToDevice(token,{notification,data});
                  
             return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
               } else {
-                const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1})
+                const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_im})
                 const token=tokens.token
-                console.log(token)
+               
                 const notification = {
                   title: `Soulipie`,
-                  body: `${name} Sent A Audio ${msg}`,
-                 
+                  body: `${names} Sent A Audio`,
+                 icon:profile_img
 
                 };  
                 const data={
-                  body: `${msg}`,
-
-                }
+                  type:'Chat',
+                  other_id:sender_id,
+                  name:names
+                 }
                 const response=await admin.messaging().sendToDevice(token,{notification,data});
                 return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
                 
@@ -1318,46 +1145,16 @@ exports.audio=async(req,res,next)=>{
       }
       else{
           res.send({ErrorMessage:'Please choose Audio file'})
-      saveLiveAudioFile        }
+        }
   }
   catch(err){
       res.send({ErrorMessage:"Somthing Error",err})
   }
 }
-
-
-
-
-exports.sendNotification = async (req, res) => {
-  try {
-    const { token } = req.body;
-
-    const message = {
-      notification: {
-        title: 'New message',
-        body: 'You have a new message from John',
-       
-      },
-      token: token
-    };
-    const response = await admin.messaging().send(message);
-    console.log('Notification sent:', response);
-
-    res.status(200).send({ Status: true, message: 'Notification sent successfully' });
-  } catch (err) {
-    console.error('Error sending notification:', err);
-    res.status(500).send({ Status: false, message: 'Failed to send notification' });
-  }
-};
-
-
-
-
-
 exports.video=async(req,res,next)=>{
 
   try{
-      console.log(req.file)
+     
       if(req.files && req.files.length > 0){
           const sender_id=req.body.sender_id
           const senderName=req.body.senderName
@@ -1375,39 +1172,46 @@ exports.video=async(req,res,next)=>{
         
           if(result)
           {
+            const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
+            const names=datas.name
+            const profile_img=datas.profile_img
+
             const userdata=await chatModule.findOne({room_id:room_id},{_id:0,sender_id:1,other_id:1})
-            console.log(userdata)
+      
             const id=userdata.sender_id.toString()
-            console.log(id)
+         
+            
             if (id === sender_id) {
-              const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1})
+              const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
               const token=tokens.token
-              console.log(token)
               const notification = {
                 title: `Soulipie`,
-                body: `${senderName} Send A Video ${message}`,
+                body: `${names} Send A Video`,
+                icon:profile_img
               }
-                const data={
-                  body: `${message}`
-                }
+              const data={
+                type:'Chat',
+          other_id:sender_id,
+          name:names
+               }
               const response=await admin.messaging().sendToDevice(token,{notification,data});
 
               return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
             } else {
-              const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1})
+              const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_img:1})
               const token=tokens.token
-              console.log(token)
               const notification = {
                 title: `Soulipie`,
-                body: `${senderName} Send A Video ${message}`,
+                body: `${names} Send A Video`,
+                icon:profile_img
               };
-              const payload = {
-                notification: notification,
-                data: {
-                  body: `${message}`,
-                }
-              };
-              const response=await admin.messaging().sendToDevice(token,payload);
+              
+              const data={
+                type:'Chat',
+                sender_id:sender_id,
+                name:names
+               }
+              const response=await admin.messaging().sendToDevice(token,{notification,data});
               return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
             }
           }
@@ -1417,7 +1221,296 @@ exports.video=async(req,res,next)=>{
       }
   }
   catch(err){
-    console.log(err)
+    
       res.send({ErrorMessage:"Somthing Error",err})
   }
+}
+exports.sendNotification = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    const message = {
+      notification: {
+        title: 'New message',
+        body: 'You have a new message from John',
+       
+      },
+      token: token
+    };
+    const response = await admin.messaging().send(message);
+
+
+    res.status(200).send({ Status: true, message: 'Notification sent successfully' });
+  } catch (err) {
+    
+    res.status(500).send({ Status: false, message: 'Failed to send notification' });
+  }
+}
+exports.deleteComment = async (req, res) => {
+  try {
+    const { comment_id, deleter_id } = req.body;
+    if (!comment_id || !deleter_id) {
+      return res.status(400).json({ Status: false, message: "Please provide all the details" });
+    } else {
+      const findToDelete = await comment.findOne({ _id: comment_id });
+      const onlyReply = await replycomment.findOne({ _id: comment_id });
+
+      if (findToDelete !== null) {
+        const post_id = findToDelete.post_id;
+        const poster = await post.findOne(
+          { _id: post_id },
+          { _id: 0, user_id: 1 }
+        );
+        const commentDetails = findToDelete.commentdetails;
+
+        if (poster && commentDetails && commentDetails._id.toString() === deleter_id || poster.user_id.toString() === deleter_id) {
+          const response = await comment.findOneAndDelete({ _id: comment_id });
+          await replycomment.deleteMany({ comment_id: comment_id });
+          await notification.deleteMany({ comment_id: comment_id });
+
+          const data = await comment.find({ post_id: post_id });
+          const data1 = await replycomment.find({ post_id: post_id });
+          const overallLength = data.length + data1.length;
+
+          await post.findOneAndUpdate({ _id: post_id }, { $set: { totalcomments: overallLength } });
+
+          if (response) {
+            return res.status(200).json({ Status: true, message: "Comment Deleted Successfully", response });
+          } else {
+            return res.status(400).json({ Status: false, message: "Could not delete any comment, please try again later" });
+          }
+        } else {
+          return res.status(400).json({ Status: false, message: "You do not have permission to delete this comment" });
+        }
+      } else if (onlyReply !== null) {
+        const post_id = onlyReply.post_id;
+        const id = onlyReply._id;
+
+        const poster = await post.findOne(
+          { _id: post_id },
+          { _id: 0, user_id: 1 }
+        );
+
+        const commentDetails = onlyReply.commentdetails;
+
+        if (poster && commentDetails && commentDetails._id.toString() === deleter_id && poster.user_id.toString() === deleter_id) {
+          const response = await replycomment.findOneAndDelete({ _id: comment_id });
+          await notification.deleteMany({ replycomment_id: comment_id });
+
+          const data1 = await replycomment.find({ post_id: post_id });
+          const overallLength = data1.length;
+
+          await post.findOneAndUpdate({ _id: post_id }, { $set: { totalcomments: overallLength } });
+
+          if (response) {
+            return res.status(200).json({ Status: true, message: "Comment Deleted Successfully", response });
+          } else {
+            return res.status(400).json({ Status: false, message: "Could not delete any comment, please try again later" });
+          }
+        } else {
+          return res.status(400).json({ Status: false, message: "You do not have permission to delete this comment" });
+        }
+      } else {
+        return res.status(400).json({ Status: false, message: "Could not find a comment to delete" });
+      }
+    }
+  } catch (err) {
+    return res.status(400).json({ Status: "Error", error: err });
+  }
+};
+exports.editPostDetails=async(req,res)=>{
+  try{
+  const {post_id,Post_discription,Tagged_people}=req.body  
+  if(post_id&&Post_discription&&!Tagged_people){
+  const respons=await post.findOneAndUpdate({_id:post_id},{$set:{Post_discription:Post_discription}})
+  if(respons){  
+  const response=await post.findOne({_id:post_id})
+    res.status(200).json({status:true,message:'Post edited Successfully',response})
+  }else{
+    return res.status(400).json({Status:false,message:'could not update details'})
+  }
+  }else if(post_id&&Tagged_people&&!Post_discription){
+  const data=await post.findOneAndUpdate({_id:post_id},{$push:{Tagged_people:{ $each: Tagged_people }}})
+  if(data){  
+    const hiii=await post.findOne({_id:post_id},{_id:0,user_id:1})
+    const userid=hiii.user_id
+    const ids=await Users.findOne({_id:userid},{_id:0,name:1,profile_img:1})
+    const name=ids.name
+    const profile_img=ids.profile_img
+    const names=await Users.find({name:{$in:Tagged_people}})
+    const userIds = names.map(doc => doc._id);
+const userTokens = names.map(doc => doc.token);
+
+const notification = {
+  title: `Soulipie`,
+  body: `${name} Tagged In Their Post`,
+  icon:profile_img
+}
+const data={
+  page_name:'Notification'
+}
+const notifydata=await admin.messaging().sendToDevice(userTokens,{notification,data});
+const notifyData = userIds.map((userId, index) => ({
+  user_id: userid,
+  post_id:post_id,
+tagged_post:notification,
+tagged_post_userid:userId
+}));
+await notifications.insertMany(notifyData)
+    const response=await post.findOne({_id:post_id})
+      res.status(200).json({status:true,message:'Post edited Successfully',response,notifydata})
+    }else{
+      return res.status(400).json({Status:false,message:'could not update details'})
+    }
+  }else{
+    const respons=await post.findOneAndUpdate({_id:post_id},{$set:{Post_discription:Post_discription}})
+    const data=await post.findOneAndUpdate({_id:post_id},{$push:{Tagged_people:{ $each: Tagged_people }}})
+    if(respons&&data){  
+      const hiii=await post.findOne({_id:post_id},{_id:0,user_id:1})
+      const userid=hiii.user_id
+      const ids=await Users.findOne({_id:userid},{_id:0,name:1,profile_img:1})
+      const name=ids.name
+      const profile_img=ids.profile_img
+      const names=await Users.find({name:{$in:Tagged_people}})
+      const userIds = names.map(doc => doc._id);
+  const userTokens = names.map(doc => doc.token);
+
+  const notification = {
+    title: `Soulipie`,
+    body: `${name} Tagged In Their Post`,
+    icon:profile_img
+  }
+  const data={
+    page_name:'Notification'
+  }
+  const notifydata=await admin.messaging().sendToDevice(userTokens,{notification,data});
+  const notifyData = userIds.map((userId, index) => ({
+    user_id: userId,
+    post_id:post_id,
+    tagged_post:notification,
+  tagged_post_userid:userid
+  }));
+  await notifications.insertMany(notifyData)
+      const response=await post.findOne({_id:post_id})
+        res.status(200).json({status:true,message:'Post edited Successfully',response,notifydata})
+      }else{
+        return res.status(400).json({Status:false,message:'could not update details'})
+      }
+  }  
+  }catch(err){
+    
+       return res.status(400).json({Status:'Error',Error})
+    }
+}
+exports.rejectRequest=async(req,res)=>{
+  try{
+  const {fromUser,toUser}=req.body
+  if(!fromUser&&!toUser){
+    return res.status(400).json({status:false,message:'Please provide all the details'})
+  }
+  else{
+    const request=await connection.findOne({fromUser:fromUser,toUser:toUser})
+  
+    if(request){
+      const touser=request.toUser
+      const formuser=request.fromUser
+      const reject=await Users.findOne({_id:formuser},{_id:1,profile_img:1,name:1,token:1})
+      
+      const name=reject.name
+      const profile_img=reject.profile_img
+    
+      if(reject){
+      const data=await users.updateOne({user_id:touser},{$pull:{totalrequest:reject}})
+  
+      if(data){
+        const notification = {
+          title: 'Soulipie',
+          body: `${name} would like to connect with you`,
+         icon:profile_img,
+        };
+        const data1=await notifications.findOneAndDelete({user_id:touser,request:notification})
+      if(data1){
+        const response=await connection.findOneAndDelete({fromUser:fromUser,toUser:toUser})
+        return res.status(200).json({status:true,message:'Request Rejected Successfully',response})
+      }else{
+        return res.status(400).json({status:false,message:'No notification found'})
+      }
+       
+      }else{
+        return res.status(400).json({status:false,message:'couldnot find request in userprofile'})
+      }
+  }else{
+    return res.status(400).json({status:false,message:'No request found'})
+  }
+}else{
+  return res.status(400).json({status:false,message:'count find user details'})
+}
+}
+}catch(err){
+
+    return res.status(400).json({status:'Error',message:'somthing went wrong',err})
+}
+}
+exports.loginViaOtp = async (req, res) => {             
+  try{
+      const {mobilenumber,token}=req.body
+      if(!mobilenumber&&!token){
+        return res.status(400).send({Status:false,message:'Please provide Mobile number'})
+  }else{
+    const chek=await Users.findOne({mobilenumber:mobilenumber},{otp:1,profile:1})
+    if(chek!==null){
+    const otp=chek.otp
+    const profile=chek.profile
+    if(profile==='true'&&otp==='true'){
+    const data=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{token:token}})
+    const response=await Users.findOne({mobilenumber:mobilenumber},{_id:1,name:1})
+     
+    if(response){
+const _id=response._id
+
+const user_id = mongoose.Types.ObjectId(_id);
+const conne=await users.updateMany(  {"totalrequest._id":user_id},
+  { $set: { "totalrequest.$.token": token } })
+
+const posts = await post.updateMany({
+  "likedpeopledata._id": user_id
+},{$set:{'likedpeopledata.$.token':token}});
+const likeposts=await likespost.updateOne({
+  "likesofposts._id": user_id
+},{$set:{'likesofposts.$.token':token}});
+const commentzsd= await comment.updateMany({
+  "commentdetails._id": user_id
+},{$set:{'commentdetails.token':token}});
+
+const commentlike= await comment.updateMany({
+  "commentlikerDetails._id": user_id
+},{$set:{'commentlikerDetails.$.token':token}});
+
+const replycomments=await replycomment.updateMany({
+  "commentdetails._id": user_id
+},{ $set: { "commentdetails.token": token} })
+
+const replycommentslike=await replycomment.updateMany({
+  "commentlikerDetails._id": user_id
+},{$set:{'commentlikerDetails.$.token':token}})
+
+const connectconnectios=await users.updateMany({
+  "connections._id": user_id
+},{$set:{'connections.$.token':token}})
+
+      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber',response})
+    }else{
+      return res.status(400).send({Status:false,message:'Number does not exists'})
+    }
+  }else{
+    return res.status(400).send({Status:false,message:'We request you to re-register once more'})
+  }
+}else{
+  return res.status(400).send({Status:false,message:'Number does not exists'})
+}
+}
+}catch(err){
+
+      return res.status(400).send({Status:'Error',message:'somthing went wrong'})
+     }                    
 }

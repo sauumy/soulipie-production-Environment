@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
 
 user_id:{
-    type:Schema.Types.ObjectId,
+    type:Object,
     default:" "
 },
 saved:{

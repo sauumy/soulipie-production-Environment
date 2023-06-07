@@ -11,7 +11,7 @@
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "2factor": "^1.0.6",
-    "aws-sdk": "^2.1377.0",
+    "aws-sdk": "^2.1383.0",
     "axios": "^1.4.0",
     "body-parser": "^1.20.0",
     "cli-progress": "^3.11.2",
