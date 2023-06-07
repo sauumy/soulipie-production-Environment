@@ -489,23 +489,23 @@ exports.getAllPostsofMe = async (req, res) => {
           _id: '$_id',
           name: { $first: '$name' },
           profile_img: { $first: '$profile_img' },
-          occupation: { $first: '$occupation' },
+          addprounous: { $first: '$addprounous' },
           posts: { $push: '$posts' },
         },
       },
       {
         $project: {
-          _id: 0,
+          _id: 1,
           name: 1,
           profile_img: 1,
-          occupation: 1,
+          addprounous: 1,
           'posts.Post_img': 1,
           'posts.Post_discription': 1,
           'posts._id': 1,
           'posts.totallikesofpost': 1,
           'posts.totalcomments': 1,
           'posts.likedpeopledata': 1,
-        },
+        },note
       },
     ]);
 
@@ -767,7 +767,7 @@ if(response){
 }
 
   }catch (err) {
-    console.log(err)
+    
     return res.status(400).json({ Status: 'Error', Error });
   }
 }
@@ -790,7 +790,6 @@ exports.getPostsOfAll = async (req, res) => {
     )
     const blockedPostIds = postblock.map(post => post._id);
 
-    console.log(blockedPostIds)
     const userIds = postss.map(post => post.user_id);
 
     const user_ids = mongoose.Types.ObjectId(user_id);
@@ -985,7 +984,7 @@ exports.getPostsOfAll = async (req, res) => {
 
     return res.status(200).json({ Status: true, message: 'Posts fetched successfully', UsersWithPosts });
   } catch (err) {
-    console.log(err)
+    
     return res.status(400).json({ Status: 'Error', Error: err });
   }
 };

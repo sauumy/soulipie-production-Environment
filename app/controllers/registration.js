@@ -10,12 +10,14 @@ const notifications=require('../models/notification')
 const users=require('../models/connection')
 const admin = require('firebase-admin');
 const serviceAccount = require('../../soulipie-6f717-firebase-adminsdk-eys0f-f8f76936ff.json');
-const post=require("../models/posts");
+const post=require("../models/posts")
 const likespost=require('../models/likespost')
 const comment=require('../models/comments');
 const replycomment=require('../models/replycomment')
 const storeMsg=require('../models/storemssage')
 const {chatModule}=require('../models/chatmodule')
+const mongoose=require('mongoose');
+
 
 const notification = require('../models/notification');
 
@@ -375,36 +377,6 @@ if (!post_id) {
    
     return res.status(400).json({Status:'Error',Error})
   }
-}
-exports.loginViaOtp = async (req, res) => {             
-  try{
-      const {mobilenumber,token}=req.body
-      if(!mobilenumber&&!token){
-        return res.status(400).send({Status:false,message:'Please provide Mobile number'})
-  }else{
-    const chek=await Users.findOne({mobilenumber:mobilenumber},{otp:1,profile:1})
-    if(chek!==null){
-    const otp=chek.otp
-    const profile=chek.profile
-    if(profile==='true'&&otp==='true'){
-    const data=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{token:token}})
-    const response=await Users.findOne({mobilenumber:mobilenumber},{_id:1,name:1})
-    if(response){
-      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber',response})
-    }else{
-      return res.status(400).send({Status:false,message:'Number does not exists'})
-    }
-  }else{
-    return res.status(400).send({Status:false,message:'We request you to re-register once more'})
-  }
-}else{
-  return res.status(400).send({Status:false,message:'Number does not exists'})
-}
-}
-}catch(err){
-
-      return res.status(400).send({Status:'Error',message:'somthing went wrong'})
-     }                    
 }
 exports.likePost = async(req, res) => {
   try {
@@ -1478,4 +1450,67 @@ exports.rejectRequest=async(req,res)=>{
 
     return res.status(400).json({status:'Error',message:'somthing went wrong',err})
 }
+}
+exports.loginViaOtp = async (req, res) => {             
+  try{
+      const {mobilenumber,token}=req.body
+      if(!mobilenumber&&!token){
+        return res.status(400).send({Status:false,message:'Please provide Mobile number'})
+  }else{
+    const chek=await Users.findOne({mobilenumber:mobilenumber},{otp:1,profile:1})
+    if(chek!==null){
+    const otp=chek.otp
+    const profile=chek.profile
+    if(profile==='true'&&otp==='true'){
+    const data=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{token:token}})
+    const response=await Users.findOne({mobilenumber:mobilenumber},{_id:1,name:1})
+     
+    if(response){
+const _id=response._id
+
+const user_id = mongoose.Types.ObjectId(_id);
+const conne=await users.updateMany(  {"totalrequest._id":user_id},
+  { $set: { "totalrequest.$.token": token } })
+
+const posts = await post.updateMany({
+  "likedpeopledata._id": user_id
+},{$set:{'likedpeopledata.$.token':token}});
+const likeposts=await likespost.updateOne({
+  "likesofposts._id": user_id
+},{$set:{'likesofposts.$.token':token}});
+const commentzsd= await comment.updateMany({
+  "commentdetails._id": user_id
+},{$set:{'commentdetails.token':token}});
+
+const commentlike= await comment.updateMany({
+  "commentlikerDetails._id": user_id
+},{$set:{'commentlikerDetails.$.token':token}});
+
+const replycomments=await replycomment.updateMany({
+  "commentdetails._id": user_id
+},{ $set: { "commentdetails.token": token} })
+
+const replycommentslike=await replycomment.updateMany({
+  "commentlikerDetails._id": user_id
+},{$set:{'commentlikerDetails.$.token':token}})
+
+const connectconnectios=await users.updateMany({
+  "connections._id": user_id
+},{$set:{'connections.$.token':token}})
+
+      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber',response})
+    }else{
+      return res.status(400).send({Status:false,message:'Number does not exists'})
+    }
+  }else{
+    return res.status(400).send({Status:false,message:'We request you to re-register once more'})
+  }
+}else{
+  return res.status(400).send({Status:false,message:'Number does not exists'})
+}
+}
+}catch(err){
+
+      return res.status(400).send({Status:'Error',message:'somthing went wrong'})
+     }                    
 }

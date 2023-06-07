@@ -167,12 +167,13 @@ exports.savePost = async (req, res) => {
      if (!post_id || !user_id) {
        return res.status(400).json({ Status: false, message: 'Please provide all the details' });
      } else {
-      const datas=await post.findOne({_id:post_id},{_id:1,user_id:1,Post_img:1})
+      const datas=await post.findOne({_id:post_id})
+      const usersData=await usermaster.findOne({_id:user_id},{_id:1,name:1,profile_img:1,addprounous:1})
       if(datas){
-       const user = await bookmarks.findOne({ user_id: user_id ,saved:datas});
+       const user = await bookmarks.findOne({ user_id: usersData ,saved:datas}); 
        if (!user) {
          const data = new bookmarks({
-           user_id: user_id,
+           user_id: usersData,
            saved: datas 
          });
          const response = await data.save()
@@ -180,7 +181,7 @@ exports.savePost = async (req, res) => {
          return res.status(200).json({ Status: true, message: 'Saved post successfully', response });
        } 
        else if (user) {
-         const response=await bookmarks.findOneAndDelete({user_id:user_id,saved:datas})
+         const response=await bookmarks.findOneAndDelete({user_id:usersData,saved:datas})
          if(response){
              return res.status(200).json({ Status: true, message: 'Unsaved post successfully',response });
          }else{
@@ -197,32 +198,6 @@ exports.savePost = async (req, res) => {
  
    return res.status(400).json({ Status: 'Error', message: err.message });
  }
-}
-exports.getSavedPost = async (req, res) => {
-  try {
-    const { _id } = req.params;
-    const result = await bookmarks.find({ user_id: _id }, { _id: 0, saved: 1 });
-    const mappedResult = result.map(item => item.saved.user_id);
-
-    // Assuming there is a usermaster collection/model
-    const userResult = await usermaster.find({ _id: { $in: mappedResult }, private: true });
-
-
-    if (result) {
-      const savedObjectsToDelete = result.filter(item => userResult.some(user => user._id.toString() === item.saved.user_id.toString()));
-
-      // Delete the saved objects
-      for (const savedObj of savedObjectsToDelete) {
-        await bookmarks.deleteOne({ 'saved._id': savedObj.saved._id });
-      }
-      const updatedResult = await bookmarks.find({ user_id: _id }, { _id: 0, saved: 1 });
-      return res.status(200).json({ Status: true, message: 'Saved fetch successfully', result:updatedResult });
-    } else {
-      return res.status(400).json({ Status: false, message: 'Error while fetching the saved' });
-    }
-  } catch (err) {
-    return res.status(400).json({ Status: 'Error', Error: err });
-  }
 }
 exports.rejectExplore=async(req,res)=>{
    try{
@@ -482,88 +457,6 @@ exports.getOtherprofile = async (req, res) => {
         return res.status(400).json({ Status: "Error", Error });
       }
 }
-exports.updateProfile=async(req,res)=>{
-    try{
-        const {_id}=req.body
-        const name=req.body.name
-        const bio=req.body.bio
-        const dob=req.body.dob
-        const occupation=req.body.occupation
-        const location=req.body.location
-        const gender=req.body.gender
-        const addprounous=req.body.addprounous
-        const AstroSign=req.body.AstroSign
-        const Hobbies=req.body.Hobbies
-        const profile_img=req.file.filename
-        const check = await usermaster.find({}, { _id: 0, name: 1 });
-        const names = check.map(user => user.name);
-        
-             const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{profile_img:profile_img,Hobbies:Hobbies,AstroSign:AstroSign,name:name,bio:bio,dob:dob,occupation:occupation,location:location,gender:gender,addprounous:addprounous,profile:true}},{new:true})
-             const user_id = mongoose.Types.ObjectId(_id);
-             if(result){
-             const posts = await post.updateMany({
-               "likedpeopledata._id": user_id
-             },{$set:{'likedpeopledata.$.profile_img':profile_img,'likedpeopledata.$.name':name}});
-            
-         const result = await usermaster.findOne({_id:_id})
-         const likeposts=await likepost.updateOne({
-          "likesofposts._id": user_id
-        },{$set:{'likesofposts.$.profile_img':profile_img,'likedpeopledata.$.name':name}});
-
-        const comment= await comments.updateMany({
-          "commentdetails._id": user_id
-        },{$set:{'commentdetails.profile_img':profile_img,'commentdetails.name':name}});
-      
-        
-        const commentlike= await comments.updateMany({
-          "commentlikerDetails._id": user_id
-        },{$set:{'commentlikerDetails.$.profile_img':profile_img,'commentlikerDetails.$.name':name}});
-
-        const replycomments=await replycomment.updateMany({
-          "commentdetails._id": user_id
-        },{ $set: { "commentdetails.profile_img": profile_img, "commentdetails.name": name } })
-
-        const replycommentslike=await replycomment.updateMany({
-          "commentlikerDetails._id": user_id
-        },{$set:{'commentlikerDetails.$.profile_img':profile_img,'commentlikerDetails.$.name':name}})
-
-        const connectrequest=await connection.updateMany({
-          "totalrequest._id": user_id
-        },{$set:{'totalrequest.$.profile_img':profile_img,'totalrequest.$.name':name}})
-
-        const connectconnectios=await connection.updateMany({
-          "connections._id": user_id
-        },{$set:{'connections.$.profile_img':profile_img,'connections.$.name':name}})
-
-        const request=await notification.updateMany({requested_id:user_id},
-          { $set: { "request.body": `${name} would like to connect with you `, "request.icon": profile_img } }, { new: true })
-          const accept=await notification.updateMany({accpeted_id:user_id},
-            { $set: { "accpeted.body": `${name} accepted your connection request `, "accpeted.icon": profile_img } }, { new: true })
-            const likepostss=await notification.updateMany({post_liker_id:user_id},
-              { $set: { "likespost.body": `${name} Liked your Post `, "likespost.icon": profile_img } }, { new: true })
-              const commentssss=await notification.updateMany({post_commenter_id:user_id},
-                { $set: { "comment.body": `${name} Commented On your Post `, "comment.icon": profile_img } }, { new: true })
-                const commentlikessww=await notification.updateMany({commente_liker_id:user_id},
-                  { $set: { "likecomment.body": `${name} Liked your Comment `, "likecomment.icon": profile_img } }, { new: true })
-
-                  const commentlikessw=await notification.updateMany({replyCommenter_id:user_id},
-                    { $set: { "replyComment.body": `${name} Commented On your Post `, "replyComment.icon": profile_img } }, { new: true })
-                  const commentlikeswws=await notification.updateMany({mentioner_id:user_id},
-                    { $set: { "mentioned.body": `${name} Mentioned You On Comment `, "mentioned.icon": profile_img } }, { new: true })
-                    const commentlikesws=await notification.updateMany({replyCommente_liker_id:user_id},
-                      { $set: { "replyCommentlike.body": `${name} Liked your Comment `, "replyCommentlike.icon": profile_img } }, { new: true })
-        const response=await usermaster.findOne({_id:_id})
-             return res.status(200).json({Status:true,message:'profile ctreated successfully',response})
-             }else{
-              return res.status(200).json({Status:false,message:'error while updating the profile'})
-             }
-         
-        }       
-      catch(err){
-        
-         return res.status(400).json({Status:'Error',Error})
-      }
-}
 exports.matchedList = async (req, res) => {
   try {
     const { user_id } = req.body;
@@ -666,7 +559,6 @@ await notification.findOneAndDelete({user_id:follower_id,accpeted:notifications}
     return res.status(400).json({Status:'Error',Error})
   }
 }
-
 exports.explore = async (req, res) => {
   try {
      const {_id} = req.body;
@@ -835,4 +727,127 @@ const tousersids=data.map(doc=>doc.toUser.toString())
   }
 
 }
+exports.updateProfile=async(req,res)=>{
+  try{
+      const {_id}=req.body
+      const name=req.body.name
+      const bio=req.body.bio
+      const dob=req.body.dob
+      const occupation=req.body.occupation
+      const location=req.body.location
+      const gender=req.body.gender
+      const addprounous=req.body.addprounous
+      const AstroSign=req.body.AstroSign
+      const Hobbies=req.body.Hobbies
+      const profile_img=req.file.filename
+      const check = await usermaster.find({}, { _id: 0, name: 1 });
+      const names = check.map(user => user.name);
+      
+           const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{profile_img:profile_img,Hobbies:Hobbies,AstroSign:AstroSign,name:name,bio:bio,dob:dob,occupation:occupation,location:location,gender:gender,addprounous:addprounous,profile:true}},{new:true})
+           const user_id = mongoose.Types.ObjectId(_id);
+           if(result){
+           const posts = await post.updateMany({
+             "likedpeopledata._id": user_id
+           },{$set:{'likedpeopledata.$.profile_img':profile_img,'likedpeopledata.$.name':name}});
+          
+       const result = await usermaster.findOne({_id:_id})
+       const likeposts=await likepost.updateOne({
+        "likesofposts._id": user_id
+      },{$set:{'likesofposts.$.profile_img':profile_img,'likedpeopledata.$.name':name}});
 
+      const comment= await comments.updateMany({
+        "commentdetails._id": user_id
+      },{$set:{'commentdetails.profile_img':profile_img,'commentdetails.name':name}});
+    
+      
+      const commentlike= await comments.updateMany({
+        "commentlikerDetails._id": user_id
+      },{$set:{'commentlikerDetails.$.profile_img':profile_img,'commentlikerDetails.$.name':name}});
+
+      const replycomments=await replycomment.updateMany({
+        "commentdetails._id": user_id
+      },{ $set: { "commentdetails.profile_img": profile_img, "commentdetails.name": name } })
+
+      const replycommentslike=await replycomment.updateMany({
+        "commentlikerDetails._id": user_id
+      },{$set:{'commentlikerDetails.$.profile_img':profile_img,'commentlikerDetails.$.name':name}})
+
+      const connectrequest=await connection.updateMany({
+        "totalrequest._id": user_id
+      },{$set:{'totalrequest.$.profile_img':profile_img,'totalrequest.$.name':name}})
+
+      const connectconnectios=await connection.updateMany({
+        "connections._id": user_id
+      },{$set:{'connections.$.profile_img':profile_img,'connections.$.name':name}})
+
+      const request=await notification.updateMany({requested_id:user_id},
+        { $set: { "request.body": `${name} would like to connect with you`, "request.icon": profile_img } }, { new: true })
+        const accept=await notification.updateMany({accpeted_id:user_id},
+          { $set: { "accpeted.body": `${name} accepted your connection request`, "accpeted.icon": profile_img } }, { new: true })
+          const likepostss=await notification.updateMany({post_liker_id:user_id},
+            { $set: { "likespost.body": `${name} Liked your Post`, "likespost.icon": profile_img } }, { new: true })
+            const commentssss=await notification.updateMany({post_commenter_id:user_id},
+              { $set: { "comment.body": `${name} Commented On your Post`, "comment.icon": profile_img } }, { new: true })
+              const commentlikessww=await notification.updateMany({commente_liker_id:user_id},
+                { $set: { "likecomment.body": `${name} Liked your Comment`, "likecomment.icon": profile_img } }, { new: true })
+
+                const commentlikessw=await notification.updateMany({replyCommenter_id:user_id},
+                  { $set: { "replyComment.body": `${name} Commented On your Post`, "replyComment.icon": profile_img } }, { new: true })
+                const commentlikeswws=await notification.updateMany({mentioner_id:user_id},
+                  { $set: { "mentioned.body": `${name} Mentioned You On Comment`, "mentioned.icon": profile_img } }, { new: true })
+                  const commentlikesws=await notification.updateMany({replyCommente_liker_id:user_id},
+                    { $set: { "replyCommentlike.body": `${name} Liked your Comment`, "replyCommentlike.icon": profile_img } }, { new: true })
+                    const commentlikefasws=await notification.updateMany({tagged_post_userid:user_id},
+                      { $set: { "tagged_post.body": `${name} Tagged In Their Post`, "tagged_post.icon": profile_img } }, { new: true })
+                
+      const response=await usermaster.findOne({_id:_id})
+           return res.status(200).json({Status:true,message:'profile ctreated successfully',response})
+           }else{
+            return res.status(200).json({Status:false,message:'error while updating the profile'})
+           }
+       
+      }       
+    catch(err){
+      
+       return res.status(400).json({Status:'Error',Error})
+    }
+}
+// exports.getSavedPost = async (req, res) => {
+//   try {
+//     const { _id } = req.params;
+//     const result = await bookmarks.find({ user_id: _id}, { _id: 0, saved: 1 });
+//     const mappedResult = result.map(item => item.saved.user_id);
+//     const userResult = await usermaster.find({ _id: { $in: mappedResult }, private: true });
+// const seeinconnections=connection.find({"connections._id":_id},{_id:0,user_id:1})
+// const user_ids_array = seeinconnections.map(connection => connection.user_id);
+// const users = await usermaster.find({ _id: { $in: user_ids_array }, connected: true }, { _id: 1 });
+// const user_id_strings = users.map(user => user._id)
+
+
+//     if (result) {
+//       const savedObjectsToDelete = result.filter(item => userResult.some(user => user._id.toString() === item.saved.user_id.toString()));
+//       for (const savedObj of savedObjectsToDelete) {
+//         await bookmarks.deleteOne({ 'saved._id': savedObj.saved._id });
+//       }
+//       const updatedResult = await bookmarks.find({ user_id: _id }, { _id: 0, saved: 1 });
+//       return res.status(200).json({ Status: true, message: 'Saved fetch successfully', result:updatedResult });
+//     } else {
+//       return res.status(400).json({ Status: false, message: 'Error while fetching the saved' });
+//     }
+//   } catch (err) {
+//     return res.status(400).json({ Status: 'Error', Error: err });
+//   }
+// }
+
+
+exports.getSavedPost = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const userdata=await usermaster.findOne({_id:_id},{_id:1,name:1,profile_img:1,addprounous:1})
+const result = await bookmarks.find({ user_id: userdata});
+      return res.status(200).json({ Status: true, message: 'Saved fetch successfully', result });
+  } catch (err) {
+    
+    return res.status(400).json({ Status: 'Error', Error: err });
+  }
+}
