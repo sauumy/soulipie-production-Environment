@@ -505,7 +505,7 @@ exports.getAllPostsofMe = async (req, res) => {
           'posts.totallikesofpost': 1,
           'posts.totalcomments': 1,
           'posts.likedpeopledata': 1,
-        },note
+        }
       },
     ]);
 
@@ -515,6 +515,7 @@ exports.getAllPostsofMe = async (req, res) => {
       return res.status(400).json({ Status: false, message: 'error fetching the file' });
     }
   } catch (err) {
+    console.log(err)
     return res.status(400).json({ Status: 'Error', Error });
   }
 };
