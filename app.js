@@ -113,7 +113,7 @@ const databaseConfig = require('./config/database.config.js');
 app.use('/', route);
 
 app.get('/', (req, res) => {
-    res.json({"message": "This is for testing"});
+    res.json({"message": "This is for testing "});
 });
 
 server.listen(4000,()=>
