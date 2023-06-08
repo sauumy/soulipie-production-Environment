@@ -727,6 +727,46 @@ const tousersids=data.map(doc=>doc.toUser.toString())
   }
 
 }
+// exports.getSavedPost = async (req, res) => {
+//   try {
+//     const { _id } = req.params;
+//     const result = await bookmarks.find({ user_id: _id}, { _id: 0, saved: 1 });
+//     const mappedResult = result.map(item => item.saved.user_id);
+//     const userResult = await usermaster.find({ _id: { $in: mappedResult }, private: true });
+// const seeinconnections=connection.find({"connections._id":_id},{_id:0,user_id:1})
+// const user_ids_array = seeinconnections.map(connection => connection.user_id);
+// const users = await usermaster.find({ _id: { $in: user_ids_array }, connected: true }, { _id: 1 });
+// const user_id_strings = users.map(user => user._id)
+
+
+//     if (result) {
+//       const savedObjectsToDelete = result.filter(item => userResult.some(user => user._id.toString() === item.saved.user_id.toString()));
+//       for (const savedObj of savedObjectsToDelete) {
+//         await bookmarks.deleteOne({ 'saved._id': savedObj.saved._id });
+//       }
+//       const updatedResult = await bookmarks.find({ user_id: _id }, { _id: 0, saved: 1 });
+//       return res.status(200).json({ Status: true, message: 'Saved fetch successfully', result:updatedResult });
+//     } else {
+//       return res.status(400).json({ Status: false, message: 'Error while fetching the saved' });
+//     }
+//   } catch (err) {
+//     return res.status(400).json({ Status: 'Error', Error: err });
+//   }
+// }
+
+
+exports.getSavedPost = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const userdata=await usermaster.findOne({_id:_id},{_id:1,name:1,profile_img:1,addprounous:1})
+const result = await bookmarks.find({ user_id: userdata});
+      return res.status(200).json({ Status: true, message: 'Saved fetch successfully', result });
+  } catch (err) {
+    
+    return res.status(400).json({ Status: 'Error', Error: err });
+  }
+}
+
 exports.updateProfile=async(req,res)=>{
   try{
       const {_id}=req.body
@@ -781,7 +821,7 @@ exports.updateProfile=async(req,res)=>{
       },{$set:{'connections.$.profile_img':profile_img,'connections.$.name':name}})
 
       const request=await notification.updateMany({requested_id:user_id},
-        { $set: { "request.body": `${name} would like to connect with you`, "request.icon": profile_img } }, { new: true })
+        { $set: { "request.body":`${name} would like to connect with you`, "request.icon": profile_img } }, { new: true })
         const accept=await notification.updateMany({accpeted_id:user_id},
           { $set: { "accpeted.body": `${name} accepted your connection request`, "accpeted.icon": profile_img } }, { new: true })
           const likepostss=await notification.updateMany({post_liker_id:user_id},
@@ -811,43 +851,4 @@ exports.updateProfile=async(req,res)=>{
       
        return res.status(400).json({Status:'Error',Error})
     }
-}
-// exports.getSavedPost = async (req, res) => {
-//   try {
-//     const { _id } = req.params;
-//     const result = await bookmarks.find({ user_id: _id}, { _id: 0, saved: 1 });
-//     const mappedResult = result.map(item => item.saved.user_id);
-//     const userResult = await usermaster.find({ _id: { $in: mappedResult }, private: true });
-// const seeinconnections=connection.find({"connections._id":_id},{_id:0,user_id:1})
-// const user_ids_array = seeinconnections.map(connection => connection.user_id);
-// const users = await usermaster.find({ _id: { $in: user_ids_array }, connected: true }, { _id: 1 });
-// const user_id_strings = users.map(user => user._id)
-
-
-//     if (result) {
-//       const savedObjectsToDelete = result.filter(item => userResult.some(user => user._id.toString() === item.saved.user_id.toString()));
-//       for (const savedObj of savedObjectsToDelete) {
-//         await bookmarks.deleteOne({ 'saved._id': savedObj.saved._id });
-//       }
-//       const updatedResult = await bookmarks.find({ user_id: _id }, { _id: 0, saved: 1 });
-//       return res.status(200).json({ Status: true, message: 'Saved fetch successfully', result:updatedResult });
-//     } else {
-//       return res.status(400).json({ Status: false, message: 'Error while fetching the saved' });
-//     }
-//   } catch (err) {
-//     return res.status(400).json({ Status: 'Error', Error: err });
-//   }
-// }
-
-
-exports.getSavedPost = async (req, res) => {
-  try {
-    const { _id } = req.params;
-    const userdata=await usermaster.findOne({_id:_id},{_id:1,name:1,profile_img:1,addprounous:1})
-const result = await bookmarks.find({ user_id: userdata});
-      return res.status(200).json({ Status: true, message: 'Saved fetch successfully', result });
-  } catch (err) {
-    
-    return res.status(400).json({ Status: 'Error', Error: err });
-  }
 }
