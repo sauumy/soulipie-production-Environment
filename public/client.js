@@ -142,7 +142,7 @@ function sendVideo(){
      formData.append('sender_id',user_id);
      formData.append('room_id',room_id);
        console.log(data1)
-         fetch('/videoupload',{method:'post',body:formData})
+         fetch('/video',{method:'post',body:formData})
          .then(Response=>
              Response.json()
              ).then(result=>{
