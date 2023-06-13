@@ -795,11 +795,13 @@ exports.getPostsOfAll = async (req, res) => {
 
     const user_ids = mongoose.Types.ObjectId(user_id);
     const seeinconnections = await connection.find({ 'connections._id': user_ids }, { _id: 0, user_id: 1 });
+    //console.log(seeinconnections)
     const user_ids_array = seeinconnections.map(connection => connection.user_id);
+    //console.log(user_ids_array)
     const users = await usermaster.find({ _id: { $in: user_ids_array }, connected: true }, { _id: 1 });
-
+//console.log(users)
     const user_id_strings = users.map(user => user._id);
- 
+    console.log(user_id_strings)
 
     const ids = user_id.toString();
 
@@ -868,24 +870,28 @@ exports.getPostsOfAll = async (req, res) => {
       {
         $match: {
           $and: [
-            { _id: { $in: user_id_strings } },
-            { _id: { $nin: blockedIds } }
+          {_id: { $in: user_id_strings.map(id => mongoose.Types.ObjectId(id)) }},
+          { _id: { $nin: blockedIds } },
           ]
         }
+      
       },
       {
         $lookup: {
-          from: 'post',
-          let: { post_id: "$feed._id" },
+          from: "posts", // Update collection name if necessary
+          let: { user_id: "$_id" },
           pipeline: [
             {
               $match: {
-                $expr: { $eq: ["$_id", "$$post_id"] },
+                $expr: { $eq: ["$user_id", "$$user_id"] },
                 _id: { $nin: blockedPostIds }, // Exclude blocked posts
               },
             },
+            {
+              $sort: { createdAt: -1 },
+            },
           ],
-          as: 'blockedPosts',
+          as: "feed",
         },
       },
       {
@@ -899,7 +905,7 @@ exports.getPostsOfAll = async (req, res) => {
           profile_img: 1,
           "feed.Post_img": 1,
           "feed.Post_discription": 1,
-          "feed._id":          1,
+          "feed._id": 1,
           "feed.user_id": 1,
           "feed.totallikesofpost": 1,
           "feed.totalcomments": 1,
@@ -914,6 +920,8 @@ exports.getPostsOfAll = async (req, res) => {
         },
       },
     ]);
+    
+    
 
     const usersWithPostsss = await usermaster.aggregate([
       {
