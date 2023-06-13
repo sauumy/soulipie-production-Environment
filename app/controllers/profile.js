@@ -827,14 +827,12 @@ exports.createProfile=async(req,res)=>{
      const location=req.body.location
      const gender=req.body.gender
      const addprounous=req.body.addprounous
-    //  const AstroSign=req.body.AstroSign
-    // const Hobbies=req.body.Hobbies
     const profile_img=req.file.filename 
     const check = await usermaster.find({}, { _id: 0, name: 1 });
       const names = check.map(user => user.name);
      
 
-      if(!_id&&!name&&!bio&&!dob&&!occupation&&!location&&!gender&&!addprounous&&!profile_img){
+      if(!_id&&!name&&!bio&&!dob&&!occupation&&!location&&!gender&&!addprounous&&!req.file){
         return res.status(406).send({Status:false,message:'Please Provide All Details'})
       }
       else if(!names.includes(name)){
@@ -852,8 +850,8 @@ exports.createProfile=async(req,res)=>{
       }
     }
     catch(err){
-      
-       return res.status(400).json({Status:'Error',Error})
+      console.log(err)
+       return res.status(400).json({Status:'Error',message:"Check All The Details",Error})
     }
 }
 exports.createProfile1=async(req,res)=>{
