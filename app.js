@@ -27,7 +27,15 @@ app.use(function (req, res, next) {
 
 const http=require('http');
 const server = http.createServer(app);
-const io = require('socket.io')(server);
+const io = require('socket.io')(server,{
+    cors: {
+      origin: '*',
+    }
+  });
+
+
+
+
 const path=require('path');
 const staticPath=path.join(__dirname,'/public');
 const dbConfig = require('./config/database.config.js');
