@@ -804,7 +804,7 @@ exports.updateProfile=async(req,res)=>{
                       { $set: { "tagged_post.body": `${name} Tagged In Their Post`, "tagged_post.icon": profile_img } }, { new: true })
                 
       const response=await usermaster.findOne({_id:_id})
-           return res.status(200).json({Status:true,message:'profile ctreated successfully',response})
+           return res.status(200).json({Status:true,message:'Profile Updated successfully',response})
            }else{
             return res.status(200).json({Status:false,message:'error while updating the profile'})
            }
@@ -833,13 +833,17 @@ exports.createProfile=async(req,res)=>{
     const check = await usermaster.find({}, { _id: 0, name: 1 });
       const names = check.map(user => user.name);
      
-      if(!names.includes(name)){
+
+      if(!_id&&!name&&!bio&&!dob&&!occupation&&!location&&!gender&&!addprounous&&!profile_img){
+        return res.status(406).send({Status:false,message:'Please Provide All Details'})
+      }
+      else if(!names.includes(name)){
           const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{profile_img:profile_img,profile:true,name:name,bio:bio,dob:dob,
              occupation:occupation,location:location,gender:gender,addprounous:addprounous}},{new:true})
           if(result){
 
        const result = await usermaster.findOne({_id:_id})
-          return res.status(200).json({Status:true,message:'profile ctreated successfully',result})
+          return res.status(200).json({Status:true,message:'Profile ctreated successfully',result})
        }else{
           return res.status(406).send({Status:false,message:'not found anything'})
        }
@@ -862,7 +866,7 @@ exports.createProfile1=async(req,res)=>{
           if(result){
 
        const result = await usermaster.findOne({_id:_id})
-          return res.status(200).json({Status:true,message:'profile ctreated successfully',result})
+          return res.status(200).json({Status:true,message:'Profile ctreated successfully',result})
        }else{
           return res.status(406).send({Status:false,message:'not found anything'})
        }
