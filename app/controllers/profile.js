@@ -46,7 +46,6 @@ exports.getProfile=async(req,res)=>{
      }
 
 }
-
 exports.addAstroSign=async(req,res)=>{
    try{
       
@@ -95,7 +94,6 @@ exports.addHobbies=async(req,res)=>{
      }
 
 }
-
 exports.getAstroSign=async(req,res)=>{
    try{
    const response= await Astro.find()
@@ -125,7 +123,6 @@ exports.getHobbies=async(req,res)=>{
    return res.status(400).json({Status:'Error',Error})
 }
 }
-
 exports.savePost = async (req, res) => {
    try {
      const { post_id, user_id } = req.body;
@@ -716,8 +713,6 @@ const tousersids=data.map(doc=>doc.toUser.toString())
 //     return res.status(400).json({ Status: 'Error', Error: err });
 //   }
 // }
-
-
 exports.getSavedPost = async (req, res) => {
   try {
     const { _id } = req.params;
@@ -729,7 +724,6 @@ const result = await bookmarks.find({ user_id: userdata});
     return res.status(400).json({ Status: 'Error', Error: err });
   }
 }
-
 exports.updateProfile=async(req,res)=>{
   try{
       const {_id}=req.body
@@ -806,7 +800,7 @@ exports.updateProfile=async(req,res)=>{
       const response=await usermaster.findOne({_id:_id})
            return res.status(200).json({Status:true,message:'Profile Updated successfully',response})
            }else{
-            return res.status(200).json({Status:false,message:'error while updating the profile'})
+            return res.status(200).json({Status:false,message:'error while updated the profile'})
            }
        
       }       
@@ -815,8 +809,6 @@ exports.updateProfile=async(req,res)=>{
        return res.status(400).json({Status:'Error',Error})
     }
 }
-
-
 exports.createProfile=async(req,res)=>{
   try{
      const _id=req.body._id
@@ -841,7 +833,7 @@ exports.createProfile=async(req,res)=>{
           if(result){
 
        const result = await usermaster.findOne({_id:_id})
-          return res.status(200).json({Status:true,message:'Profile ctreated successfully',result})
+          return res.status(200).json({Status:true,message:'Profile created successfully',result})
        }else{
           return res.status(406).send({Status:false,message:'not found anything'})
        }
@@ -864,7 +856,7 @@ exports.createProfile1=async(req,res)=>{
           if(result){
 
        const result = await usermaster.findOne({_id:_id})
-          return res.status(200).json({Status:true,message:'Profile ctreated successfully',result})
+          return res.status(200).json({Status:true,message:'Profile created successfully',result})
        }else{
           return res.status(406).send({Status:false,message:'not found anything'})
        }
