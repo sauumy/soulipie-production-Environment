@@ -56,6 +56,7 @@ route.get('/getHobbies',profileController.getHobbies)
 
 //profileModule
 route.put('/createprofile',uploadProfile.single('profile_img'),compressProfileImg,profileController.createProfile)
+route.put('/createProfile1',profileController.createProfile1)
 route.get('/getProfile/:_id',profileController.getProfile)
 route.post('/getOtherprofile',profileController.getOtherprofile)
 route.get('/getAllProfile',profileController.getAllProfile)

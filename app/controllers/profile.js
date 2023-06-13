@@ -12,41 +12,6 @@ const comments=require('../models/comments')
 const replycomment=require('../models/replycomment')
 const mongoose=require('mongoose');
 
-exports.createProfile=async(req,res)=>{
-    try{
-       const _id=req.body._id
-       const name=req.body.name
-       const bio=req.body.bio
-       const dob=req.body.dob
-       const occupation=req.body.occupation
-       const location=req.body.location
-       const gender=req.body.gender
-       const addprounous=req.body.addprounous
-       const AstroSign=req.body.AstroSign
-      const Hobbies=req.body.Hobbies
-      const profile_img=req.file.filename 
-      const check = await usermaster.find({}, { _id: 0, name: 1 });
-        const names = check.map(user => user.name);
-       
-        if(!names.includes(name)){
-            const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{profile_img:profile_img,profile:true,name:name,bio:bio,dob:dob,
-               occupation:occupation,location:location,gender:gender,addprounous:addprounous,AstroSign:AstroSign,Hobbies:Hobbies}},{new:true})
-            if(result){
-
-         const result = await usermaster.findOne({_id:_id})
-            return res.status(200).json({Status:true,message:'profile ctreated successfully',result})
-         }else{
-            return res.status(406).send({Status:false,message:'not found anything'})
-         }
-        }else{
-          return res.status(406).send({Status:false,message:'This Name is Already Exists'})
-        }
-      }
-      catch(err){
-        
-         return res.status(400).json({Status:'Error',Error})
-      }
- }
 
 exports.getProfile=async(req,res)=>{
    try{
@@ -341,7 +306,6 @@ exports.getOtherprofile = async (req, res) => {
               return res.status(200).json({
                 Status: true,
                 message: "profile fetched successfully",
-               
                 result,
                 matchesProfileCount,
                 connections,
@@ -433,7 +397,6 @@ exports.getOtherprofile = async (req, res) => {
               return res.status(200).json({
                 Status: true,
                 message: "profile fetched successfully",
-               
                 result,
                 matchesProfileCount,
                 connections,
@@ -847,6 +810,63 @@ exports.updateProfile=async(req,res)=>{
            }
        
       }       
+    catch(err){
+      
+       return res.status(400).json({Status:'Error',Error})
+    }
+}
+
+
+exports.createProfile=async(req,res)=>{
+  try{
+     const _id=req.body._id
+     const name=req.body.name
+     const bio=req.body.bio
+     const dob=req.body.dob
+     const occupation=req.body.occupation
+     const location=req.body.location
+     const gender=req.body.gender
+     const addprounous=req.body.addprounous
+    //  const AstroSign=req.body.AstroSign
+    // const Hobbies=req.body.Hobbies
+    const profile_img=req.file.filename 
+    const check = await usermaster.find({}, { _id: 0, name: 1 });
+      const names = check.map(user => user.name);
+     
+      if(!names.includes(name)){
+          const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{profile_img:profile_img,profile:true,name:name,bio:bio,dob:dob,
+             occupation:occupation,location:location,gender:gender,addprounous:addprounous}},{new:true})
+          if(result){
+
+       const result = await usermaster.findOne({_id:_id})
+          return res.status(200).json({Status:true,message:'profile ctreated successfully',result})
+       }else{
+          return res.status(406).send({Status:false,message:'not found anything'})
+       }
+      }else{
+        return res.status(406).send({Status:false,message:'This Name is Already Exists'})
+      }
+    }
+    catch(err){
+      
+       return res.status(400).json({Status:'Error',Error})
+    }
+}
+exports.createProfile1=async(req,res)=>{
+  try{
+    const _id=req.body._id
+     const AstroSign=req.body.AstroSign
+    const Hobbies=req.body.Hobbies
+
+          const result = await usermaster.findOneAndUpdate({_id:_id},{$set:{AstroSign:AstroSign,Hobbies:Hobbies}},{new:true})
+          if(result){
+
+       const result = await usermaster.findOne({_id:_id})
+          return res.status(200).json({Status:true,message:'profile ctreated successfully',result})
+       }else{
+          return res.status(406).send({Status:false,message:'not found anything'})
+       }
+    }
     catch(err){
       
        return res.status(400).json({Status:'Error',Error})
