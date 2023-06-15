@@ -172,11 +172,11 @@ exports.registration = async (req, res) => {
   if(istherearenot){
     const otp=istherearenot.otp
     const profile=istherearenot.profile
- 
+    const response=istherearenot
     if(otp==='true'&&profile==='true'){
       return res.status(400).send({Status:false,message:'You have already registerd with the Soulipie'})
     }else if (otp==='true'&&profile==='false'){
-      return res.status(400).send({Status:false,message:'OTP verified'})
+      return res.status(400).send({Status:false,message:'OTP verified',response})
     }else if(otp==='false'&&profile==='false'){
       return res.status(200).send({Status:true,message:'Otp sent on mobile Successfully'})
     }
@@ -884,7 +884,7 @@ else{
      if(connection){
       const deleterequest= {
         title: 'Soulipie',
-        body: `${names} would like to connect with you`,
+        body: `${name} would like to connect with you`,
         icon:image
       }
     
