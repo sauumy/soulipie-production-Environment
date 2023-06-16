@@ -36,6 +36,10 @@ const userSchema = new Schema({
     deleteTime:{
         type:Date,
         index: { expireAfterSeconds: 0 }
+    },
+    duration:{
+        type:Number,
+        default:''
     }
  
 },{timestamps:true})
