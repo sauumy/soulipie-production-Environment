@@ -44,14 +44,16 @@ exports.addstoryVideo = async (req, res) => {
         if (req.files && req.files.length > 0) {
             const video = req.files.map(file => file.filename);
             const sender_id = req.body.sender_id;
-            const text = req.body.text;
+            const text = req.body.text
+            const duration=req.body.duration
             const currenttime=new Date()
             currenttime.setHours(currenttime.getHours()+24)
             const storyDocs = video.map(v => new story({
               sender_id,
               text,
               video: v,
-              deleteTime:currenttime
+              deleteTime:currenttime,
+              duration:duration
             }));
             const result = await story.insertMany(storyDocs);
             return res.status(200).json({Status:true,message:"story created successfully",result})
@@ -461,7 +463,8 @@ exports.getAllStory1 = async (req, res) => {
         video: 1,
         totalViewers: 1,
         deleteTime: 1,
-        createdAt: 1
+        createdAt: 1,
+        duration:1
       })
       .exec();
 
@@ -475,7 +478,8 @@ exports.getAllStory1 = async (req, res) => {
         video: 1,
         totalViewers: 1,
         deleteTime: 1,
-        createdAt: 1
+        createdAt: 1,
+        duration:1
       })
       .exec();
 
