@@ -884,7 +884,7 @@ else{
      if(connection){
       const deleterequest= {
         title: 'Soulipie',
-        body: `${name} would like to connect with you`,
+        body: `${names} would like to connect with you`,
         icon:image
       }
     
