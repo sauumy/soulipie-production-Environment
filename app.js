@@ -99,6 +99,7 @@ let usersJoin={}
 //                 }
 //               })
 //             })
+const moment = require('moment-timezone');
 
 io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
@@ -166,16 +167,12 @@ io.on('connection', (socket) => {
 });
 
 function getFormattedTime() {
-  const options = {
-    timeZone: 'Asia/Kolkata', // Set the time zone to Indian Standard Time (IST)
-    hour12: true, // Use 24-hour format
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-  };
-
-  return new Date().toLocaleString('en-IN', options);
+  const indianTime = moment().tz('Asia/Kolkata');
+  return indianTime.format('HH:mm:ss');
 }
+
+
+
 
 
 
