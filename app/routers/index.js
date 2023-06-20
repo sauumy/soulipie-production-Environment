@@ -92,7 +92,9 @@ route.put('/blockContact',settingsController.blockContact)
 route.post('/changeNumberverify',settingsController.changeNumberverify)
 route.post('/changeNumber',settingsController.chaneNumber)
 route.post('/securitySetting',settingsController.securitySetting)
-
+route.post('/online',settingsController.userlogin)
+route.post('/offline',settingsController.userOffline)
+route.post('/getuseronlineorofline',settingsController.getuseronlineorofline)
 
 //bookmark Module
 route.post('/savePost',profileController.savePost)

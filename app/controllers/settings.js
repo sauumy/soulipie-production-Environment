@@ -7,6 +7,7 @@ const service=require('../services/mobile_service')
 const otpService = require('../services/otp_service')
 const jwtTokenService = require('../services/jwt-service')
 const {chatModule}=require('../models/chatmodule')
+const onlineoffline=require('../models/onlineoffline')
 exports.blockContact = async(req,res)=>{
     try{
         const {user_id,other_number} = req.body
@@ -203,3 +204,74 @@ if(_id&&private){
 }
 
 
+exports.userlogin=async(req,res)=>{
+    try{
+
+const {userId,time}=req.body
+const data=await onlineoffline.findOne({userId:userId})
+console.log(data)
+if(data){
+    const update=await onlineoffline.findOneAndUpdate({userId:userId},{$set:{online:true,Offline:false,time:time}})
+    if(update){
+    const response=await onlineoffline.findOne({userId:userId})
+    return res.status(200).send({status:true,message:'user is Online',response})
+    }else{
+        return res.status(200).send({status:false,message:'something error'})
+    }
+}else{
+    const data=new onlineoffline({
+        userId:userId,
+        online:true,
+        Offline:false,
+        time:time
+    })
+    const response=await data.save()
+    return res.status(200).send({status:true,message:'user is Online',response})
+}
+
+    }catch(err){
+        
+            return res.status(400).send({Status:'Error',message:'somthing went wrong'})
+                   }
+}
+
+exports.userOffline=async(req,res)=>{
+    try{
+
+const {userId,time}=req.body
+const data=await onlineoffline.findOne({userId:userId})
+console.log(data)
+if(data){
+    const update=await onlineoffline.findOneAndUpdate({userId:userId},{$set:{Offline:true,online:false,time:time}})
+    if(update){
+    const response=await onlineoffline.findOne({userId:userId})
+    return res.status(200).send({status:true,message:'user is Online',response})
+    }else{
+        return res.status(200).send({status:false,message:'something error'})
+    }
+}else{
+    const data=new onlineoffline({
+        userId:userId,
+        Offline:true,
+        online:false,
+        time:time
+    })
+    const response=await data.save()
+    return res.status(200).send({status:true,message:'user is Online',response})
+}
+
+    }catch(err){
+        
+            return res.status(400).send({Status:'Error',message:'somthing went wrong'})
+                   }
+}
+
+exports.getuseronlineorofline=async(req,res)=>{
+    try{
+const {userId}=req.body
+const response=await onlineoffline.find({userId:userId})
+return res.status(200).send({status:true,message:'get successfully',response})
+    }catch(err){
+            return res.status(400).send({Status:'Error',message:'somthing went wrong'})
+                   }
+}
