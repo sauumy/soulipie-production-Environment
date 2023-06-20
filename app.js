@@ -10,7 +10,6 @@ const app=express()
 app .use(express.json());
 app.use(bodyParser.json({limit: '70mb'}));
 app.use(bodyParser.urlencoded({limit: '70mb', extended: false, parameterLimit: 1000000}));
-
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "http://Soulipieapp-env.eba-ebtqbfxv.ap-south-1.elasticbeanstalk.com:4000");
     res.header("Access-Control-Allow-Origin", "*");
@@ -22,20 +21,14 @@ app.use(function (req, res, next) {
         res.header('Upgrade', 'websocket');
       }
       next();
-  });
-  
-
+  })
 const http=require('http');
 const server = http.createServer(app);
 const io = require('socket.io')(server,{
     cors: {
-      origin: '*',
+      origin: 'http://Soulipieapp-env.eba-ebtqbfxv.ap-south-1.elasticbeanstalk.com:4000',
     }
   });
-
-
-
-
 const path=require('path');
 const staticPath=path.join(__dirname,'/public');
 const dbConfig = require('./config/database.config.js');
@@ -45,68 +38,149 @@ app.get('', function(req, res,next) {
     res.sendFile(__dirname + "/public/index.html");
 });
 let usersJoin={}
-io.on('connection',(socket)=>{
-    console.log('Socket connected:', socket.id);
-    socket.on('userLoggedIn', ({ userId }) => {
-        console.log(`User logged in: ${userId}`);
-        usersJoin[socket.id] = userId;
+// io.on('connection',(socket)=>{
+//     console.log('Socket connected:', socket.id);
+//     socket.on('userLoggedIn', ({ userId }) => {
+//         console.log(`User logged in: ${userId}`);
+//         usersJoin[socket.id] = userId;
     
-        io.emit('userStatusChanged', { userId, status: 'online' });
-      });
-    socket.on('joinRoom',(room)=>{
+//         io.emit('userStatusChanged', { userId, status: 'online' });
+//       });
+//     socket.on('joinRoom',(room)=>{
        
-        socket.join(room);
-	 if(!usersJoin[socket.id]){
-             usersJoin[socket.id]=room
-          }
-    io.to(room).emit("online message",[socket.id],{online:true})
-     })
-     socket.on('online message',(room)=>{
-                io.to(room).emit('online message1',{ online: true, time: new Date().toLocaleTimeString() })
-                 })
-                 socket.on('typing', (data) => {
-                    io.to(data.room).emit('typing',data, socket.id);
+//         socket.join(room);
+// 	 if(!usersJoin[socket.id]){
+//              usersJoin[socket.id]=room
+//           }
+//     io.to(room).emit("online message",[socket.id],{online:true})
+//      })
+//      socket.on('online message',(room)=>{
+//                 io.to(room).emit('online message1',{ online: true, time: new Date().toLocaleTimeString() })
+//                  })
+//                  socket.on('typing', (data) => {
+//                     io.to(data.room).emit('typing',data, socket.id);
                     
-                  });
-                  socket.on('stopTyping', (data) => {
+//                   });
+//                   socket.on('stopTyping', (data) => {
                   
-                    io.to(data.room).emit('stopTyping', data,socket.id);
-                  });
+//                     io.to(data.room).emit('stopTyping', data,socket.id);
+//                   });
                 
-            socket.on('message',(data)=>{
-                console.log('message', data);
-                  io.to(data.room_id).emit('messageSend',{ ...data, time: new Date().toLocaleTimeString() })
-               })
+//             socket.on('message',(data)=>{
+//                 console.log('message', data);
+//                   io.to(data.room_id).emit('messageSend',{ ...data, time: new Date().toLocaleTimeString() })
+//                })
         
-            socket.on('getmessage',(data)=>{
-                console.log('getmessage', data);
-                io.to(data.room_id).emit('getmessage',{ ...data, time: new Date().toLocaleTimeString() })
-        }) 
-        socket.on('user video',data=>{
-            console.log('user video', data);
-            io.to(data.room_id).emit('user video',{ ...data, time: new Date().toLocaleTimeString() })
-        })
-            socket.on('user image',data=>{
-                console.log('user image', data);
-                io.to(data.room_id).emit('user image',{ ...data, time: new Date().toLocaleTimeString() })
-            }) 
+//             socket.on('getmessage',(data)=>{
+//                 console.log('getmessage', data);
+//                 io.to(data.room_id).emit('getmessage',{ ...data, time: new Date().toLocaleTimeString() })
+//         }) 
+//         socket.on('user video',data=>{
+//             console.log('user video', data);
+//             io.to(data.room_id).emit('user video',{ ...data, time: new Date().toLocaleTimeString() })
+//         })
+//             socket.on('user image',data=>{
+//                 console.log('user image', data);
+//                 io.to(data.room_id).emit('user image',{ ...data, time: new Date().toLocaleTimeString() })
+//             }) 
             
-            socket.on('user audio',data=>{
-                console.log('user audio', data);
-                io.to(data.room_id).emit('user audio',{ ...data, time: new Date().toLocaleTimeString() })
-            })
+//             socket.on('user audio',data=>{
+//                 console.log('user audio', data);
+//                 io.to(data.room_id).emit('user audio',{ ...data, time: new Date().toLocaleTimeString() })
+//             })
 	
-            socket.on('disconnect', () => {
-                if (usersJoin.hasOwnProperty(socket.id)) {
-                  const userId = usersJoin[socket.id];
-                  let time = new Date().toLocaleString();
-            
-                  delete usersJoin[socket.id];
-                  io.emit('userStatusChanged', { userId, time ,status:'offline'});
-                  console.log(`User logged out: ${userId}`);
-                }
-              });
-            });
+//             socket.on('disconnect', () => {
+//                 if (usersJoin.hasOwnProperty(socket.id)) {
+//                   const userId = usersJoin[socket.id];
+//                   let time = new Date().toLocaleString()
+//                   delete usersJoin[socket.id];
+//                   io.emit('userStatusChanged', { userId, time ,status:'offline'});
+//                   console.log(`User logged out: ${userId}`);
+//                 }
+//               })
+//             })
+
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id);
+
+  socket.on('userLoggedIn', ({ userId }) => {
+    console.log(`User logged in: ${userId}`);
+    usersJoin[socket.id] = userId;
+    io.emit('userStatusChanged', { userId, status: 'online' });
+  });
+
+  socket.on('joinRoom', (room) => {
+    socket.join(room);
+    if (!usersJoin[socket.id]) {
+      usersJoin[socket.id] = room;
+    }
+    io.to(room).emit("online message", [socket.id], { online: true });
+  });
+
+  socket.on('online message', (room) => {
+    io.to(room).emit('online message1', { online: true, time: getFormattedTime() });
+  });
+
+  socket.on('typing', (data) => {
+    io.to(data.room).emit('typing', data, socket.id);
+  });
+
+  socket.on('stopTyping', (data) => {
+    io.to(data.room).emit('stopTyping', data, socket.id);
+  });
+
+  socket.on('message', (data) => {
+    console.log('message', data);
+    io.to(data.room_id).emit('messageSend', { ...data, time: getFormattedTime() });
+  });
+
+  socket.on('getmessage', (data) => {
+    console.log('getmessage', data);
+    io.to(data.room_id).emit('getmessage', { ...data, time: getFormattedTime() });
+  });
+
+  socket.on('user video', (data) => {
+    console.log('user video', data);
+    io.to(data.room_id).emit('user video', { ...data, time: getFormattedTime() });
+  });
+
+  socket.on('user image', (data) => {
+    console.log('user image', data);
+    io.to(data.room_id).emit('user image', { ...data, time: getFormattedTime() });
+  });
+
+  socket.on('user audio', (data) => {
+    console.log('user audio', data);
+    io.to(data.room_id).emit('user audio', { ...data, time: getFormattedTime() });
+  });
+
+  socket.on('disconnect', () => {
+    if (usersJoin.hasOwnProperty(socket.id)) {
+      const userId = usersJoin[socket.id];
+      let time = new Date().toLocaleString();
+      delete usersJoin[socket.id];
+      io.emit('userStatusChanged', { userId, time, status: 'offline' });
+      console.log(`User logged out: ${userId}`);
+    }
+  });
+});
+
+function getFormattedTime() {
+  const options = {
+    timeZone: 'Asia/Kolkata', // Set the time zone to Indian Standard Time (IST)
+    hour12: true, // Use 24-hour format
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+  };
+
+  return new Date().toLocaleString('en-IN', options);
+}
+
+
+
+
+
 mongoose.Promise = global.Promise;
 mongoose.connect(dbConfig.url, {
     useNewUrlParser: true
