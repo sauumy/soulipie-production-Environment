@@ -119,7 +119,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('online message', (room) => {
-    io.to(room).emit('online message1', { online: true, time: getFormattedTime() });
+    io.to(room).emit('online message1', { online: true, time: new Date().toLocaleTimeString() });
   });
 
   socket.on('typing', (data) => {
@@ -132,33 +132,38 @@ io.on('connection', (socket) => {
 
   socket.on('message', (data) => {
     console.log('message', data);
-    io.to(data.room_id).emit('messageSend', { ...data, time: getFormattedTime() });
+    io.to(data.room_id).emit('messageSend', { ...data, time: new Date().toLocaleTimeString() });
   });
 
   socket.on('getmessage', (data) => {
     console.log('getmessage', data);
-    io.to(data.room_id).emit('getmessage', { ...data, time: getFormattedTime() });
+    io.to(data.room_id).emit('getmessage', { ...data, time: new Date().toLocaleTimeString() });
   });
 
   socket.on('user video', (data) => {
     console.log('user video', data);
-    io.to(data.room_id).emit('user video', { ...data, time: getFormattedTime() });
+    io.to(data.room_id).emit('user video', { ...data, time: new Date().toLocaleTimeString()});
   });
 
   socket.on('user image', (data) => {
     console.log('user image', data);
-    io.to(data.room_id).emit('user image', { ...data, time: getFormattedTime() });
+    io.to(data.room_id).emit('user image', { ...data, time: new Date().toLocaleTimeString()});
   });
 
   socket.on('user audio', (data) => {
     console.log('user audio', data);
-    io.to(data.room_id).emit('user audio', { ...data, time: getFormattedTime() });
+    io.to(data.room_id).emit('user audio', { ...data, time: new Date().toLocaleTimeString()});
   });
 
   socket.on('disconnect', () => {
     if (usersJoin.hasOwnProperty(socket.id)) {
       const userId = usersJoin[socket.id];
-      let time = new Date().toLocaleString();
+      // let time = new Date().toLocaleString();
+      const time = new Date().toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+      });
       delete usersJoin[socket.id];
       io.emit('userStatusChanged', { userId, time, status: 'offline' });
       console.log(`User logged out: ${userId}`);
@@ -166,10 +171,16 @@ io.on('connection', (socket) => {
   });
 });
 
-function getFormattedTime() {
-  const indianTime = moment().tz('Asia/Kolkata');
-  return indianTime.format('HH:mm:ss');
-}
+// function getFormattedTime() {
+//   const options = {
+
+//     hour12: true, // Use 24-hour format
+//     hour: 'numeric',
+//     minute: 'numeric'
+//   };
+
+//   return new Date().toLocaleTimeString('en-US', options);
+// }
 
 
 
