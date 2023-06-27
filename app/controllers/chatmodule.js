@@ -4,6 +4,7 @@ const {v4 : uuidv4} = require('uuid')
 const connection=require('../models/connection')
 const storeMsg=require('../models/storemssage')
 const report=require('../models/report')
+const {isRoom}=require("../models/chatroom")
 
 
 exports.getConnections=async(req,res)=>{
@@ -23,9 +24,6 @@ exports.getConnections=async(req,res)=>{
         res.send({message:"somthing is wrong"})
     }
 }
-
-
-
 exports.getmessage=async(req,res)=>{
     try{
         const roomid=req.params.room_id
@@ -39,13 +37,6 @@ exports.getmessage=async(req,res)=>{
          res.sen({ErrorMessage:"somthing error"})
     }
 }
-
-
-
-
-
-
-  
 exports.clearChat=(req,res)=>{
     
     const roomid=req.params.roomid
@@ -59,8 +50,7 @@ exports.clearChat=(req,res)=>{
         }).catch(Error=>{
             res.status(401).send({status:"Failure",messaage:"somthing problem in clear chat"})
         })
-    }
-
+}
 exports.deleteChat=async(req,res)=>{
     try{
         const roomid=req.params.roomid
@@ -79,7 +69,6 @@ exports.deleteChat=async(req,res)=>{
     
 }
 }
-
 exports.deleteOneManyMesage=async(req,res)=>{
     try{
     const{_id}=req.body
@@ -100,9 +89,6 @@ exports.deleteOneManyMesage=async(req,res)=>{
     return res.status(400).json({status:'Error',message:'somthing went wrong',err})
 }
 }
-
-
-
 exports.reportUser=async(req,res)=>{
     try{
 const{reporter_id,report_id,reportreason}=req.body
@@ -266,7 +252,6 @@ if(sender_id.length>10){
       return res.status(400).send({ErrorMessage:"somthing error"})
   }
 } 
-
 // exports.messageHistory = async (req, res) => {
 //   var sender_id = req.body.sender_id;
 //   try {
@@ -497,9 +482,7 @@ if(sender_id.length>10){
 //       .json({ status: "Error", message: "Something went wrong", err });
 //   }
 // };
-
-
-     
+   
 exports.messageHistory = async (req, res) => {
   var sender_id = req.body.sender_id;
   try {
@@ -597,6 +580,58 @@ exports.messageHistory = async (req, res) => {
       .json({ status: "Error", message: "Something went wrong", err });
   }
 };
+exports.isChatRoom=async(req, res)=>{
+  try{
+const {sender_id,room_id}=req.body
+if(!sender_id&&!room_id){
+  res.status(400).send({status:false,message:"Please provide all the detais"})
+}else{
+  const data=await isRoom.findOne({sender_id:sender_id,room_id:room_id})
+  if(data){
+    await isRoom.findOneAndUpdate({sender_id:sender_id,room_id:room_id},{isChatroom:true})
+    const response=await isRoom.findOne({sender_id:sender_id,room_id:room_id})
+    res.status(200).send({status:true,message:" is chatroom",response})
+  }else{
+    const datas=new isRoom({
+      sender_id:sender_id,
+      room_id:room_id,
+      isChatroom:true
+    })
+    const response=await datas.save()
+    res.status(400).send({status:true,message:" is chatroom",response})
+  }
+}
+}catch (err) {
+  
+    return res.status(400).json({ status: "Error", message: "Something went wrong", err });
+  }
+}
 
-
+exports.isNotChatRoom=async(req, res)=>{
+  try{
+const {sender_id,room_id}=req.body
+if(!sender_id&&!room_id){
+  res.status(400).send({status:false,message:"Please provide all the detais"})
+}else{
+  const data=await isRoom.findOne({sender_id:sender_id,room_id:room_id})
+  
+  if(data){
+    await isRoom.findOneAndUpdate({sender_id:sender_id,room_id:room_id},{isChatroom:false})
+    const response=await isRoom.findOne({sender_id:sender_id,room_id:room_id})
+    res.status(200).send({status:true,message:" is chatroom",response})
+  }else{
+    const datas=new isRoom({
+      sender_id:sender_id,
+      room_id:room_id,
+      isChatroom:false
+    })
+    const response=await datas.save()
+    res.status(400).send({status:true,message:" is chatroom",response})
+  }
+}
+}catch (err) {
+  
+    return res.status(400).json({ status: "Error", message: "Something went wrong", err });
+  }
+}
 

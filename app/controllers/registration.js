@@ -17,11 +17,8 @@ const replycomment=require('../models/replycomment')
 const storeMsg=require('../models/storemssage')
 const {chatModule}=require('../models/chatmodule')
 const mongoose=require('mongoose');
-
-
 const notification = require('../models/notification');
-
-
+const {isRoom}=require('../models/chatroom')
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
@@ -923,308 +920,7 @@ else{
    return res.status(500).json({ message: 'Internal server error.' });
  }
 }
-exports.Message=async(req,res)=>{
-  try{
-      const sender_id=req.body.sender_id
-      const name=req.body.senderName
-      const msg=req.body.msg
-      const roomid=req.body.room_id
-if(!sender_id ||!name || !roomid){
-  res.status(406).json({message:"sender_id ,senderName,room_id"})
-}
-else{
-        const store=storeMsg({
-          sender_id:sender_id,
-          senderName:name,
-          message:msg,
-          room_id:roomid,
-          image:'',
-    video:'',
-    audio:''
-      })
-      const result= await store.save();
-      if(result)
-      {
-        const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
-        const names=datas.name
-        const profile_img=datas.profile_img
-          const userdata=await chatModule.findOne({room_id:roomid},{_id:0,sender_id:1,other_id:1})
-        
-           const id=userdata.sender_id.toString()
-           
-          if (id === sender_id) {
-              
-           const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
-           const token=tokens.token
-    
-            
-              const notification = {
-                title: `${names} Sent A meesage`,
-                body: `${msg}`,
-                icon:profile_img
-                
-              };
-              const data={
-                type:'Chat',
-                other_id:sender_id,
-                name:names
-               }
-              const response=await admin.messaging().sendToDevice(token,{notification,data});
-               
-          return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
-            } else {
-              const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_img:1})
-              const token=tokens.token
-              const notification = {
-                title: `${names} Sent A meesage`,
-                body: `${msg}`,
-                icon:profile_img
-              };  
-              const data={
-                type:'Chat',
-                other_id:sender_id,
-                name:names
-               }
-              const response=await admin.messaging().sendToDevice(token,{notification,data});
-              return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
-              
-            }
-         
-      }else{
 
-  return res.status(200).json({stauts:"Success",message:"Some Technical Issue"})
-}
-   }
-  }
-  catch(err){
-      return res.status(400).send({ErrorMessage:"Somthing Wrong"})
-  }
-}
-exports.image = async (req, res, next) => {
-  try {
-    
-    if (req.files && req.files.length > 0) {
-      const sender_id = req.body.sender_id;
-      const senderName = req.body.senderName;
-      const room_id = req.body.room_id;
-      const message = req.body.message;
-
-      const image=req.files.map(file => file.filename)
-      const upload=image.map(i=> new storeMsg({
-          sender_id,
-          senderName,
-          room_id ,
-          message,
-          image:i
-      }))
-      
-      const result = await storeMsg.insertMany(upload);
-      if(result){
-        const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
-        const names=datas.name
-        const profile_img=datas.profile_img
-        const userdata=await chatModule.findOne({room_id:room_id},{_id:0,sender_id:1,other_id:1})
-      
-         const id=userdata.sender_id.toString()
-      
-        if (id === sender_id) {
-            const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
-            const token=tokens.token
-            
-            const notification = {
-              title: `Soulipie`,
-              image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
-              body: `${names} Sent A meesage `,
-              icon:profile_img
-            };
-            const data={
-              type:'Chat',
-              other_id:sender_id,
-              name:names
-             }
-            const response=await admin.messaging().sendToDevice(token,{notification,data});
-             
-        return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
-          } else {
-            const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_img:1})
-            const token=tokens.token
-            const notification = {
-              title: `Soulipie`,
-              image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
-              body: `${names} Sent A meesage`,
-              icon:profile_img
-            };
-            const data={
-              type:'Chat',
-              other_id:sender_id,
-              name:names
-             }
-            const response=await admin.messaging().sendToDevice(token,{notification,data});
-            return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
-            
-          }
-       
-       
-      }
-      else{
-        return res.status(200).json({stauts:"Success",message:"Some Technical Issue"})
-      }
-  }else{
-      res.send({status:"faluier",message:"couldnt upload"})
-  } 
-}catch (err) {
-  
-    res.send({ ErrorMessage: "Something Error", err });
-    
-  }
-}
-exports.audio=async(req,res,next)=>{
-  try{
-     
-      if(req.file){
-          const sender_id=req.body.sender_id
-          const name=req.body.senderName
-          const audio=req.file.filename
-          const roomid=req.body.room_id
-          const msg=req.body.message
-          const store=storeMsg({
-              sender_id:sender_id,
-              senderName:name,
-              room_id:roomid,
-              message:msg,
-              audio:audio
-          })
-          const result= await store.save();
-          if(result)
-          {
-
-            const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
-            const names=datas.name
-            const profile_img=datas.profile_img
-
-            const userdata=await chatModule.findOne({room_id:roomid},{_id:0,sender_id:1,other_id:1})
-        
-             const id=userdata.sender_id.toString()
-          
-            if (id === sender_id) {
-             const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
-             const token=tokens.token
-                const notification = {
-                  title: `Soulipie`,
-                  body: `${names} Sent A Audio`,
-                 icon:profile_img
-                }; 
-                const data={
-                  type:'Chat',
-                  other_id:sender_id,
-                  name:names
-                 }
-                const response=await admin.messaging().sendToDevice(token,{notification,data});
-                 
-            return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
-              } else {
-                const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_im})
-                const token=tokens.token
-               
-                const notification = {
-                  title: `Soulipie`,
-                  body: `${names} Sent A Audio`,
-                 icon:profile_img
-
-                };  
-                const data={
-                  type:'Chat',
-                  other_id:sender_id,
-                  name:names
-                 }
-                const response=await admin.messaging().sendToDevice(token,{notification,data});
-                return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
-                
-              }
-          }
-      }
-      else{
-          res.send({ErrorMessage:'Please choose Audio file'})
-        }
-  }
-  catch(err){
-      res.send({ErrorMessage:"Somthing Error",err})
-  }
-}
-exports.video=async(req,res,next)=>{
-
-  try{
-     
-      if(req.files && req.files.length > 0){
-          const sender_id=req.body.sender_id
-          const senderName=req.body.senderName
-          const room_id=req.body.room_id
-          const message=req.body.message
-          const video=req.files.map(file => file.filename)
-          const upload=video.map(v=> new storeMsg({
-              sender_id,
-              senderName,
-              room_id ,
-              message,
-              video:v
-          }))
-          const result = await storeMsg.insertMany(upload);
-        
-          if(result)
-          {
-            const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
-            const names=datas.name
-            const profile_img=datas.profile_img
-
-            const userdata=await chatModule.findOne({room_id:room_id},{_id:0,sender_id:1,other_id:1})
-      
-            const id=userdata.sender_id.toString()
-         
-            
-            if (id === sender_id) {
-              const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
-              const token=tokens.token
-              const notification = {
-                title: `Soulipie`,
-                body: `${names} Send A Video`,
-                icon:profile_img
-              }
-              const data={
-                type:'Chat',
-          other_id:sender_id,
-          name:names
-               }
-              const response=await admin.messaging().sendToDevice(token,{notification,data});
-
-              return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
-            } else {
-              const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_img:1})
-              const token=tokens.token
-              const notification = {
-                title: `Soulipie`,
-                body: `${names} Send A Video`,
-                icon:profile_img
-              };
-              
-              const data={
-                type:'Chat',
-                sender_id:sender_id,
-                name:names
-               }
-              const response=await admin.messaging().sendToDevice(token,{notification,data});
-              return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
-            }
-          }
-      }
-      else{
-          res.send({ErrorMessage:'Please choose image and video file'})
-      }
-  }
-  catch(err){
-    
-      res.send({ErrorMessage:"Somthing Error",err})
-  }
-}
 exports.sendNotification = async (req, res) => {
   try {
     const { token } = req.body;
@@ -1513,4 +1209,339 @@ const connectconnectios=await users.updateMany({
 
       return res.status(400).send({Status:'Error',message:'somthing went wrong'})
      }                    
+}
+exports.Message = async (req, res) => {
+  try {
+    const sender_id = req.body.sender_id;
+    const name = req.body.senderName;
+    const msg = req.body.msg;
+    const roomid = req.body.room_id;
+    if (!sender_id || !name || !roomid) {
+      res.status(406).json({ message: "sender_id, senderName, room_id are required" });
+    } else {
+      const store = storeMsg({
+        sender_id: sender_id,
+        senderName: name,
+        message: msg,
+        room_id: roomid,
+        image: '',
+        video: '',
+        audio: ''
+      });
+      const result = await store.save();
+      if (result) {
+        const datas = await Users.findOne({ _id: sender_id }, { name: 1, profile_img: 1 });
+        const names = datas.name;
+        const profile_img = datas.profile_img;
+        const userdata = await chatModule.findOne({ room_id: roomid }, { _id: 0, sender_id: 1, other_id: 1 });
+        const id = userdata.sender_id.toString();
+        if (id === sender_id) {
+          const tokens = await Users.findOne({ _id: userdata.other_id }, { _id: 0, token: 1, profile_img: 1 });
+          const token = tokens.token;
+          const isroomother = await isRoom.findOne({ sender_id: userdata.other_id, room_id: roomid, isChatroom: true });
+       
+        if(!isroomother){
+          const notification = {
+            title: `${names} Sent A message`,
+            body: `${msg}`,
+            icon: profile_img
+          };
+          const data = {
+            type: 'Chat',
+            other_id: sender_id,
+            name: names
+          };
+          const response = await admin.messaging().sendToDevice(token, { notification, data });
+return res.status(200).send({ status: "Success", message: "Store Message Successfully", result, response });
+        }else{
+          return res.status(200).send({ status: "Success", message: "Store Message Successfully", result});
+        }
+        } else{
+          const tokens = await Users.findOne({ _id: userdata.sender_id }, { _id: 0, token: 1, profile_img: 1 });
+          const token = tokens.token;
+          const isroomsender = await isRoom.findOne({ sender_id: userdata.sender_id, room_id: roomid, isChatroom: true });
+          
+          if(!isroomsender){
+          const notification = {
+            title: `${names} Sent A message`,
+            body: `${msg}`,
+            icon: profile_img
+          };
+          const data = {
+            type: 'Chat',
+            other_id: sender_id,
+            name: names
+          };
+          const response = await admin.messaging().sendToDevice(token, { notification, data });
+          return res.status(200).send({ status: "Success", message: "Store Message Successfully", result, response });
+        }else{
+          return res.status(200).send({ status: "Success", message: "Store Message Successfully", result});
+        }
+      }
+      } else {
+        return res.status(200).json({ status: "failure", message: "Some Technical Issue" });
+      }
+    }
+  }
+  catch(err){
+      return res.status(400).send({ErrorMessage:"Somthing Wrong"})
+  }
+}
+exports.image = async (req, res, next) => {
+  try {
+    
+    if (req.files && req.files.length > 0) {
+      const sender_id = req.body.sender_id;
+      const senderName = req.body.senderName;
+      const room_id = req.body.room_id;
+      const message = req.body.message;
+
+      const image=req.files.map(file => file.filename)
+      const upload=image.map(i=> new storeMsg({
+          sender_id,
+          senderName,
+          room_id ,
+          message,
+          image:i
+      }))
+      
+      const result = await storeMsg.insertMany(upload);
+      if(result){
+        const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
+        const names=datas.name
+        const profile_img=datas.profile_img
+        const userdata=await chatModule.findOne({room_id:room_id},{_id:0,sender_id:1,other_id:1})
+      
+         const id=userdata.sender_id.toString()
+      
+        if (id === sender_id) {
+            const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
+            const token=tokens.token
+            const isroomother = await isRoom.findOne({ sender_id: userdata.other_id, room_id: room_id, isChatroom: true });
+            
+            if(!isroomother){
+            const notification = {
+              title: `Soulipie`,
+              image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
+              body: `${names} Sent A meesage `,
+              icon:profile_img
+            };
+            const data={
+              type:'Chat',
+              other_id:sender_id,
+              name:names
+             }
+            const response=await admin.messaging().sendToDevice(token,{notification,data});
+             
+        return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
+            }else{
+              return res.status(200).send({status:"Success",message:"Store Message Successfully",result})
+            }
+          } else {
+            const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_img:1})
+            const token=tokens.token
+            const isroomsender = await isRoom.findOne({ sender_id: userdata.sender_id, room_id: room_id, isChatroom: true });
+          
+          if(!isroomsender){
+            const notification = {
+              title: `Soulipie`,
+              image:'https://soulipiebucket2.s3.ap-south-1.amazonaws.com/images/'+image,
+              body: `${names} Sent A meesage`,
+              icon:profile_img
+            };
+            const data={
+              type:'Chat',
+              other_id:sender_id,
+              name:names
+             }
+            const response=await admin.messaging().sendToDevice(token,{notification,data});
+            return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
+            
+          }else{
+            return res.status(200).send({status:"Success",message:"Store Message Successfullys",result})
+          }
+        }
+       
+      }
+      else{
+        return res.status(200).json({stauts:"Success",message:"Some Technical Issue"})
+      }
+  }else{
+      res.send({status:"faluier",message:"couldnt upload"})
+  } 
+}catch (err) {
+  
+    res.send({ ErrorMessage: "Something Error", err });
+    
+  }
+}
+exports.video=async(req,res,next)=>{
+
+  try{
+     
+      if(req.files && req.files.length > 0){
+          const sender_id=req.body.sender_id
+          const senderName=req.body.senderName
+          const room_id=req.body.room_id
+          const message=req.body.message
+          const video=req.files.map(file => file.filename)
+          const upload=video.map(v=> new storeMsg({
+              sender_id,
+              senderName,
+              room_id ,
+              message,
+              video:v
+          }))
+          const result = await storeMsg.insertMany(upload);
+        
+          if(result)
+          {
+            const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
+            const names=datas.name
+            const profile_img=datas.profile_img
+
+            const userdata=await chatModule.findOne({room_id:room_id},{_id:0,sender_id:1,other_id:1})
+      
+            const id=userdata.sender_id.toString()
+         
+            
+            if (id === sender_id) {
+              const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
+              const token=tokens.token
+              const isroomother = await isRoom.findOne({ sender_id: userdata.other_id, room_id: room_id, isChatroom: true });
+            
+            if(!isroomother){
+              const notification = {
+                title: `Soulipie`,
+                body: `${names} Send A Video`,
+                icon:profile_img
+              }
+              const data={
+                type:'Chat',
+          other_id:sender_id,
+          name:names
+               }
+              const response=await admin.messaging().sendToDevice(token,{notification,data});
+
+              return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
+            }else{
+              return res.status(200).send({status:"Success",message:"Store Message Successfully",result})
+            }
+           } else {
+              const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_img:1})
+              const token=tokens.token
+              const isroomsender = await isRoom.findOne({ sender_id: userdata.sender_id, room_id: room_id, isChatroom: true });
+              
+              if(!isroomsender){
+              const notification = {
+                title: `Soulipie`,
+                body: `${names} Send A Video`,
+                icon:profile_img
+              };
+              
+              const data={
+                type:'Chat',
+                sender_id:sender_id,
+                name:names
+               }
+              const response=await admin.messaging().sendToDevice(token,{notification,data});
+              return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
+            }else{
+              return res.status(200).send({status:"Success",message:"Store Message Successfullys",result})
+            }
+          }
+          }
+      }
+      else{
+          res.send({ErrorMessage:'Please choose image and video file'})
+      }
+  }
+  catch(err){
+    
+      res.send({ErrorMessage:"Somthing Error",err})
+  }
+}
+
+exports.audio=async(req,res,next)=>{
+  try{
+     
+      if(req.file){
+          const sender_id=req.body.sender_id
+          const name=req.body.senderName
+          const audio=req.file.filename
+          const roomid=req.body.room_id
+          const msg=req.body.message
+          const store=storeMsg({
+              sender_id:sender_id,
+              senderName:name,
+              room_id:roomid,
+              message:msg,
+              audio:audio
+          })
+          const result= await store.save();
+          if(result)
+          {
+
+            const datas=await Users.findOne({_id:sender_id},{name:1,profile_img:1})
+            const names=datas.name
+            const profile_img=datas.profile_img
+
+            const userdata=await chatModule.findOne({room_id:roomid},{_id:0,sender_id:1,other_id:1})
+        
+             const id=userdata.sender_id.toString()
+          
+            if (id === sender_id) {
+             const tokens=await Users.findOne({_id:userdata.other_id},{_id:0 ,token:1,profile_img:1})
+             const token=tokens.token
+             const isroomother = await isRoom.findOne({ sender_id: userdata.other_id, room_id: roomid, isChatroom: true });
+        
+        if(!isroomother){
+                const notification = {
+                  title: `Soulipie`,
+                  body: `${names} Sent A Audio`,
+                 icon:profile_img
+                }; 
+                const data={
+                  type:'Chat',
+                  other_id:sender_id,
+                  name:names
+                 }
+                const response=await admin.messaging().sendToDevice(token,{notification,data});
+                 
+            return res.status(200).send({status:"Success",message:"Store Message Successfully",result,response})
+              }else{
+                return res.status(200).send({status:"Success",message:"Store Message Successfully",result})
+              }
+             } else {
+                const tokens=await Users.findOne({_id:userdata.sender_id},{_id:0 ,token:1,profile_im:1})
+                const token=tokens.token
+                const isroomsender = await isRoom.findOne({ sender_id: userdata.sender_id, room_id: roomid, isChatroom: true });
+          
+          if(!isroomsender){
+                const notification = {
+                  title: `Soulipie`,
+                  body: `${names} Sent A Audio`,
+                 icon:profile_img
+
+                };  
+                const data={
+                  type:'Chat',
+                  other_id:sender_id,
+                  name:names
+                 }
+                const response=await admin.messaging().sendToDevice(token,{notification,data});
+                return res.status(200).send({status:"Success",message:"Store Message Successfullys",result,response})
+          }else{
+            return res.status(200).send({status:"Success",message:"Store Message Successfullys",result})
+          }
+              }
+          }
+      }
+      else{
+          res.send({ErrorMessage:'Please choose Audio file'})
+        }
+  }
+  catch(err){
+      res.send({ErrorMessage:"Somthing Error",err})
+  }
 }

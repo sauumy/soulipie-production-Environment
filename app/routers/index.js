@@ -113,7 +113,9 @@ route.get('/getmessage/:room_id',chatModulecontrollers.getmessage)
 route.delete('/clearChat/:roomid',chatModulecontrollers.clearChat)
 route.post('/messageHistory',chatModulecontrollers.messageHistory)
 route.post('/reportUser',chatModulecontrollers.reportUser)
-route.post('/callerid',registrationController.callID);
+route.post('/callerid',registrationController.callID)
+route.post('/isChatRoom',chatModulecontrollers.isChatRoom)
+route.post('/isNotChatRoom',chatModulecontrollers.isNotChatRoom)
 //otheruserModule
 route.post('/sendrequest',registrationController.sendRequest)
 route.post('/acceptrequest',registrationController.acceptRequest)
