@@ -573,7 +573,7 @@ const user_id_strings = users.map(user => user._id);
       {
         $match: {
           $or: [
-            { _id: { $in: astroIds } },
+            { _id: { $in: hobbiesIds } },
             { $expr: { $and: [ { $not: { $isArray: "$user_ids_array" } }, { $eq: [ "$user_ids_array", [] ] } ] } }
           ]
         }
