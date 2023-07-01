@@ -9,7 +9,7 @@ const connection=require('../models/requests')
 const notifications=require('../models/notification')
 const users=require('../models/connection')
 const admin = require('firebase-admin');
-const serviceAccount = require('../../soulipie-6f717-firebase-adminsdk-eys0f-f8f76936ff.json');
+const serviceAccount = require('../../soulipie-6f717-firebase-adminsdk-eys0f-9762589deb.json')
 const post=require("../models/posts")
 const likespost=require('../models/likespost')
 const comment=require('../models/comments');
@@ -19,43 +19,76 @@ const {chatModule}=require('../models/chatmodule')
 const mongoose=require('mongoose');
 const notification = require('../models/notification');
 const {isRoom}=require('../models/chatroom')
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount)
+// });
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://soulipie-6f717-default-rtdb.firebaseio.com"
 });
-
   const messaging = admin.messaging();
   const fetch = require('node-fetch');
   
-exports.deeplink = async (req, res) => {
-    try {
-      const link = req.body.link; 
-      const _id = req.body._id; 
-      const androidPackageName = 'com.soulipie_app'; 
-      const apikey = 'AIzaSyBhlTa0Yj8wM-Fk4Z5SjJtRvAE_E-nHJzI'; 
-      const url = `https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${apikey}`;
+// exports.deeplink = async (req, res) => {
+//     try {
+//       const link = req.body.link; 
+//       const _id = req.body._id; 
+//       const androidPackageName = 'com.soulipie_app'; 
+//       const apikey = 'AIzaSyBhlTa0Yj8wM-Fk4Z5SjJtRvAE_E-nHJzI'; 
+//       const url = `https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${apikey}`;
       
-      const response = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'},
+//       const response = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'},
 
-  body: JSON.stringify({dynamicLinkInfo: {domainUriPrefix: 'https://soulipieapp.page.link',link: link,
-  androidInfo: {androidPackageName: androidPackageName,androidFallbackLink: 'https://play.google.com/store/apps/details?id=com.hiddenlyy'
-            },
-  socialMetaTagInfo: {socialTitle: 'Check out this link!',socialDescription: 'This is the description of the link',},
-          },
-          suffix: {
-            option: 'SHORT',
-          },
-        }),
-      });
-     const data = await response.json();
+//   body: JSON.stringify({dynamicLinkInfo: {domainUriPrefix: 'https://soulipieapp.page.link',link: link,
+//   androidInfo: {androidPackageName: androidPackageName,androidFallbackLink: 'https://play.google.com/store/apps/details?id=com.hiddenlyy'
+//             },
+//   socialMetaTagInfo: {socialTitle: 'Check out this link!',socialDescription: 'This is the description of the link',},
+//           },
+//           suffix: {
+//             option: 'SHORT',
+//           },
+//         }),
+//       });
+//      const data = await response.json();
    
       
-      res.json({Status:true,message:"deep link created",shortLink: data.shortLink,_id: _id,});
-    } catch (error) {
-      res.status(500).json({message: 'An error occurred while generating the Dynamic Link.',
-      });
-    }
-}  
-  exports.healthcheck = async (req, res) => {
+//       res.json({Status:true,message:"deep link created",shortLink: data.shortLink,_id: _id,});
+//     } catch (error) {
+//       res.status(500).json({message: 'An error occurred while generating the Dynamic Link.',
+//       });
+//     }
+// }  
+exports.deeplink = async (req, res) => {
+  try {
+    const link = req.body.link; 
+    const _id = req.body._id; 
+    const androidPackageName = 'com.soulipie'; 
+    const apikey = 'AIzaSyA2zYw9EGDsalo6oKRHHkrbndGZ5SZFUz8'; 
+    const url = `https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${apikey}`;
+    
+    const response = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'},
+
+body: JSON.stringify({dynamicLinkInfo: {domainUriPrefix: 'https://soulipie.page.link',link: link,
+androidInfo: {androidPackageName: androidPackageName,androidFallbackLink: 'https://play.google.com/store/apps/details?id=com.soulipie_app'
+          },
+socialMetaTagInfo: {socialTitle: 'Check out this link!',socialDescription: 'This is the description of the link',},
+        },
+        suffix: {
+          option: 'SHORT',
+        },
+      }),
+    });
+   const data = await response.json();
+ 
+    
+    res.json({Status:true,message:"deep link created",shortLink: data.shortLink,_id: _id,});
+  } catch (error) {
+    res.status(500).json({message: 'An error occurred while generating the Dynamic Link.',
+    });
+  }
+} 
+
+exports.healthcheck = async (req, res) => {
     const healthcheck = {
         uptime: process.uptime(),
         message: 'OK',
