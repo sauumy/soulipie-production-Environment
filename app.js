@@ -123,11 +123,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('typing', (data) => {
-    io.to(data.room).emit('typing', data, socket.id);
+    console.log('typing...', data[0].room,data[0].socket);
+    io.to(data[0].room).emit('typing1', data);
   });
 
   socket.on('stopTyping', (data) => {
-    io.to(data.room).emit('stopTyping', data, socket.id);
+    console.log('stoptyping...', data[0].room,data[0].socket);
+    io.to(data[0].room).emit('stopTyping1', data);
   });
 
   socket.on('message', (data) => {
@@ -182,13 +184,6 @@ io.on('connection', (socket) => {
 //   return new Date().toLocaleTimeString('en-US', options);
 // }
 
-
-
-
-
-
-
-
 mongoose.Promise = global.Promise;
 mongoose.connect(dbConfig.url, {
     useNewUrlParser: true
@@ -210,4 +205,3 @@ server.listen(4000,()=>
 {
     console.log("listening port 4000");
 });
-
