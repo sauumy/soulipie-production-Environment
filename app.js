@@ -7,6 +7,8 @@ const ffmpeg = require('@ffmpeg-installer/ffmpeg');
 const FFmpeg = require('fluent-ffmpeg');
 FFmpeg.setFfmpegPath(ffmpeg.path);
 const app=express()
+const cors=require("cors")
+app.use(cors())
 app .use(express.json());
 app.use(bodyParser.json({limit: '70mb'}));
 app.use(bodyParser.urlencoded({limit: '70mb', extended: false, parameterLimit: 1000000}));
