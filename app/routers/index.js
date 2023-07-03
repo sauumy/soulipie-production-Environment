@@ -15,7 +15,8 @@ const postsController=require('../controllers/posts');
 const chatModulecontrollers= require('../controllers/chatmodule');
 const storyController=require('../controllers/story')
 const settingsController=require('../controllers/settings')
-const admincontroller=require('../controllers/admin')
+const admincontroller=require('../controllers/admin');
+const admin = require('../models/admin');
 
 //healthcheck module
 route.post('/healthcheck',registrationController.healthcheck)
@@ -38,12 +39,16 @@ route.get('/matchesofUsers',admincontroller.matchesofUsers)
 route.get('/connectionsOfAll',admincontroller.connectionsOfAll)
 route.get('/postOfOfAll',admincontroller.postOfOfAll)
 route.get('/bookMarksOfAll',admincontroller.bookMarksOfAll)
-route.get('/reportsOfAll',admincontroller.reportsOfAll)
+route.get('/reportsOfUser',admincontroller.reportsOfUser)
 route.get('/requestsOfAll',admincontroller.requestsOfAll)
 route.get('/postYouHaveLiked',admincontroller.postYouHaveLiked)
 route.get('/totalPrivateAccount',admincontroller.totalPrivateAccount)
 route.get('/totalConnectedAccount',admincontroller.totalConnectedAccount)
 route.get('/totalPublicAccount',admincontroller.totalPublicAccount)
+route.get('/reportOfPost',admincontroller.reportOfPost)
+route.get('/feedBackOfAll',admincontroller.feedBackOfAll)
+route.get('/blocks',admincontroller.blocks)
+route.get('/postBlock',admincontroller.postBlock)
 
 //loginModule
 route.post('/registration',registrationController.registration);
