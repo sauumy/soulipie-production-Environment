@@ -8,6 +8,7 @@ const reoportsPostSchema=require('../models/reportpost')
 const likePostSchema=require('../models/likespost')
 const requestSchema=require('../models/requests')
 const reportPostSchema=require('../models/reportpost')
+const feedBackSchema=require('../models/feedback')
 
 exports.create= async  (req, res) => {
     if(!req.body.user_name && !req.body.password){
@@ -31,7 +32,6 @@ exports.create= async  (req, res) => {
         });
     
 };
-
 exports.adminlogin=async(req,res)=>{
   
     const { user_name,password} = req.body;
@@ -52,7 +52,6 @@ exports.adminlogin=async(req,res)=>{
       return res.status(500).json({ message: 'Internal server error' });
     }
   };
-
   exports.newusers = async (req, res) => {
     try {
       const now = new Date();
@@ -71,7 +70,6 @@ exports.adminlogin=async(req,res)=>{
       res.status(500).json({ message: error.message });
     }
   };
-  
  exports.totalusers=async (req, res) => {
     try {
         const user = await usermaster.count()
@@ -81,7 +79,6 @@ exports.adminlogin=async(req,res)=>{
         res.status(404).json({message: error.message});
     }
 };
-
 exports.matchesofUsers = async (req, res) => {
     try {
       const users = await usermaster.find({}, {_id: 1, name: 1, profile_img: 1, AstroSign: 1, Hobbies: 1}); 
@@ -198,30 +195,6 @@ exports.bookMarksOfAll = async (req, res) => {
     } catch (err) {
       res.send({ message: "Something went wrong" });
     }
-  }
-exports.reportsOfAll = async (req, res) => {
-    try {
-      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
-      if (users) {
-        const result = await Promise.all(
-          users.map(async (user) => {
-            const reportUser = await reportuserSchema.find({ reporter_id: user._id }, { _id: 0, reportreason: 1,report_id:1 });
-            const reportPost = await reoportsPostSchema.find({ reporter_id: user._id }, { _id: 0, reportreason: 1,post_id:1 });
-  
-            const reports = [...reportUser, ...reportPost]; 
-  
-            const totalReports = reports.length; 
-  
-            return { _id: user._id, name: user.name, profile_img: user.profile_img, totalReports, reports };
-          })
-        );
-        res.send({ status: true, message: "Get Data Successfully", result });
-      } else {
-        res.status(401).send({ message: "No data available" });
-      }
-    } catch (err) {
-      res.send({ message: "Something went wrong" });
-    }
   };
 exports.requestsOfAll = async (req, res) => {
     try {
@@ -288,7 +261,6 @@ exports.totalPrivateAccount = async (req, res) => {
       res.send({ message: "Something went wrong" });
     }
   } 
-
   exports.totalPublicAccount = async (req, res) => {
     try {
       const users = await usermaster.find({public:true}, { _id: 1, name: 1, profile_img: 1 });
@@ -302,7 +274,6 @@ exports.totalPrivateAccount = async (req, res) => {
       res.send({ message: "Something went wrong" });
     }
   }
-  
   exports.totalReportsAllPost = async (req, res) => {
     try {
       const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
@@ -323,3 +294,213 @@ exports.totalPrivateAccount = async (req, res) => {
       res.send({ message: "Something went wrong" });
     }
   } 
+exports.feedBackOfAll=async(req,res)=>{
+  try { 
+      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+      if (users) {
+        const result = await Promise.all(
+          users.map(async (user) => {
+            //const reportUser = await reportPostSchema.find({ reporter_id: user._id }, { _id: 0, reportreason: 1,report_id:1 });
+            const feedback = await feedBackSchema.find({ feedback_id: user._id }, { _id: 0, feedback:1});
+  
+            //const reports = [...reportUser, ...reportPost]; 
+  
+            const totalFeedback = feedback.length; 
+  
+            return { _id: user._id, name: user.name, profile_img: user.profile_img, totalFeedback, feedback };
+          })
+        );
+        res.send({ status: true, message: "Get Data Successfully", result });
+      } else {
+        res.status(401).send({ message: "No data available" });
+      }
+} catch (err) {
+  res.send({ message: "Something went wrong" });
+}
+}
+exports.reportsOfUser = async (req, res) => {
+  try {
+    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    if (users) {
+      
+      const result = await Promise.all(
+        users.map(async (user) => {
+          const reports = await reportuserSchema.find({ reporter_id: user._id }, { _id: 0, reportreason: 1, report_id: 1 });
+
+          const totalReports = reports.length;
+
+          const mappedReports = await Promise.all(
+            reports.map(async (report) => {
+              const userDoc = await usermaster.findOne({ _id: report.report_id }, { name: 1, profile_img: 1 });
+
+              return {
+                ...report._doc,
+                profile_img: userDoc.profile_img,
+                name: userDoc.name
+              };
+            })
+          );
+
+          return { _id: user._id, name: user.name, profile_img: user.profile_img, totalReports, reports: mappedReports };
+        })
+      );
+      res.send({ status: true, message: "Get Data Successfully", result });
+    } else {
+      res.status(401).send({ message: "No data available" });
+    }
+  } catch (err) {
+    console.log(err)
+    res.send({ message: "Something went wrong" });
+  }
+}
+exports.reportOfPost = async (req, res) => {
+  try {
+    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    if (users) {
+      const result = await Promise.all(
+        users.map(async (user) => {
+          const reportPost = await reportPostSchema.find(
+            { reporter_id: user._id },
+            { _id: 0, reportreason: 1, post_id: 1, reporter_email: 1 }
+          );
+          const totalReports = reportPost.length;
+
+          const mappedreportpost = await Promise.all(
+            reportPost.map(async (report) => {
+              const userDoc = await postSchema.findOne(
+                { _id: report.post_id },
+                { _id: 0, Post_img: 1 }
+              );
+
+              return {
+                ...report._doc,
+                Post_img: userDoc.Post_img,
+              };
+            })
+          );
+
+          return { _id: user._id, name: user.name, profile_img: user.profile_img, totalReports, reportPost: mappedreportpost };
+        })
+      );
+      res.send({ status: true, message: "Get Data Successfully", result });
+    } else {
+      res.status(401).send({ message: "No data available" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.send({ message: "Something went wrong" });
+  }
+};
+// exports.postBlock = async (req, res) => {
+//   try {
+//     const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+//     if (users) {
+//       const result = await Promise.all(
+//         users.map(async (user) => {
+//           const blockposts = await postSchema.find({ user_id: user._id }, { _id: 0, post_blocked: 1 });
+//           const nonEmptyBlocks = blockposts.filter((post) => post.post_blocked.length > 0);
+
+//           const blockedPostsWithDetails = await Promise.all(
+//             nonEmptyBlocks.map(async (post) => {
+//               const blockedUser = await usermaster.findOne({ _id: post.post_blocked[0] }, { name: 1, profile_img: 1 });
+//               return {
+//                 post_id: post._id,
+//                 post_blocked: post.post_blocked,
+//                 blockedUserDetails: blockedUser,
+//               };
+//             })
+//           );
+
+//           const totalblockposts = blockedPostsWithDetails.length;
+
+//           return { _id: user._id, name: user.name, profile_img: user.profile_img, blockposts: blockedPostsWithDetails, totalblockposts };
+//         })
+//       );
+
+//       res.send({ status: true, message: "Get Data Successfully", result });
+//     } else {
+//       res.status(401).send({ message: "No data available" });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     res.send({ message: "Something went wrong" });
+//   }
+// };
+
+
+exports.blocks = async (req, res) => {
+  try {
+    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    if (users) {
+      const result = await Promise.all(
+        users.map(async (user) => {
+          const blocks = await usermaster.findOne({ _id: user._id }, { blockContact: 1, _id: 0 });
+          const blockContactIds = blocks.blockContact;
+          const totalblocks = blockContactIds.length || 0;
+
+          const blockContacts = await Promise.all(
+            blockContactIds.map(async (contactId) => {
+              const blockedUser = await usermaster.findOne({ _id: contactId }, { _id: 1, name: 1, profile_img: 1 });
+              return blockedUser;
+            })
+          );
+
+          return { _id: user._id, name: user.name, profile_img: user.profile_img, blocks: blockContacts, totalblocks };
+        })
+      );
+
+      res.send({ status: true, message: "Get Data Successfully", result });
+    } else {
+      res.status(401).send({ message: "No data available" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.send({ message: "Something went wrong" });
+  }
+};
+
+exports.postBlock = async (req, res) => {
+  try {
+    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    if (users) {
+      const result = await Promise.all(
+        users.map(async (user) => {
+          const blockposts = await postSchema.find({ user_id: user._id }, { _id: 1, post_blocked: 1, Post_img: 1 });
+          const nonEmptyBlocks = blockposts.filter((post) => post.post_blocked.length > 0);
+
+          const blockedPostsWithDetails = await Promise.all(
+            nonEmptyBlocks.map(async (post) => {
+              const blockedUser = await usermaster.findOne(
+                { _id: post.post_blocked[0] },
+                { _id: 1, name: 1, profile_img: 1 }
+              );
+              return {
+                post_id: post._id,
+                Post_img: post.Post_img,
+                postblockedUser: blockedUser,
+              };
+            })
+          );
+
+          const totalblockposts = blockedPostsWithDetails.length;
+
+          return {
+            _id: user._id,
+            name: user.name,
+            profile_img: user.profile_img,
+            blockposts: blockedPostsWithDetails,
+            totalblockposts,
+          };
+        })
+      );
+
+      res.send({ status: true, message: "Get Data Successfully", result });
+    } else {
+      res.status(401).send({ message: "No data available" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.send({ message: "Something went wrong" });
+  }
+};
+
