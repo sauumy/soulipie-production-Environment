@@ -6,6 +6,8 @@ const bookmarkSchema=require('../models/bookmarks')
 const reportuserSchema=require('../models/report')
 const reoportsPostSchema=require('../models/reportpost')
 const likePostSchema=require('../models/likespost')
+const requestSchema=require('../models/requests')
+const reportPostSchema=require('../models/reportpost')
 
 exports.create= async  (req, res) => {
     if(!req.body.user_name && !req.body.password){
@@ -50,30 +52,26 @@ exports.adminlogin=async(req,res)=>{
       return res.status(500).json({ message: 'Internal server error' });
     }
   };
-exports.newusers = async (req, res) => {
-  
+
+  exports.newusers = async (req, res) => {
     try {
-      
       const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      const targetDate = new Date(now.getFullYear(), now.getMonth(), 23, 0, 0, 0);
+      const nextDay = new Date(now.getFullYear(), now.getMonth(), 24, 0, 0, 0);
   
-      
       const count = await usermaster.countDocuments({
-        created_at: {
-          $gte: todayStart,
-          $lt: todayEnd
+        createdAt: {
+          $gte: targetDate,
+          $lt: nextDay
         }
       });
   
-     
       res.json({ count });
     } catch (error) {
-      
       res.status(500).json({ message: error.message });
     }
   };
-
+  
  exports.totalusers=async (req, res) => {
     try {
         const user = await usermaster.count()
@@ -136,26 +134,6 @@ exports.matchesofUsers = async (req, res) => {
       return res.status(400).json({Status: 'Error', Error: err.message});
     }
   }
-  
-exports.connectionsOfAll = async (req, res) => {
-    try {
-      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
-      if (users) {
-        const result = await Promise.all(
-          users.map(async (user) => {
-            const connections = await connection.find({ user_id: user._id }, { connections: 1, _id: 0 });
-            const totalConnections = connections.length;
-            return { _id: user._id, name: user.name, profile_img: user.profile_img, connections, totalConnections };
-          })
-        );
-        res.send({ status: true, message: "Get Data Successfully", result });
-      } else {
-        res.status(401).send({ message: "No data available" });
-      }
-    } catch (err) {
-      res.send({ message: "Something went wrong" });
-    }
-  }
 exports.postOfOfAll = async (req, res) => {
     try {
       const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
@@ -175,16 +153,42 @@ exports.postOfOfAll = async (req, res) => {
       res.send({ message: "Something went wrong" });
     }
   }
-
+  exports.connectionsOfAll = async (req, res) => {
+    try {
+      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+      if (users) {
+        const result = await Promise.all(
+          users.map(async (user) => {
+            const connections = await connection.find({ user_id: user._id }, { connections: { $slice: 1 }, _id: 0 });
+            const mappedConnections = connections.map((conn) => conn.connections[0]);
+            const totalConnections = mappedConnections.length;
+            return { _id: user._id, name: user.name, profile_img: user.profile_img, connections: mappedConnections, totalConnections };
+          })
+        );
+        res.send({ status: true, message: "Get Data Successfully", result });
+      } else {
+        res.status(401).send({ message: "No data available" });
+      }
+    } catch (err) {
+      res.send({ message: "Something went wrong" });
+    }
+  }
 exports.bookMarksOfAll = async (req, res) => {
     try {
       const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
         const result = await Promise.all(
           users.map(async (user) => {
-            const bookmark = await bookmarkSchema.find({ user_id: user._id }, {_id: 0,saved:1});
-            const totalsaved = bookmark.length;
-            return { _id: user._id, name: user.name, profile_img: user.profile_img, bookmark, totalsaved };
+            const bookmarks = await bookmarkSchema.find({ user_id: user._id }, { _id: 0, saved: 1 });
+            const saved = bookmarks.map((bookmark) => bookmark.saved);
+            const totalSaved = bookmarks.length;
+            return {
+              _id: user._id,
+              name: user.name,
+              profile_img: user.profile_img,
+              bookmark: saved,
+              totalSaved,
+            };
           })
         );
         res.send({ status: true, message: "Get Data Successfully", result });
@@ -225,9 +229,10 @@ exports.requestsOfAll = async (req, res) => {
       if (users) {
         const result = await Promise.all(
           users.map(async (user) => {
-            const requests = await connection.find({ user_id: user._id }, { totalrequest: 1, _id: 0 });
-            const totalrequest = requests.length;
-            return { _id: user._id, name: user.name, profile_img: user.profile_img,totalrequest,requests };
+            const connections = await connection.find({ user_id: user._id }, { totalrequest: { $slice: 1 }, _id: 0 });
+            const mappedConnections = connections.map((conn) => conn.totalrequest[0]);
+            const totalRequests = mappedConnections.length;
+            return { _id: user._id, name: user.name, profile_img: user.profile_img, requests: mappedConnections, totalRequests };
           })
         );
         res.send({ status: true, message: "Get Data Successfully", result });
@@ -244,7 +249,7 @@ exports.postYouHaveLiked = async (req, res) => {
       if (users) {
         const result = await Promise.all(
           users.map(async (user) => {
-            const likedpost = await likePostSchema.find({ 'likesofposts._id': user._id }, {_id: 0,post_id:1 });
+            const likedpost = await likePostSchema.find({ 'likesofposts._id': user._id }, {_id: 0,post_id:1,Post_img:1 });
             const totallikedpost = likedpost.length;
             return { _id: user._id, name: user.name, profile_img: user.profile_img,totallikedpost,likedpost };
           })
@@ -290,6 +295,27 @@ exports.totalPrivateAccount = async (req, res) => {
       if (users) {
             const totalPublicAccount = users.length;
         res.send({ status: true, message: "Get Data Successfully", totalPublicAccount });
+      } else {
+        res.status(401).send({ message: "No data available" });
+      }
+    } catch (err) {
+      res.send({ message: "Something went wrong" });
+    }
+  }
+  
+  exports.totalReportsAllPost = async (req, res) => {
+    try {
+      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+      if (users) {
+        const result = await Promise.all(
+          users.map(async (user) => {
+            const connections = await connection.find({ user_id: user._id }, { totalrequest: { $slice: 1 }, _id: 0 });
+            const mappedConnections = connections.map((conn) => conn.totalrequest[0]);
+            const totalRequests = mappedConnections.length;
+            return { _id: user._id, name: user.name, profile_img: user.profile_img, requests: mappedConnections, totalRequests };
+          })
+        );
+        res.send({ status: true, message: "Get Data Successfully", result });
       } else {
         res.status(401).send({ message: "No data available" });
       }
