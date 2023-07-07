@@ -9,6 +9,7 @@ const likePostSchema=require('../models/likespost')
 const requestSchema=require('../models/requests')
 const reportPostSchema=require('../models/reportpost')
 const feedBackSchema=require('../models/feedback')
+const blockpostSchema=require('../models/blockpost')
 
 exports.create= async  (req, res) => {
     if(!req.body.user_name && !req.body.password){
@@ -465,31 +466,44 @@ exports.postBlock = async (req, res) => {
     if (users) {
       const result = await Promise.all(
         users.map(async (user) => {
-          const blockposts = await postSchema.find({ user_id: user._id }, { _id: 1, post_blocked: 1, Post_img: 1 });
-          const nonEmptyBlocks = blockposts.filter((post) => post.post_blocked.length > 0);
+          const blockposts = await blockpostSchema.find(
+            { blocker_id: user._id },
+            { _id: 0, post_id: 1, blocking_reason: 1, blocker_id: 1, post_owner: 1 }
+          );
 
-          const blockedPostsWithDetails = await Promise.all(
-            nonEmptyBlocks.map(async (post) => {
-              const blockedUser = await usermaster.findOne(
-                { _id: post.post_blocked[0] },
-                { _id: 1, name: 1, profile_img: 1 }
+          const totalblockposts = blockposts.length;
+
+          const mappedreportpost = await Promise.all(
+            blockposts.map(async (report) => {
+              const userDoc = await postSchema.findOne(
+                { _id: report.post_id },
+                { _id: 0, Post_img: 1 }
               );
+
+              // Fetch name and profile_img of post_owner
+              const postOwner = await usermaster.findOne(
+                { _id: report.post_owner },
+                { _id: 0, name: 1, profile_img: 1 }
+              );
+
               return {
-                post_id: post._id,
-                Post_img: post.Post_img,
-                postblockedUser: blockedUser,
+                ...report._doc,
+                Post_img: userDoc.Post_img,
+                post_owner: {
+                  _id: report.post_owner,
+                  name: postOwner.name,
+                  profile_img: postOwner.profile_img
+                }
               };
             })
           );
-
-          const totalblockposts = blockedPostsWithDetails.length;
 
           return {
             _id: user._id,
             name: user.name,
             profile_img: user.profile_img,
-            blockposts: blockedPostsWithDetails,
             totalblockposts,
+            PostsBlock: mappedreportpost
           };
         })
       );
@@ -503,4 +517,5 @@ exports.postBlock = async (req, res) => {
     res.send({ message: "Something went wrong" });
   }
 };
+
 
