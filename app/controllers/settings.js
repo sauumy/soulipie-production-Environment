@@ -8,6 +8,7 @@ const otpService = require('../services/otp_service')
 const jwtTokenService = require('../services/jwt-service')
 const {chatModule}=require('../models/chatmodule')
 const onlineoffline=require('../models/onlineoffline')
+const {Experience}=require('../models/userExperience')
 exports.blockContact = async(req,res)=>{
     try{
         const {user_id,other_number} = req.body
@@ -130,7 +131,6 @@ exports.getBlockContact=async(req,res)=>{
     }
 }
 
-
 exports.chaneNumber = async (req, res) => {
     try {
         
@@ -175,7 +175,6 @@ exports.chaneNumber = async (req, res) => {
             return res.status(400).send({Status:'Error',message:'somthing went wrong'})
                    }
         }
-
 exports.securitySetting=async(req,res)=>{
     try{
         const {_id,private,public,connected}=req.body
@@ -202,7 +201,6 @@ if(_id&&private){
             return res.status(400).send({Status:'Error',message:'somthing went wrong'})
                    }
 }
-
 
 exports.userlogin=async(req,res)=>{
     try{
@@ -274,4 +272,48 @@ return res.status(200).send({status:true,message:'get successfully',response})
     }catch(err){
             return res.status(400).send({Status:'Error',message:'somthing went wrong'})
                    }
+}
+
+exports.userExperience = async (req, res) => {
+    try {
+      const { user_id, text, rating, recommendation, private, public } = req.body;
+  
+      const data = new Experience({
+        user_id: user_id || null,
+        text: text || null,
+        rating: rating || null,
+        recommendation: recommendation || null,
+        private: private || null,
+        public: public || null
+      });
+  
+      const response = await data.save();
+      if (response) {
+        return res
+          .status(200)
+          .json({ status: true, message: "Thank you for valuable feedback", response });
+      }
+    } catch (err) {
+      console.log(err);
+      return res.status(400).send({ status: 'Error', message: 'Something went wrong' });
+    }
+  };
+  
+exports.getUserExperience=async(req,res)=>{
+    try{
+const{user_id}=req.body
+if(!user_id){
+    return res.status(200).json({ status:false, message: "Provide all the details" });
+}else{
+    const response=await Experience.findOne({user_id:user_id})
+    if(response){
+    return res.status(200).json({ status: true, message: "Data fetched successfully", response });
+}else{
+    return res.status(200).json({ status:false, message: "something went wrong" });
+} 
+}
+}catch (err) {
+      console.log(err);
+      return res.status(400).send({ status: 'Error', message: 'Something went wrong' });
+    }
 }

@@ -20,7 +20,9 @@ const admin = require('../models/admin');
 
 //healthcheck module
 route.post('/healthcheck',registrationController.healthcheck)
-
+//experienceodel
+route.post('/userExperience',settingsController.userExperience)
+route.post('/getUserExperience',settingsController.getUserExperience)
 
 //share Module
 route.post('/deeplink',registrationController.deeplink);
