@@ -197,7 +197,7 @@ exports.bookMarksOfAll = async (req, res) => {
       res.send({ message: "Something went wrong" });
     }
   };
-exports.requestsOfAll = async (req, res) => {
+  exports.requestsOfAll = async (req, res) => {
     try {
       const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
@@ -205,8 +205,9 @@ exports.requestsOfAll = async (req, res) => {
           users.map(async (user) => {
             const connections = await connection.find({ user_id: user._id }, { totalrequest: { $slice: 1 }, _id: 0 });
             const mappedConnections = connections.map((conn) => conn.totalrequest[0]);
-            const totalRequests = mappedConnections.length;
-            return { _id: user._id, name: user.name, profile_img: user.profile_img, requests: mappedConnections, totalRequests };
+            const filteredConnections = mappedConnections.filter((conn) => conn !== null && conn !== undefined);
+            const totalRequests = filteredConnections.length;
+            return { _id: user._id, name: user.name, profile_img: user.profile_img, requests: filteredConnections, totalRequests };
           })
         );
         res.send({ status: true, message: "Get Data Successfully", result });
@@ -216,7 +217,9 @@ exports.requestsOfAll = async (req, res) => {
     } catch (err) {
       res.send({ message: "Something went wrong" });
     }
-  }
+  };
+  
+  
 exports.postYouHaveLiked = async (req, res) => {
     try {
       const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
