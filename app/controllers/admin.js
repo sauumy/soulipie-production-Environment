@@ -460,7 +460,6 @@ exports.blocks = async (req, res) => {
   }
 };
 
-
 exports.postBlock = async (req, res) => {
   try {
     const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
@@ -487,28 +486,15 @@ exports.postBlock = async (req, res) => {
                 { _id: 0, name: 1, profile_img: 1 }
               );
 
-              if (userDoc && userDoc.Post_img) {
-                return {
-                  ...report._doc,
-                  Post_img: userDoc.Post_img,
-                  post_owner: {
-                    _id: report.post_owner,
-                    name: postOwner.name,
-                    profile_img: postOwner.profile_img
-                  }
-                };
-              } else {
-                // Handle the case when userDoc or userDoc.Post_img is null
-                return {
-                  ...report._doc,
-                  Post_img: 'default_img.jpg',
-                  post_owner: {
-                    _id: report.post_owner,
-                    name: postOwner.name,
-                    profile_img: postOwner.profile_img
-                  }
-                };
-              }
+              return {
+                ...report._doc,
+                Post_img: userDoc.Post_img,
+                post_owner: {
+                  _id: report.post_owner,
+                  name: postOwner.name,
+                  profile_img: postOwner.profile_img
+                }
+              };
             })
           );
 
