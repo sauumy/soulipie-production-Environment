@@ -354,44 +354,7 @@ exports.reportsOfUser = async (req, res) => {
     res.send({ message: "Something went wrong" });
   }
 }
-exports.reportOfPost = async (req, res) => {
-  try {
-    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
-    if (users) {
-      const result = await Promise.all(
-        users.map(async (user) => {
-          const reportPost = await reportPostSchema.find(
-            { reporter_id: user._id },
-            { _id: 0, reportreason: 1, post_id: 1, reporter_email: 1 }
-          );
-          const totalReports = reportPost.length;
 
-          const mappedreportpost = await Promise.all(
-            reportPost.map(async (report) => {
-              const userDoc = await postSchema.findOne(
-                { _id: report.post_id },
-                { _id: 0, Post_img: 1 }
-              );
-
-              return {
-                ...report._doc,
-                Post_img: userDoc.Post_img,
-              };
-            })
-          );
-
-          return { _id: user._id, name: user.name, profile_img: user.profile_img, totalReports, reportPost: mappedreportpost };
-        })
-      );
-      res.send({ status: true, message: "Get Data Successfully", result });
-    } else {
-      res.status(401).send({ message: "No data available" });
-    }
-  } catch (err) {
-    console.log(err);
-    res.send({ message: "Something went wrong" });
-  }
-};
 // exports.postBlock = async (req, res) => {
 //   try {
 //     const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
@@ -460,6 +423,7 @@ exports.blocks = async (req, res) => {
   }
 };
 
+
 exports.postBlock = async (req, res) => {
   try {
     const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
@@ -486,15 +450,28 @@ exports.postBlock = async (req, res) => {
                 { _id: 0, name: 1, profile_img: 1 }
               );
 
-              return {
-                ...report._doc,
-                Post_img: userDoc.Post_img,
-                post_owner: {
-                  _id: report.post_owner,
-                  name: postOwner.name,
-                  profile_img: postOwner.profile_img
-                }
-              };
+              if (userDoc && userDoc.Post_img) {
+                return {
+                  ...report._doc,
+                  Post_img: userDoc.Post_img,
+                  post_owner: {
+                    _id: report.post_owner,
+                    name: postOwner.name,
+                    profile_img: postOwner.profile_img
+                  }
+                };
+              } else {
+                // Handle the case when userDoc or userDoc.Post_img is null
+                return {
+                  ...report._doc,
+                  Post_img: 'default_img.jpg',
+                  post_owner: {
+                    _id: report.post_owner,
+                    name: postOwner.name,
+                    profile_img: postOwner.profile_img
+                  }
+                };
+              }
             })
           );
 
@@ -519,3 +496,41 @@ exports.postBlock = async (req, res) => {
 };
 
 
+exports.reportOfPost = async (req, res) => {
+  try {
+    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    if (users) {
+      const result = await Promise.all(
+        users.map(async (user) => {
+          const reportPost = await reportPostSchema.find(
+            { reporter_id: user._id },
+            { _id: 0, reportreason: 1, post_id: 1, reporter_email: 1 }
+          );
+          const totalReports = reportPost.length;
+
+          const mappedreportpost = await Promise.all(
+            reportPost.map(async (report) => {
+              const userDoc = await postSchema.findOne(
+                { _id: report.post_id },
+                { _id: 0, Post_img: 1 }
+              );
+              const postImg = userDoc ? userDoc.Post_img : null;
+              return {
+                ...report._doc,
+                Post_img: postImg,
+              };
+            })
+          );
+
+          return { _id: user._id, name: user.name, profile_img: user.profile_img, totalReports, reportPost: mappedreportpost };
+        })
+      );
+      res.send({ status: true, message: "Get Data Successfully", result });
+    } else {
+      res.status(401).send({ message: "No data available" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.send({ message: "Something went wrong" });
+  }
+};
