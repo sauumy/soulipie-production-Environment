@@ -140,5 +140,7 @@ route.post('/getAllPostsofMe',postsController.getAllPostsofMe)
 route.post('/editPostDetails',registrationController.editPostDetails)
 //extra
 route.post('/sendNotification',registrationController.sendNotification)
+
+route.post('/delteUsers',settingsController.delteUsers)
 module.exports = route;
 

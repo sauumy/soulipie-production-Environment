@@ -8,7 +8,21 @@ const otpService = require('../services/otp_service')
 const jwtTokenService = require('../services/jwt-service')
 const {chatModule}=require('../models/chatmodule')
 const onlineoffline=require('../models/onlineoffline')
-const {Experience}=require('../models/userExperience')
+const {Experience}=require('../models/userExperience');
+const posts = require('../models/posts');
+const  likePost  = require('../models/likespost');
+const comments = require('../models/comments');
+const feedback  = require('../models/feedback');
+const storemssage = require('../models/storemssage');
+const { isRoom } = require('../models/chatroom');
+const bookmarks = require('../models/bookmarks');
+const report=require('../models/report')
+const story=require('../models/story')
+const blockpost=require('../models/blockpost')
+const reportPost=require('../models/reportpost')
+const explore=require('../models/explore')
+const commentsreply=require('../models/replycomment')
+const mongoose=require('mongoose')
 exports.blockContact = async(req,res)=>{
     try{
         const {user_id,other_number} = req.body
@@ -316,4 +330,66 @@ if(!user_id){
       console.log(err);
       return res.status(400).send({ status: 'Error', message: 'Something went wrong' });
     }
+}
+
+
+
+exports.delteUsers=async(req,res)=>{
+    try{
+const {userid}=req.body
+if(userid){
+    const userIdObj = mongoose.Types.ObjectId(userid);
+    const data=await Users.findOne({_id:userid},{_id:0,name:1})
+    const name =data.name
+    
+    await posts.deleteMany({user_id:userid})
+    await posts.updateMany({Tagged_people:{$pull:name}})
+    await likePost.updateOne( { "likesofposts._id": userIdObj },{ $pull: { "likesofposts": { _id: userIdObj } } },{ arrayFilters: [{ "identifier._id": userIdObj }] })
+    await comments.deleteMany({"commentdetails._id": userIdObj})
+    await comments.updateMany({"commentlikerDetails._id":userIdObj },{ $pull: { "commentlikerDetails": { _id: userIdObj } } },{ arrayFilters: [{ "identifier._id": userIdObj }] })
+    await commentsreply.deleteMany({"commentdetails._id":userIdObj})
+    await commentsreply.updateMany({"commentlikerDetails._id":userIdObj },{ $pull: { "commentlikerDetails": { _id: userIdObj } } },{ arrayFilters: [{ "identifier._id": userIdObj }] })
+    await explore.deleteOne({user_id:userid})
+    await explore.updateMany({"matchedprofiles._id":userIdObj })
+    await reportPost.deleteMany({reporter_id:userid})
+    await blockpost.deleteMany({blocker_id:userid})
+    await request.deleteMany({fromUser:userid})
+    await request.deleteMany({toUser:userid})
+    await connections.updateMany({"totalrequest._id":userIdObj },{ $pull: { "totalrequest": { _id: userIdObj } } },{ arrayFilters: [{ "identifier._id": userIdObj }] })
+    await connections.updateMany({"connections._id":userIdObj },{ $pull: { "connections": { _id: userIdObj } } },{ arrayFilters: [{ "identifier._id": userIdObj }] })
+    await connections.deleteOne({user_id:userid})
+    await story.deleteMany({sender_id:userid})
+    await story.updateMany({  "viewers": userid },{ $pull: { "viewers": userid } })
+    await Users.updateMany({blockContact:userid},{$pull:{ "blockContact": userid }})
+    await feedback.deleteMany({feedback_id:userid})
+    await chatModule.deleteOne({sender_id:userid})
+    await chatModule.deleteOne({other_id:userid})
+    await storemssage.deleteMany({sender_id:userid})
+    await report.deleteMany({report_id:userid})
+    await report.deleteMany({reporter_id:userid})
+    await isRoom.deleteOne({sender_id:userid})
+    await onlineoffline.deleteOne({userId:userid})
+    await Experience.deleteMany({user_id:userid})
+    await bookmarks.deleteMany({user_id:userid})
+    await notification.deleteMany({user_id:userid})
+    await notification.deleteMany({post_liker_id:userid})
+    await notification.deleteMany({commente_liker_id:userid}) 
+    await notification.deleteMany({replyCommenter_id:userid})
+    await notification.deleteMany({mentioner_id:userid})
+    await notification.deleteMany({replyCommente_liker_id:userid})
+    await notification.deleteMany({tagged_post_userid:userid})
+    await notification.deleteMany({accpeted_id:userid})
+    await notification.deleteMany({requested_id:userid})
+    await notification.deleteMany({post_commenter_id:userid})
+    await notification.deleteMany({user_id:userid})
+    await notification.deleteMany({user_id:userid})
+    await Users.deleteOne({_id:userid})
+    return res.status(200).send({ status:true, message: 'delete succesfully' });
+}else{
+    return res.status(400).send({ status: 'Error', message: 'provide' });
+}
+    }catch (err) {
+        console.log(err);
+        return res.status(400).send({ status: 'Error', message: 'Something went wrong' });
+      }
 }
