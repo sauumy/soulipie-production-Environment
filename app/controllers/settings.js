@@ -332,8 +332,6 @@ if(!user_id){
     }
 }
 
-
-
 exports.delteUsers=async(req,res)=>{
     try{
 const {userid}=req.body
@@ -344,7 +342,10 @@ if(userid){
     
     await posts.deleteMany({user_id:userid})
     await posts.updateMany({"Tagged_people": name },{ $pull: { "Tagged_people": name } })
-    await likePost.updateOne( { "likesofposts._id": userIdObj },{ $pull: { "likesofposts": { _id: userIdObj } } },{ arrayFilters: [{ "identifier._id": userIdObj }] })
+    await posts.updateMany({"likedpeopledata._id":userIdObj},{ $pull: { "likedpeopledata": { _id: userIdObj } } })
+    await posts.updateMany({}, [{ $set: { totallikesofpost: { $size: "$likedpeopledata" } } }])
+    
+    await likePost.updateMany( { "likesofposts._id": userIdObj },{ $pull: { "likesofposts": { _id: userIdObj } } })
     await comments.deleteMany({"commentdetails._id": userIdObj})
     await comments.updateMany({"commentlikerDetails._id":userIdObj },{ $pull: { "commentlikerDetails": { _id: userIdObj } } },{ arrayFilters: [{ "identifier._id": userIdObj }] })
     await commentsreply.deleteMany({"commentdetails._id":userIdObj})
