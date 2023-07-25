@@ -343,7 +343,7 @@ if(userid){
     const name =data.name
     
     await posts.deleteMany({user_id:userid})
-    await posts.updateMany({Tagged_people:{$pull:name}})
+    await posts.updateMany({"Tagged_people": name },{ $pull: { "Tagged_people": name } })
     await likePost.updateOne( { "likesofposts._id": userIdObj },{ $pull: { "likesofposts": { _id: userIdObj } } },{ arrayFilters: [{ "identifier._id": userIdObj }] })
     await comments.deleteMany({"commentdetails._id": userIdObj})
     await comments.updateMany({"commentlikerDetails._id":userIdObj },{ $pull: { "commentlikerDetails": { _id: userIdObj } } },{ arrayFilters: [{ "identifier._id": userIdObj }] })
