@@ -73,7 +73,7 @@ exports.adminlogin=async(req,res)=>{
   };
  exports.totalusers=async (req, res) => {
     try {
-        const user = await usermaster.count()
+        const user = await usermaster.find({profile:'true'}).count()
 
         res.status(200).json({status:true,message:"total counts of users",user});
     } catch(error) {
@@ -197,7 +197,7 @@ exports.bookMarksOfAll = async (req, res) => {
       res.send({ message: "Something went wrong" });
     }
   };
-  exports.requestsOfAll = async (req, res) => {
+exports.requestsOfAll = async (req, res) => {
     try {
       const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
@@ -218,8 +218,6 @@ exports.bookMarksOfAll = async (req, res) => {
       res.send({ message: "Something went wrong" });
     }
   };
-  
-  
 exports.postYouHaveLiked = async (req, res) => {
     try {
       const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
@@ -241,7 +239,7 @@ exports.postYouHaveLiked = async (req, res) => {
   }
 exports.totalPrivateAccount = async (req, res) => {
     try {
-      const users = await usermaster.find({private:true}, { _id: 1, name: 1, profile_img: 1 });
+      const users = await usermaster.find({private:true,profile:'true'}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
             const totalPrivateAccount = users.length;
         res.send({ status: true, message: "Get Data Successfully", totalPrivateAccount });
@@ -254,7 +252,7 @@ exports.totalPrivateAccount = async (req, res) => {
   } 
   exports.totalConnectedAccount = async (req, res) => {
     try {
-      const users = await usermaster.find({connected:true}, { _id: 1, name: 1, profile_img: 1 });
+      const users = await usermaster.find({connected:true,profile:'true'}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
             const totalConnectedAccount = users.length;
         res.send({ status: true, message: "Get Data Successfully", totalConnectedAccount });
@@ -267,7 +265,7 @@ exports.totalPrivateAccount = async (req, res) => {
   } 
   exports.totalPublicAccount = async (req, res) => {
     try {
-      const users = await usermaster.find({public:true}, { _id: 1, name: 1, profile_img: 1 });
+      const users = await usermaster.find({public:true,profile:'true'}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
             const totalPublicAccount = users.length;
         res.send({ status: true, message: "Get Data Successfully", totalPublicAccount });
@@ -394,7 +392,6 @@ exports.reportsOfUser = async (req, res) => {
 //   }
 // };
 
-
 exports.blocks = async (req, res) => {
   try {
     const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
@@ -425,8 +422,6 @@ exports.blocks = async (req, res) => {
     res.send({ message: "Something went wrong" });
   }
 };
-
-
 exports.postBlock = async (req, res) => {
   try {
     const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
@@ -497,8 +492,6 @@ exports.postBlock = async (req, res) => {
     res.send({ message: "Something went wrong" });
   }
 };
-
-
 exports.reportOfPost = async (req, res) => {
   try {
     const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
