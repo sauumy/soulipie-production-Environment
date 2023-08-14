@@ -10,6 +10,7 @@ const requestSchema=require('../models/requests')
 const reportPostSchema=require('../models/reportpost')
 const feedBackSchema=require('../models/feedback')
 const blockpostSchema=require('../models/blockpost')
+const {Experience}=require('../models/userExperience')
 
 exports.create= async  (req, res) => {
     if(!req.body.user_name && !req.body.password){
@@ -530,3 +531,27 @@ exports.reportOfPost = async (req, res) => {
     res.send({ message: "Something went wrong" });
   }
 };
+exports.feedbackOnApp=async(req,res)=>{
+  try{
+    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    if (users) {
+      const result = await Promise.all(
+        users.map(async (user) => {
+          const experienceofApp = await Experience.find(
+            { user_id: user._id },
+            { _id: 0, rating: 1, text: 1, recommendation: 1,private:1,public:1 }
+          );
+          const totalfeedbackexperince = experienceofApp.length;
+
+          return { _id: user._id, name: user.name, profile_img: user.profile_img, totalfeedbackexperince, experienceofApp: experienceofApp };
+        })
+      );
+      res.send({ status: true, message: "Get Data Successfully", result });
+    } else {
+      res.status(401).send({ message: "No data available" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.send({ message: "Something went wrong" });
+  }
+}

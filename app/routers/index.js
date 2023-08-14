@@ -51,6 +51,7 @@ route.get('/reportOfPost',admincontroller.reportOfPost)
 route.get('/feedBackOfAll',admincontroller.feedBackOfAll)
 route.get('/blocks',admincontroller.blocks)
 route.get('/postBlock',admincontroller.postBlock)
+route.get('/feedbackOnApp',admincontroller.feedbackOnApp)
 
 //loginModule
 route.post('/registration',registrationController.registration);
@@ -102,6 +103,7 @@ route.post('/securitySetting',settingsController.securitySetting)
 route.post('/online',settingsController.userlogin)
 route.post('/offline',settingsController.userOffline)
 route.post('/getuseronlineorofline',settingsController.getuseronlineorofline)
+route.put('/deActivate',settingsController.deActivate)
 
 //bookmark Module
 route.post('/savePost',profileController.savePost)
