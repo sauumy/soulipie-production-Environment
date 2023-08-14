@@ -152,26 +152,6 @@ exports.postOfOfAll = async (req, res) => {
       res.send({ message: "Something went wrong" });
     }
   }
-  exports.connectionsOfAll = async (req, res) => {
-    try {
-      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
-      if (users) {
-        const result = await Promise.all(
-          users.map(async (user) => {
-            const connections = await connection.find({ user_id: user._id }, { connections: { $slice: 1 }, _id: 0 });
-            const mappedConnections = connections.map((conn) => conn.connections[0]);
-            const totalConnections = mappedConnections.length;
-            return { _id: user._id, name: user.name, profile_img: user.profile_img, connections: mappedConnections, totalConnections };
-          })
-        );
-        res.send({ status: true, message: "Get Data Successfully", result });
-      } else {
-        res.status(401).send({ message: "No data available" });
-      }
-    } catch (err) {
-      res.send({ message: "Something went wrong" });
-    }
-  }
 exports.bookMarksOfAll = async (req, res) => {
     try {
       const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
@@ -188,27 +168,6 @@ exports.bookMarksOfAll = async (req, res) => {
               bookmark: saved,
               totalSaved,
             };
-          })
-        );
-        res.send({ status: true, message: "Get Data Successfully", result });
-      } else {
-        res.status(401).send({ message: "No data available" });
-      }
-    } catch (err) {
-      res.send({ message: "Something went wrong" });
-    }
-  };
-exports.requestsOfAll = async (req, res) => {
-    try {
-      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
-      if (users) {
-        const result = await Promise.all(
-          users.map(async (user) => {
-            const connections = await connection.find({ user_id: user._id }, { totalrequest: { $slice: 1 }, _id: 0 });
-            const mappedConnections = connections.map((conn) => conn.totalrequest[0]);
-            const filteredConnections = mappedConnections.filter((conn) => conn !== null && conn !== undefined);
-            const totalRequests = filteredConnections.length;
-            return { _id: user._id, name: user.name, profile_img: user.profile_img, requests: filteredConnections, totalRequests };
           })
         );
         res.send({ status: true, message: "Get Data Successfully", result });
@@ -531,9 +490,80 @@ exports.reportOfPost = async (req, res) => {
     res.send({ message: "Something went wrong" });
   }
 };
+exports.requestsOfAll = async (req, res) => {
+  try {
+    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+
+    if (users) {
+      const result = await Promise.all(
+        users.map(async (user) => {
+          const connections = await connection.find(
+            { user_id: user._id },
+            { totalrequest: 1, _id: 0 }
+          );
+
+          console.log('Connections:', connections); // Add this line for debugging
+
+          const mappedConnections = connections.map((conn) => conn.totalrequest);
+          const filteredConnections = mappedConnections.flat().filter((conn) => conn !== null && conn !== undefined);
+          const totalRequests = filteredConnections.length;
+
+          return {
+            _id: user._id,
+            name: user.name,
+            profile_img: user.profile_img,
+            requests: filteredConnections,
+            totalRequests,
+          };
+        })
+      );
+
+      res.send({ status: true, message: "Get Data Successfully", result });
+    } else {
+      res.status(401).send({ message: "No data available" });
+    }
+  } catch (err) {
+    console.error('Error:', err); // Add this line for debugging
+    res.send({ message: "Something went wrong" });
+  }
+};
+exports.connectionsOfAll = async (req, res) => {
+  try {
+    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+
+    if (users) {
+      const result = await Promise.all(
+        users.map(async (user) => {
+          const connections = await connection.find({ user_id: user._id }, { connections: 1, _id: 0 });
+
+          const mappedConnections = connections
+            .map((conn) => conn.connections)
+            .flat() // Flatten the array of connections
+            .filter((conn) => conn !== null && conn !== undefined);
+
+          const totalConnections = mappedConnections.length;
+
+          return {
+            _id: user._id,
+            name: user.name,
+            profile_img: user.profile_img,
+            connections: mappedConnections,
+            totalConnections,
+          };
+        })
+      );
+
+      res.send({ status: true, message: "Get Data Successfully", result });
+    } else {
+      res.status(401).send({ message: "No data available" });
+    }
+  } catch (err) {
+    res.send({ message: "Something went wrong" });
+  }
+};
 exports.feedbackOnApp=async(req,res)=>{
   try{
-    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
     if (users) {
       const result = await Promise.all(
         users.map(async (user) => {
@@ -555,3 +585,5 @@ exports.feedbackOnApp=async(req,res)=>{
     res.send({ message: "Something went wrong" });
   }
 }
+
+
