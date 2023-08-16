@@ -151,32 +151,6 @@ exports.postOfOfAll = async (req, res) => {
       res.send({ message: "Something went wrong" });
     }
   }
-exports.bookMarksOfAll = async (req, res) => {
-    try {
-      const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
-      if (users) {
-        const result = await Promise.all(
-          users.map(async (user) => {
-            const bookmarks = await bookmarkSchema.find({ user_id: user._id }, { _id: 0, saved: 1 });
-            const saved = bookmarks.map((bookmark) => bookmark.saved);
-            const totalSaved = bookmarks.length;
-            return {
-              _id: user._id,
-              name: user.name,
-              profile_img: user.profile_img,
-              bookmark: saved,
-              totalSaved,
-            };
-          })
-        );
-        res.send({ status: true, message: "Get Data Successfully", result });
-      } else {
-        res.status(401).send({ message: "No data available" });
-      }
-    } catch (err) {
-      res.send({ message: "Something went wrong" });
-    }
-  };
 exports.postYouHaveLiked = async (req, res) => {
     try {
       const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
@@ -584,5 +558,36 @@ exports.feedbackOnApp=async(req,res)=>{
     res.send({ message: "Something went wrong" });
   }
 }
+exports.bookMarksOfAll = async (req, res) => {
+  try {
+    const users = await usermaster.find({ profile: "true" }, { _id: 1, name: 1, profile_img: 1 });
+    console.log("Fetched users:", users);
+    
+    if (users.length > 0) {
+      const result = await Promise.all(
+        users.map(async (user) => {
+          const bookmarks = await bookmarkSchema.find({ "user_id._id": user._id }, { _id: 0, saved: 1 });
+          console.log("Fetched bookmarks for user", user._id, ":", bookmarks);
+          const saved = bookmarks.map((bookmark) => bookmark.saved);
+          const totalSaved = bookmarks.length; 
+          return {
+            _id: user._id,
+            name: user.name,
+            profile_img: user.profile_img,
+            bookmark: saved,
+            totalSaved,
+          };
+        })
+      );
+      res.status(200).send({ status: true, message: "Get Data Successfully", result });
+    } else {
+      res.status(404).send({ message: "No data available" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: "Something went wrong" });
+  }
+};
+
 
 
