@@ -83,11 +83,10 @@ exports.adminlogin=async(req,res)=>{
 };
 exports.matchesofUsers = async (req, res) => {
     try {
-      const users = await usermaster.find({}, {_id: 1, name: 1, profile_img: 1, AstroSign: 1, Hobbies: 1}); 
+      const users = await usermaster.find({profile:"true"}, {_id: 1, name: 1, profile_img: 1, AstroSign: 1, Hobbies: 1}); 
       const matchesCount = {}; 
       const matchesData = {}; 
   
-     
       users.forEach(user => {
         const userId = user._id.toString();
         const Astro = user.AstroSign;
@@ -135,7 +134,7 @@ exports.matchesofUsers = async (req, res) => {
   }
 exports.postOfOfAll = async (req, res) => {
     try {
-      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+      const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
         const result = await Promise.all(
           users.map(async (user) => {
@@ -154,7 +153,7 @@ exports.postOfOfAll = async (req, res) => {
   }
 exports.bookMarksOfAll = async (req, res) => {
     try {
-      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+      const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
         const result = await Promise.all(
           users.map(async (user) => {
@@ -180,7 +179,7 @@ exports.bookMarksOfAll = async (req, res) => {
   };
 exports.postYouHaveLiked = async (req, res) => {
     try {
-      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+      const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
         const result = await Promise.all(
           users.map(async (user) => {
@@ -238,7 +237,7 @@ exports.totalPrivateAccount = async (req, res) => {
   }
   exports.totalReportsAllPost = async (req, res) => {
     try {
-      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+      const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
         const result = await Promise.all(
           users.map(async (user) => {
@@ -258,7 +257,7 @@ exports.totalPrivateAccount = async (req, res) => {
   } 
 exports.feedBackOfAll=async(req,res)=>{
   try { 
-      const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+      const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
       if (users) {
         const result = await Promise.all(
           users.map(async (user) => {
@@ -282,7 +281,7 @@ exports.feedBackOfAll=async(req,res)=>{
 }
 exports.reportsOfUser = async (req, res) => {
   try {
-    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
     if (users) {
       
       const result = await Promise.all(
@@ -354,7 +353,7 @@ exports.reportsOfUser = async (req, res) => {
 
 exports.blocks = async (req, res) => {
   try {
-    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
     if (users) {
       const result = await Promise.all(
         users.map(async (user) => {
@@ -384,7 +383,7 @@ exports.blocks = async (req, res) => {
 };
 exports.postBlock = async (req, res) => {
   try {
-    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
     if (users) {
       const result = await Promise.all(
         users.map(async (user) => {
@@ -454,7 +453,7 @@ exports.postBlock = async (req, res) => {
 };
 exports.reportOfPost = async (req, res) => {
   try {
-    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
     if (users) {
       const result = await Promise.all(
         users.map(async (user) => {
@@ -492,7 +491,7 @@ exports.reportOfPost = async (req, res) => {
 };
 exports.requestsOfAll = async (req, res) => {
   try {
-    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
 
     if (users) {
       const result = await Promise.all(
@@ -529,7 +528,7 @@ exports.requestsOfAll = async (req, res) => {
 };
 exports.connectionsOfAll = async (req, res) => {
   try {
-    const users = await usermaster.find({}, { _id: 1, name: 1, profile_img: 1 });
+    const users = await usermaster.find({profile:"true"}, { _id: 1, name: 1, profile_img: 1 });
 
     if (users) {
       const result = await Promise.all(
