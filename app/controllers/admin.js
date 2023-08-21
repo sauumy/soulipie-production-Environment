@@ -54,16 +54,16 @@ exports.adminlogin=async(req,res)=>{
       return res.status(500).json({ message: 'Internal server error' });
     }
   };
-  exports.newusers = async (req, res) => {
+exports.newusers = async (req, res) => {
     try {
       const now = new Date();
-      const targetDate = new Date(now.getFullYear(), now.getMonth(), 23, 0, 0, 0);
-      const nextDay = new Date(now.getFullYear(), now.getMonth(), 24, 0, 0, 0);
+      const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000); // Calculate the date 24 hours ago
   
       const count = await usermaster.countDocuments({
+        profile: true,
         createdAt: {
-          $gte: targetDate,
-          $lt: nextDay
+          $gte: twentyFourHoursAgo,
+          $lt: now
         }
       });
   
