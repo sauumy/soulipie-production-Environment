@@ -11,10 +11,15 @@
 // }
 
 // module.exports = {
-//    url:'mongodb://soulipie:1234@15.206.13.51:27017/Souliepie'
+//    url:'mongodb://soulipie:12345@13.126.130.241:27017/soulipie_nonprod'
 // }
-const username = "Soulipie&*$%08";
-const pwd = "Soulipie$%123&";
+
+// module.exports = {
+//    url:'mongodb://soulipie:123456@13.126.130.241:27017/Souliepie'
+// }
+
+const username = "Soulipie&*$%089";
+const pwd = "Soulipie$%9799&";
 const encodedUsername = encodeURIComponent(username);
 const encodedPwd = encodeURIComponent(pwd);
 const dbUrl = `mongodb://${encodedUsername}:${encodedPwd}@65.1.211.125:27017/Souliepie`;
