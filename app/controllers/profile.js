@@ -12,40 +12,74 @@ const comments=require('../models/comments')
 const replycomment=require('../models/replycomment')
 const mongoose=require('mongoose');
 
+exports.getProfile = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const data = await usermaster.find({ deActivate: true }, { _id: 1 });
+    const excludedIds = data.map((doc) => doc._id);
+    const result = await usermaster.findOne({ _id: _id });
+    const Astro = result.AstroSign;
+    const Hobbies = result.Hobbies;
+    const respons = await usermaster.find({ AstroSign: Astro, _id: { $ne: _id }, deActivate: false });
+    const respond = await usermaster.find({ Hobbies: Hobbies, _id: { $ne: _id }, deActivate: false });
+    const results = await post.find({ user_id: { $eq: _id } }, { _id: 0, Post_img: 1 });
+    const connectionResult = await connection.aggregate([
+      {
+        $match: {
+          user_id: mongoose.Types.ObjectId(_id),
+        },
+      },
+      {
+        $project: {
+          connections: {
+            $filter: {
+              input: "$connections",
+              as: "connectin",
+              cond: {
+                $and: [
+                  { $not: { $in: ["$$connectin._id", excludedIds] } },
+                  { $not: "$$connectin.deActivate" }
+                ]
+              }
+            }
+          },
+        },
+      },
+      {
+        $project: {
+          connections: 1,
+          _id: 0,
+        },
+      },
+    ]);
 
-exports.getProfile=async(req,res)=>{
-   try{
-       const{_id}=req.params
-       const result = await usermaster.findOne({_id:_id})
-       const Astro=result.AstroSign
-       const Hobbies=result.Hobbies
-       const respons = await usermaster.find({AstroSign:Astro, _id: { $ne: _id } })
-      
-       const respond = await usermaster.find({Hobbies: Hobbies, _id: { $ne: _id }  } )
-       const results=await post.find({user_id:{$eq:_id}},{_id:0,Post_img:1})
-       const count=await connection.findOne({user_id:_id},{_id:0,connections:1})
-       const Connection= count ? count.connections.length : 0;
-      
-  const userIds = new Set();
+    const Connection = connectionResult[0]?.connections?.length || 0;
 
-  respons.forEach(user => {
-    userIds.add(user._id.toString());
-  });
-  respond.forEach(user => {
-    userIds.add(user._id.toString());
-  });
-  const matchesProfileCount = userIds.size;
-  
-     const posts=results.length
-     
-     
-                return res.status(200).json({Status:true,message:'profile fetched successfully',result,matchesProfileCount,Connection,posts})
-  }catch(err){
-        
-        return res.status(400).json({Status:'Error',Error})
-     }
+    const userIds = new Set();
 
-}
+    respons.forEach((user) => {
+      userIds.add(user._id.toString());
+    });
+    respond.forEach((user) => {
+      userIds.add(user._id.toString());
+    });
+    const matchesProfileCount = userIds.size;
+
+    const posts = results.length;
+
+    return res.status(200).json({
+      Status: true,
+      message: 'Profile fetched successfully',
+      result,
+      matchesProfileCount,
+      Connection,
+      posts,
+    });
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ Status: 'Error', Error: err.message });
+  }
+};
 exports.addAstroSign=async(req,res)=>{
    try{
       
@@ -205,7 +239,8 @@ exports.getOtherprofile = async (req, res) => {
               public:1,
               connected:1,
               blockContact:1,
-              addprounous:1
+              addprounous:1,
+              deActivate:1
             }
           );
          
@@ -217,8 +252,10 @@ exports.getOtherprofile = async (req, res) => {
           const connectedppl=await connection.findOne({user_id:_id})
             const connectedids=connectedppl?.connections?.map(connection => connection._id) || []
       
-   const connectIdsStr = connectedids.map(id => id.toString());
- 
+   const connectIdsStr= connectedids.map(id => id);
+ const connectIdsStrs=await usermaster.find({_id:{$in:connectIdsStr},deActivate:false},{_id:1})
+ const connectIdsStrss= connectIdsStrs.map(doc => doc._id.toString());
+ console.log(connectIdsStrss)
    const blockedIds=result.blockContact
   
    if(blockedIds.includes(viewer_id)){
@@ -233,11 +270,13 @@ exports.getOtherprofile = async (req, res) => {
           const respons = await usermaster.find({
             AstroSign: Astro,
             _id: { $ne: _id },
+            deActivate:false
           });
     
           const respond = await usermaster.find({
             Hobbies: Hobbies,
             _id: { $ne: _id },
+            deActivate:false
           });
           const postimages = await post.find(
             { user_id: { $eq: _id } },
@@ -259,9 +298,10 @@ exports.getOtherprofile = async (req, res) => {
             { user_id: _id },
             { _id: 0, connections: 1 }
           );
-          const connections = count ? count.connections.length : 0;
+          const connections = connectIdsStrss.length;
        
           const connect = count ? count.connections : [];
+         
           const data = await usermaster.findOne(
             { _id: viewer_id },
             { _id: 1, token: 1, name: 1, profile_img: 1 }
@@ -324,11 +364,13 @@ exports.getOtherprofile = async (req, res) => {
           const respons = await usermaster.find({
             AstroSign: Astro,
             _id: { $ne: _id },
+            deActivate:false
           });
     
           const respond = await usermaster.find({
             Hobbies: Hobbies,
             _id: { $ne: _id },
+            deActivate:false
           });
           const postimages = await post.find(
             { user_id: { $eq: _id } },
@@ -350,9 +392,10 @@ exports.getOtherprofile = async (req, res) => {
             { user_id: _id },
             { _id: 0, connections: 1 }
           );
-          const connections = count ? count.connections.length : 0;
+          const connections = connectIdsStrss.length
           
           const connect = count ? count.connections : [];
+
           const data = await usermaster.findOne(
             { _id: viewer_id },
             { _id: 1, token: 1, name: 1, profile_img: 1 }
@@ -413,7 +456,7 @@ exports.getOtherprofile = async (req, res) => {
         }
       }
     } catch (err) {
-       
+       console.log(err)
         return res.status(400).json({ Status: "Error", Error });
       }
 }
@@ -429,12 +472,12 @@ exports.matchedList = async (req, res) => {
       
       const response = await usermaster.find({
         AstroSign: Astro,
-        _id: { $ne: user_id },
+        _id: { $ne: user_id },deActivate:false
       });
 
       const respond = await usermaster.find({
         Hobbies: Hobbies,
-        _id: { $ne: user_id },
+        _id: { $ne: user_id },deActivate:false
       });
 
       const combinedResult = response.concat(respond);
@@ -451,13 +494,13 @@ exports.matchedList = async (req, res) => {
       }
     }
   } catch (err) {
-   
+   console.log(err)
     return res.status(400).json({ status: 'Error', message: 'Something went wrong', error: err });
   }
 }
 exports.getAllProfile=async(req,res)=>{
   try{
-      const result = await usermaster.find({profile:'true'})
+      const result = await usermaster.find({profile:'true',deActivate:false})
                return res.status(200).json({Status:true,message:'profile fetched successfully',result})
   }catch(err){
       
@@ -519,174 +562,174 @@ await notification.findOneAndDelete({user_id:follower_id,accpeted:notifications}
     return res.status(400).json({Status:'Error',Error})
   }
 }
-exports.explore = async (req, res) => {
-  try {
-     const {_id} = req.body;
-     const user_ids=mongoose.Types.ObjectId(_id)
-     const seeinconnections = await connection.find({'connections._id': user_ids,connected:true},{_id:0,user_id:1})
+// exports.explore = async (req, res) => {
+//   try {
+//      const {_id} = req.body;
+//      const user_ids=mongoose.Types.ObjectId(_id)
+//      const seeinconnections = await connection.find({'connections._id': user_ids,connected:true},{_id:0,user_id:1})
    
-     const user_ids_array = seeinconnections.map(connection => connection.user_id);
-     const users = await usermaster.find({_id:user_ids_array},{_id:1});
-const user_id_strings = users.map(user => user._id);
+//      const user_ids_array = seeinconnections.map(connection => connection.user_id);
+//      const users = await usermaster.find({_id:user_ids_array},{_id:1});
+// const user_id_strings = users.map(user => user._id);
 
-     const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
-     const Astro = result.AstroSign;
-     const Hobbies = result.Hobbies;
-     const astroUsers = await usermaster.find({AstroSign: Astro, _id: { $ne: _id },private:false,connected:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-     const astroIds = astroUsers.map(doc => doc._id);
+//      const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
+//      const Astro = result.AstroSign;
+//      const Hobbies = result.Hobbies;
+//      const astroUsers = await usermaster.find({AstroSign: Astro, _id: { $ne: _id },private:false,connected:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+//      const astroIds = astroUsers.map(doc => doc._id);
 
-     const hobbiesUsers = await usermaster.find({Hobbies: Hobbies,_id: { $ne: _id },private:false,connected:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
-     const hobbiesIds = hobbiesUsers.map(doc => doc._id);
+//      const hobbiesUsers = await usermaster.find({Hobbies: Hobbies,_id: { $ne: _id },private:false,connected:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+//      const hobbiesIds = hobbiesUsers.map(doc => doc._id);
     
-     const result1Promise = await usermaster.aggregate([
-      {
-        $match: {
-          $or: [
-            { _id: { $in: astroIds } },
-            { $expr: { $and: [ { $not: { $isArray: "$user_ids_array" } }, { $eq: [ "$user_ids_array", [] ] } ] } }
-          ]
-        }
-      },
-         {
-           $lookup: {
-             from: "posts",
-             localField: "_id",
-             foreignField: "user_id",
-             as: "explore"
-           }
-         },
-         {
-           $project: {
-             _id: 1,
-             name: 1,
-             addprounous: 1,
-             profile_img: 1,
-             'explore.Post_img': 1,
-             'explore.Post_discription': 1,
-             'explore._id': 1,
-             'explore.likedpeopledata._id':1
-           },
-         },
-     ]);
+//      const result1Promise = await usermaster.aggregate([
+//       {
+//         $match: {
+//           $or: [
+//             { _id: { $in: astroIds } },
+//             { $expr: { $and: [ { $not: { $isArray: "$user_ids_array" } }, { $eq: [ "$user_ids_array", [] ] } ] } }
+//           ]
+//         }
+//       },
+//          {
+//            $lookup: {
+//              from: "posts",
+//              localField: "_id",
+//              foreignField: "user_id",
+//              as: "explore"
+//            }
+//          },
+//          {
+//            $project: {
+//              _id: 1,
+//              name: 1,
+//              addprounous: 1,
+//              profile_img: 1,
+//              'explore.Post_img': 1,
+//              'explore.Post_discription': 1,
+//              'explore._id': 1,
+//              'explore.likedpeopledata._id':1
+//            },
+//          },
+//      ]);
 
-     const result2Promise = await usermaster.aggregate([
-      {
-        $match: {
-          $or: [
-            { _id: { $in: hobbiesIds } },
-            { $expr: { $and: [ { $not: { $isArray: "$user_ids_array" } }, { $eq: [ "$user_ids_array", [] ] } ] } }
-          ]
-        }
-      },
-         {
-           $lookup: {
-             from: "posts",
-             localField: "_id",
-             foreignField: "user_id",
-             as: "explore"
-           }
-         },
-         {
-           $project: {
-             _id: 1,
-             name: 1,
-             addprounous: 1,
-             profile_img: 1,
-             'explore.Post_img': 1,
-             'explore.Post_discription': 1,
-             'explore._id': 1,
-             'explore.likedpeopledata._id':1
-           },
-         },
-     ])
-     const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
-     const combinedResult = [...result1, ...result2];
-     const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
-     for (const item of response) {
-        const existingExplore = await exploreModel.findOne({ user_id: _id, 'matchedprofiles._id': item._id});
-        if (!existingExplore) {
-          const newExplore = new exploreModel({
-            user_id:_id,
-            matchedprofiles:item
-          })
-           const savedExplore = await newExplore.save();
-           if (!savedExplore) {
-              return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
-           }
-        }else if (existingExplore){
-           const exists=await exploreModel.updateMany({ user_id: _id, 'matchedprofiles._id': item._id },
-     { $set: { matchedprofiles: item } })
+//      const result2Promise = await usermaster.aggregate([
+//       {
+//         $match: {
+//           $or: [
+//             { _id: { $in: hobbiesIds } },
+//             { $expr: { $and: [ { $not: { $isArray: "$user_ids_array" } }, { $eq: [ "$user_ids_array", [] ] } ] } }
+//           ]
+//         }
+//       },
+//          {
+//            $lookup: {
+//              from: "posts",
+//              localField: "_id",
+//              foreignField: "user_id",
+//              as: "explore"
+//            }
+//          },
+//          {
+//            $project: {
+//              _id: 1,
+//              name: 1,
+//              addprounous: 1,
+//              profile_img: 1,
+//              'explore.Post_img': 1,
+//              'explore.Post_discription': 1,
+//              'explore._id': 1,
+//              'explore.likedpeopledata._id':1
+//            },
+//          },
+//      ])
+//      const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
+//      const combinedResult = [...result1, ...result2];
+//      const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
+//      for (const item of response) {
+//         const existingExplore = await exploreModel.findOne({ user_id: _id, 'matchedprofiles._id': item._id});
+//         if (!existingExplore) {
+//           const newExplore = new exploreModel({
+//             user_id:_id,
+//             matchedprofiles:item
+//           })
+//            const savedExplore = await newExplore.save();
+//            if (!savedExplore) {
+//               return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
+//            }
+//         }else if (existingExplore){
+//            const exists=await exploreModel.updateMany({ user_id: _id, 'matchedprofiles._id': item._id },
+//      { $set: { matchedprofiles: item } })
           
-const idss=await exploreModel.find({},{_id:0,'matchedprofiles._id':1})
-const ids = idss.map(item => item.matchedprofiles._id);
+// const idss=await exploreModel.find({},{_id:0,'matchedprofiles._id':1})
+// const ids = idss.map(item => item.matchedprofiles._id);
 
-const datss=await usermaster.find({_id:{$in:ids},private:true},{_id:1})
+// const datss=await usermaster.find({_id:{$in:ids},private:true},{_id:1})
 
-const mappedIds = datss.map(item => item._id.toString());
+// const mappedIds = datss.map(item => item._id.toString());
 
-const deletes=await exploreModel.deleteMany({'matchedprofiles._id':{$in:mappedIds}})
+// const deletes=await exploreModel.deleteMany({'matchedprofiles._id':{$in:mappedIds}})
 
-        }
-     }
-     const results = await exploreModel.find({user_id:_id},{_id:0,matchedprofiles:1});
-     const ids=results.map(doc=>doc.matchedprofiles._id)
+//         }
+//      }
+//      const results = await exploreModel.find({user_id:_id},{_id:0,matchedprofiles:1});
+//      const ids=results.map(doc=>doc.matchedprofiles._id)
    
      
-        const filter = {
-           $and: [
-               {
-                 fromUser: _id,
-                 toUser: {$in:ids}
-               }
-             ]
-         };
-         const data=await request.find(filter);
+//         const filter = {
+//            $and: [
+//                {
+//                  fromUser: _id,
+//                  toUser: {$in:ids}
+//                }
+//              ]
+//          };
+//          const data=await request.find(filter);
        
          
-        const matchedProfileIds = data.flatMap(doc => [
-           mongoose.Types.ObjectId(doc.toUser).toString()
-         ]);
+//         const matchedProfileIds = data.flatMap(doc => [
+//            mongoose.Types.ObjectId(doc.toUser).toString()
+//          ]);
          
-const check = data.filter(doc => doc.requestPending === true);
+// const check = data.filter(doc => doc.requestPending === true);
 
-const toUserIds = check.map(doc => doc.toUser.toString());
+// const toUserIds = check.map(doc => doc.toUser.toString());
 
-const checks = data.filter(doc => doc.requestPending === false);
+// const checks = data.filter(doc => doc.requestPending === false);
 
-const toUserId = checks.map(doc => doc.toUser.toString());
+// const toUserId = checks.map(doc => doc.toUser.toString());
 
-const tousersids=data.map(doc=>doc.toUser.toString())
+// const tousersids=data.map(doc=>doc.toUser.toString())
 
-         if(data.length>0){
-              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserIds}},{$set:{requested:true,connected:false}})
+//          if(data.length>0){
+//               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserIds}},{$set:{requested:true,connected:false}})
               
                       
-              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserId}},{$set:{connected:true,requested:false}})
+//               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserId}},{$set:{connected:true,requested:false}})
              
           
-              const allToUserIds = [...toUserIds, ...toUserId];
+//               const allToUserIds = [...toUserIds, ...toUserId];
               
-              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
+//               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
 
 
-              const result=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
-              return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',result})
-           }else{
-            const allToUserIds = [...toUserIds, ...toUserId];
+//               const result=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
+//               return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',result})
+//            }else{
+//             const allToUserIds = [...toUserIds, ...toUserId];
               
-              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
-            const result=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
-              return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',result})
+//               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
+//             const result=await exploreModel.find({user_id:_id,rejected:false},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
+//               return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',result})
            
-  }
+//   }
   
 
-}catch(err){
+// }catch(err){
     
-    return res.status(400).json({Status:'Error',Error})
-  }
+//     return res.status(400).json({Status:'Error',Error})
+//   }
 
-}
+// }
 // exports.getSavedPost = async (req, res) => {
 //   try {
 //     const { _id } = req.params;
@@ -866,3 +909,186 @@ exports.createProfile1=async(req,res)=>{
        return res.status(400).json({Status:'Error',Error})
     }
 }
+exports.explore= async (req, res) => {
+  try {
+     const {_id,offset} = req.body;
+     const limit=5
+     const user_ids=mongoose.Types.ObjectId(_id)
+     const seeinconnections = await connection.find({'connections._id': user_ids,connected:true},{_id:0,user_id:1})
+   
+     const user_ids_array = seeinconnections.map(connection => connection.user_id);
+     console.log(user_ids_array)
+     const users = await usermaster.find({_id:user_ids_array,deActivate:false},{_id:1});
+const user_id_strings = users.map(user => user._id);
+
+     const result = await usermaster.findOne({_id: _id}, {_id: 0, profile_img: 1, name: 1, bio: 1, AstroSign: 1, Hobbies: 1});
+     const Astro = result.AstroSign;
+     const Hobbies = result.Hobbies;
+     const astroUsers = await usermaster.find({AstroSign: Astro, _id: { $ne: _id },private:false,connected:false,deActivate:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+     const astroIds = astroUsers.map(doc => doc._id);
+
+     const hobbiesUsers = await usermaster.find({Hobbies: Hobbies,_id: { $ne: _id },private:false,connected:false,deActivate:false}, {_id: 1, profile_img: 1, occupation: 1, name: 1});
+     const hobbiesIds = hobbiesUsers.map(doc => doc._id);
+    
+     const result1Promise = await usermaster.aggregate([
+      {
+        $match: {
+          $or: [
+            { _id: { $in: astroIds } },
+            { $expr: { $and: [ { $not: { $isArray: "$user_ids_array" } }, { $eq: [ "$user_ids_array", [] ] } ] } }
+          ]
+        }
+      },
+         {
+           $lookup: {
+             from: "posts",
+             localField: "_id",
+             foreignField: "user_id",
+             as: "explore"
+           }
+         },
+         {
+           $project: {
+             _id: 1,
+             name: 1,
+             addprounous: 1,
+             profile_img: 1,
+             'explore.Post_img': 1,
+             'explore.Post_discription': 1,
+             'explore._id': 1,
+             'explore.likedpeopledata._id':1
+           },
+         },
+     ]);
+
+     const result2Promise = await usermaster.aggregate([
+      {
+        $match: {
+          $or: [
+            { _id: { $in: hobbiesIds } },
+            { $expr: { $and: [ { $not: { $isArray: "$user_ids_array" } }, { $eq: [ "$user_ids_array", [] ] } ] } }
+          ]
+        }
+      },
+         {
+           $lookup: {
+             from: "posts",
+             localField: "_id",
+             foreignField: "user_id",
+             as: "explore"
+           }
+         },
+         {
+           $project: {
+             _id: 1,
+             name: 1,
+             addprounous: 1,
+             profile_img: 1,
+             'explore.Post_img': 1,
+             'explore.Post_discription': 1,
+             'explore._id': 1,
+             'explore.likedpeopledata._id':1
+           },
+         },
+     ])
+     const [result1, result2] = await Promise.all([result1Promise, result2Promise]);
+     const combinedResult = [...result1, ...result2];
+     const response = Array.from(new Set(combinedResult.map(JSON.stringify))).map(JSON.parse);
+     for (const item of response) {
+        const existingExplore = await exploreModel.findOne({ user_id: _id, 'matchedprofiles._id': item._id});
+        if (!existingExplore) {
+          const newExplore = new exploreModel({
+            user_id:_id,
+            matchedprofiles:item
+          })
+           const savedExplore = await newExplore.save();
+           if (!savedExplore) {
+              return res.status(400).json({Status: 'Error', message: 'Unable to save explore'});
+           }
+        }else if (existingExplore){
+           const exists=await exploreModel.updateMany({ user_id: _id, 'matchedprofiles._id': item._id },
+     { $set: { matchedprofiles: item } })
+          
+const idss=await exploreModel.find({},{_id:0,'matchedprofiles._id':1})
+const ids = idss.map(item => item.matchedprofiles._id);
+
+const datss=await usermaster.find({_id:{$in:ids},private:true},{_id:1})
+
+const mappedIds = datss.map(item => item._id.toString());
+
+const deletes=await exploreModel.deleteMany({'matchedprofiles._id':{$in:mappedIds}})
+
+        }
+     }
+     const results = await exploreModel.find({user_id:_id},{_id:0,matchedprofiles:1});
+     const ids=results.map(doc=>doc.matchedprofiles._id)
+   
+     
+        const filter = {
+           $and: [
+               {
+                 fromUser: _id,
+                 toUser: {$in:ids}
+               }
+             ]
+         };
+         const data=await request.find(filter);
+       
+         
+        const matchedProfileIds = data.flatMap(doc => [
+           mongoose.Types.ObjectId(doc.toUser).toString()
+         ]);
+         
+const check = data.filter(doc => doc.requestPending === true);
+
+const toUserIds = check.map(doc => doc.toUser.toString());
+
+const checks = data.filter(doc => doc.requestPending === false);
+
+const toUserId = checks.map(doc => doc.toUser.toString());
+
+const tousersids=data.map(doc=>doc.toUser.toString())
+const deactivatedids=await usermaster.find({deActivate:true},{_id:1})
+
+const deactivatedIds=deactivatedids.map(doc=>(doc._id.toString()))
+console.log(deactivatedIds)
+         if(data.length>0){
+              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserIds}},{$set:{requested:true,connected:false}})
+              
+                      
+              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$in:toUserId}},{$set:{connected:true,requested:false}})
+             
+          
+              const allToUserIds = [...toUserIds, ...toUserId];
+              
+              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
+
+              const result=await exploreModel.find({user_id:_id,rejected:false,'matchedprofiles._id':{$nin:deactivatedIds}},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
+              const startIndex = offset || 0;
+              const endIndex = startIndex + (limit || result.length); // If limit is not provided, return all remaining posts
+          
+              const paginatedUsersWithPosts = result.slice(startIndex, endIndex);
+              return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',result:paginatedUsersWithPosts})
+
+           }else{
+            const allToUserIds = [...toUserIds, ...toUserId];
+              
+              await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
+            const result=await exploreModel.find({user_id:_id,rejected:false,'matchedprofiles._id':{$nin:deactivatedIds}},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
+            const startIndex = offset || 0;
+              const endIndex = startIndex + (limit || result.length); // If limit is not provided, return all remaining posts
+          
+              const paginatedUsersWithPosts = result.slice(startIndex, endIndex);
+              return res.status(200).json({Status:true,message:'Explore Fetched Successfuly',result:paginatedUsersWithPosts})
+           
+  }
+  
+
+}catch(err){
+    
+    return res.status(400).json({Status:'Error',Error})
+  }
+
+}
+
+

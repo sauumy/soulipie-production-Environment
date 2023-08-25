@@ -5,25 +5,52 @@ const connection=require('../models/connection')
 const storeMsg=require('../models/storemssage')
 const report=require('../models/report')
 const {isRoom}=require("../models/chatroom")
+const mongoose=require('mongoose')
 
-
-exports.getConnections=async(req,res)=>{
-    try{
-        const {_id}=req.body
-        const result= await connection.find({user_id:_id},{_id:0,connections:1});
-        if( result.length!=0)
-        {
-            res.send({status:true,message:"Get Data Succesfully",result})
-        }
-        else{
-            res.status(401).send({message:"No Any data available"})
-        }
+exports.getConnections = async (req, res) => {
+  try {
+    const { _id } = req.body;
+    const data = await usermaster.find({ deActivate: true }, { _id: 1 });
+    const excludedIds = data.map((doc) => doc._id);
+    const result = await connection.aggregate([
+      {
+        $match: {
+          user_id: mongoose.Types.ObjectId(_id),
+        },
+      },
+      {
+        $project: {
+          connections: {
+            $filter: {
+              input: "$connections",
+              as: "connectin",
+              cond: {
+                $and: [
+                  { $not: { $in: ["$$connectin._id", excludedIds] } },
+                  { $not: "$$connectin.deActivate" }
+                ]
+              }
+            }
+          },
+        },
+      },
+      {
+        $project: {
+          connections: 1,
+          _id: 0,
+        },
+      },
+    ]);
+    if (result.length !== 0) {
+      res.send({ status: true, message: 'Get Data Successfully', result });
+    } else {
+      res.status(401).send({ message: 'No Any data available' });
     }
-    catch(err)
-    {
-        res.send({message:"somthing is wrong"})
-    }
-}
+  } catch (err) {
+    console.log(err)
+    res.send({ message: 'Something went wrong' });
+  }
+};
 exports.getmessage=async(req,res)=>{
     try{
         const roomid=req.params.room_id
@@ -142,8 +169,10 @@ exports.createChat=async(req,res)=>{
       const connectuserStr = isuserconnected.map(id => id.toString());
     
       const connectotherStr = isotherconnected.map(id => id.toString());
-    
-      
+    const senders=await usermaster.findOne({_id:sender_id,deActivate:false})
+    const others=await usermaster.findOne({_id:other_id,deActivate:false})
+      console.log(others,senders)
+      if(others&&senders){
       if (isuser.private===true || isotherUser.private===true) {
         res.send({status:false,Message: "Cannot create chat with private user" })
       }else if (connectuserStr.includes(sender_id)||connectuserStr.includes(other_id)||
@@ -244,8 +273,10 @@ if(sender_id.length>10){
     }else{
       return res.status(400).send({status:false,Message:"your not connected to chat with user"})
     }
+  }else{
+    return res.status(400).send({status:false,Message:"This User is No longer available"})
   }
-
+        }
 }
 }catch(err){
 
@@ -606,7 +637,6 @@ if(!sender_id&&!room_id){
     return res.status(400).json({ status: "Error", message: "Something went wrong", err });
   }
 }
-
 exports.isNotChatRoom=async(req, res)=>{
   try{
 const {sender_id,room_id}=req.body

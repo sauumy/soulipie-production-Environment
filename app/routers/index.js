@@ -103,7 +103,7 @@ route.post('/securitySetting',settingsController.securitySetting)
 route.post('/online',settingsController.userlogin)
 route.post('/offline',settingsController.userOffline)
 route.post('/getuseronlineorofline',settingsController.getuseronlineorofline)
-// route.put('/deActivate',settingsController.deActivate)
+route.put('/deActivate',settingsController.deActivate)
 
 //bookmark Module
 route.post('/savePost',profileController.savePost)

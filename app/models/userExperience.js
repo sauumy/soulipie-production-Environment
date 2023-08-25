@@ -17,11 +17,11 @@ const experienceschema=mongoose.Schema({
     },
     private:{
         type:Boolean,
-        default:false
+        default:"false"
     },
     public:{
         type:Boolean,
-        default:false
+        default:"false"
     }
 },{ timestamps: true });
 const Experience=mongoose.model('userExperience',experienceschema);

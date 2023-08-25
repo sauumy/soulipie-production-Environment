@@ -7,34 +7,32 @@ const path=require('path')
 var transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   auth: {
-    user: "hiyaak123@gmail.com",
-    pass: "woofqpsirjtiufpf ",
+    user: "harishsoftwaresolutions.app@gmail.com",
+    pass: "uufjxbpdgmrsrymx ",
   },
   
 });
-function mailoption(toemail,otp){
+function mailoption(toemail,user_id,text,rating,recommendation,private,public){
 var mail ={
-  from: '"Soulipie Team" <hiyaak123@gmail.com>',
+  from: '"Soulipie Team" <harishsoftwaresolutions.app@gmail.com>',
   to: `${toemail}`,
-  subject: "Received OTP From Soulipie ",
+  subject: "Received Feedback From User ",
   html:
-  "<h3>Dear" +
-        "  " +
-        "User," +
-        
-        "</h3>" +
-        `<h4><h3>${otp}</h3>Find here your otp to login Soulipie, For security purpose do not share this with anyone</h4>`
-        +
-        "<p> Note:-This is your one Time Password, please dont share it with anyone</p>",        
+ `<p>Find here user feedback details</p>
+  <h4>User Experince: ${text}</h4>
+  <h4>Rating: ${rating}</h4>
+  <h4>Recommendation: ${recommendation}</h4>
+  <h4>Private: ${private}</h4>
+  <h4>Public: ${public}</h4>
+`,        
 }
-console.log(otp)
 return mail
 }
 
-const sendmail=async(toemail,otp)=>{
+const sendmail=async(toemail,user_id,text,rating,recommendation,private,public)=>{
 try{
 
-transporter.sendMail(mailoption(toemail,otp),function(error,info){
+transporter.sendMail(mailoption(toemail,user_id,text,rating,recommendation,private,public),function(error,info){
 if(error){
 
     console.log(error)
@@ -49,12 +47,6 @@ throw err
 }    
 
 }
-
-
-
-
-
-
 
       const sendOtpOnMobile = async (number,otp)=>{
         try{

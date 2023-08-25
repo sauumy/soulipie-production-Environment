@@ -26,6 +26,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://soulipie-6f717-default-rtdb.firebaseio.com"
 });
+
   const messaging = admin.messaging();
   const fetch = require('node-fetch');
   
@@ -33,7 +34,7 @@ admin.initializeApp({
 //     try {
 //       const link = req.body.link; 
 //       const _id = req.body._id; 
-//       const androidPackageName = 'com.soulipie_app'; 
+//       const androidPackageName = 'com.soulipie'; 
 //       const apikey = 'AIzaSyBhlTa0Yj8wM-Fk4Z5SjJtRvAE_E-nHJzI'; 
 //       const url = `https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${apikey}`;
       
@@ -87,7 +88,6 @@ socialMetaTagInfo: {socialTitle: 'Check out this link!',socialDescription: 'This
     });
   }
 } 
-
 exports.healthcheck = async (req, res) => {
     const healthcheck = {
         uptime: process.uptime(),
@@ -163,72 +163,78 @@ if(host_id.length>10){
        }                    
  
 }
-exports.otpVerify = async (req, res) => {
+// exports.otpVerify = async (req, res) => {
 
-try{
-    const {mobilenumber} = req.body
-     if(mobilenumber){
-        const response=await Users.findOne({mobilenumber:mobilenumber})
-        const otp=response.otp
-        if(otp==='false'&&response.profile==='false'){
-          const result=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{otp:'true'}},{new:true})
-        if(result){
-          const response=await Users.findOne({mobilenumber:mobilenumber})
-          return res.status(200).send({Status:true,message:'otp Verified Successfully',response})
-        }else{
-          return res.status(400).send({Status:false,message:'somthing went wrong'})
-        }
+// try{
+//     const {mobilenumber} = req.body
+//      if(mobilenumber){
+//         const response=await Users.findOne({mobilenumber:mobilenumber})
+//         const otp=response.otp
+//         if(response.deActivate===false){
+//         if(otp==='false'&&response.profile==='false'){
+//           const result=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{otp:'true'}},{new:true})
+//         if(result){
+//           const response=await Users.findOne({mobilenumber:mobilenumber})
+//           return res.status(200).send({Status:true,message:'otp Verified Successfully',response})
+//         }else{
+//           return res.status(400).send({Status:false,message:'somthing went wrong'})
+//         }
         
-        }else{
-                    const response=await Users.findOne({mobilenumber:mobilenumber})
-                    return res.status(400).send({Status:'false',message:'otp verified already',response})
-        }
-}else{
-  return res.status(400).send({Status:'false',message:'please provide mobilenumber'})
-}
-}catch(err){
-   
-    return res.status(400).send({Status:'false',message:'somthing went wrong'})
-           }
-}
-exports.registration = async (req, res) => {
-  try{ 
-   const {mobilenumber,token}=req.body
-   if(!mobilenumber){
-    return res.status(400).send({Status:false,message:'Please provide Mobile number'})
-   }else{
-    const istherearenot=await Users.findOne({mobilenumber:mobilenumber})
+//         }else{
+//                     const response=await Users.findOne({mobilenumber:mobilenumber})
+//                     return res.status(400).send({Status:'false',message:'otp verified already',response})
+//         }
+//       }else{
+//         const response=await Users.findOne({mobilenumber:mobilenumber})
+//         return res.status(400).send({Status:'false',message:'your account has been deactivated please activate to continue',response})
+//        }
+// }else{
+//   return res.status(400).send({Status:'false',message:'please provide mobilenumber'})
+// }
     
-  if(istherearenot){
-    const otp=istherearenot.otp
-    const profile=istherearenot.profile
-    const response=istherearenot
-    if(otp==='true'&&profile==='true'){
-      return res.status(400).send({Status:false,message:'You have already registerd with the Soulipie'})
-    }else if (otp==='true'&&profile==='false'){
-      return res.status(400).send({Status:false,message:'OTP verified',response})
-    }else if(otp==='false'&&profile==='false'){
-      return res.status(200).send({Status:true,message:'Otp sent on mobile Successfully'})
-    }
-   }else{
-    const user=new Users({
-      mobilenumber:mobilenumber,
-      token:token
-    })
-    await user.save()
-    if(user){
-      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber'})
-    }else{
-      return res.status(400).send({Status:false,message:'something error'})
-    }
-}
-  }
-} 
-catch(err){
-       
-      return res.status(400).send({Status:'Error',message:'somthing went wrong'})
-     }                    
-}  
+// }catch(err){
+   
+//     return res.status(400).send({Status:'false',message:'somthing went wrong'})
+//            }
+// }
+// exports.registration = async (req, res) => {
+//   try{ 
+//    const {mobilenumber,token}=req.body
+//    if(!mobilenumber){
+//     return res.status(400).send({Status:false,message:'Please provide Mobile number'})
+//    }else{
+//     const istherearenot=await Users.findOne({mobilenumber:mobilenumber})
+    
+//   if(istherearenot){
+//     const otp=istherearenot.otp
+//     const profile=istherearenot.profile
+//     const response=istherearenot
+//     if(otp==='true'&&profile==='true'){
+//       return res.status(400).send({Status:false,message:'You have already registerd with the Soulipie'})
+//     }else if (otp==='true'&&profile==='false'){
+//       return res.status(400).send({Status:false,message:'OTP verified',response})
+//     }else if(otp==='false'&&profile==='false'){
+//       return res.status(200).send({Status:true,message:'Otp sent on mobile Successfully'})
+//     }
+//    }else{
+//     const user=new Users({
+//       mobilenumber:mobilenumber,
+//       token:token
+//     })
+//     await user.save()
+//     if(user){
+//       return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber'})
+//     }else{
+//       return res.status(400).send({Status:false,message:'something error'})
+//     }
+// }
+//   }
+// } 
+// catch(err){
+//        console.log(err)
+//       return res.status(400).send({Status:'Error',message:'somthing went wrong'})
+//      }                    
+// }  
 exports.sendRequest=async (req, res) => {
     
       try {
@@ -326,88 +332,207 @@ exports.sendRequest=async (req, res) => {
         return res.status(500).json({ status:false,message: 'Internal server error.' });
       }
 }
-  exports.requestCount=async(req, res)=>{
+exports.requestCount = async (req, res) => {
   try {
-  const {_id}=req.params
-   const request=await users.findOne({user_id:_id},{totalrequest:1,_id:0})
-   if (request && request.totalrequest !== null) {
-    const requests = request.totalrequest;
-    const requestCount = requests.length;
-  return res.status(200).json({status:true, message: 'requests fetch successfully.',requestCount });
-  }else{
-      return res.status(400).json({ status:false,message: 'Counldnt sind any request' });
+    const { _id } = req.params;
+    const data = await Users.find({ deActivate: true }, { _id: 1 });
+    const excludedIds = data.map((doc) => doc._id);
+
+    const requestCount = await users.aggregate([
+      {
+        $match: {
+          user_id: mongoose.Types.ObjectId(_id),
+        },
+      },
+      {
+        $unwind: "$totalrequest",
+      },
+      {
+        $match: {
+          $and: [
+            { "totalrequest._id": { $nin: excludedIds } },
+            { "totalrequest.deActivate": { $ne: true } },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          requestCount: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          requestCount: 1,
+        },
+      },
+    ]);
+    const formattedRequestCount = requestCount.length > 0 ? requestCount[0].requestCount : 0;
+    return res.status(200).json({ status: true, message: 'Requests fetch successfully.', requestCount:formattedRequestCount });
+  } catch (error) {
+    console.group(error)
+    return res.status(500).json({ status: false, message: 'Internal server error.' });
   }
-  
-  }catch (error) {
-             
-              return res.status(500).json({status:false, message: 'Internal server error.' });
-      }
-}
-  exports.getRequest = async (req, res) => {
-    try {
-      const { _id } = req.params;
-      const request = await users
-        .findOne({ user_id: _id }, { totalrequest: 1, _id: 0 });
-      let requests = request?.totalrequest;
-      if (requests) {
-        requests.sort((a, b) => a.createdAt - b.createdAt); // Sort requests based on timing
-        requests.reverse(); // Reverse the order of the array
-        return res.status(200).json({ status: true, message: 'Requests fetched successfully.', requests });
+};
+exports.getRequest = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const data = await Users.find({ deActivate: true }, { _id: 1 });
+    const excludedIds = data.map((doc) => doc._id);
+    console.log(excludedIds)
+    const request = await users.aggregate([
+      {
+        $match: {
+          user_id: mongoose.Types.ObjectId(_id),
+        },
+      },
+      {
+        $project: {
+          totalrequest: {
+            $filter: {
+              input: "$totalrequest",
+              as: "request",
+              cond: {
+                $and: [
+                  { $not: { $in: ["$$request._id", excludedIds] } },
+                  { $not: "$$request.deActivate" }
+                ]
+              }
+            }
+          },
+        },
+      },
+      {
+        $project: {
+          totalrequest: 1,
+          _id: 0,
+        },
+      },
+    ]);
+    console.log(request)
+
+    let requests = request[0]?.totalrequest;
+    if (requests) {
+      requests.sort((a, b) => a.createdAt - b.createdAt); // Sort requests based on timing
+      requests.reverse(); // Reverse the order of the array
+      return res
+        .status(200)
+        .json({ status: true, message: 'Requests fetched successfully.', requests });
+    } else {
+      return res.status(400).json({ status: false, message: 'Could not find any request' });
+    }
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ status: false, message: 'Internal server error.' });
+  }
+};
+exports.getNotification = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const data = await Users.find({ deActivate: true }, { _id: 1 });
+    const excludedIds = data.map((doc) => doc._id);
+
+    const response = await notifications.aggregate([
+      {
+        $match: {
+          user_id: mongoose.Types.ObjectId(_id),
+          $nor: [
+            { requested_id: { $in: excludedIds } },
+            { accpeted_id: { $in: excludedIds } },
+            { mentioner_id: { $in: excludedIds } },
+            { replyCommente_liker_id: { $in: excludedIds } },
+            { commente_liker_id: { $in: excludedIds } },
+            { replyCommenter_id: { $in: excludedIds } },
+            { post_commenter_id: { $in: excludedIds } },
+            { post_liker_id: { $in: excludedIds } },
+            { tagged_post_userid: { $in: excludedIds } },
+          ],
+        },
+      },
+      { $sort: { createdAt: -1 } }, // Sort by createdAt in descending order
+    ]);
+
+    if (response.length > 0) {
+      return res.status(200).json({ status: true, message: `Get notification successfully`, response });
+    } else {
+      return res.status(400).json({ status: false, message: 'Could not find any notification' });
+    }
+  } catch (error) {
+    return res.status(500).json({ status: false, message: 'Internal server error.' });
+  }
+};
+exports.getLikesOfPost = async (req, res) => {
+  try {
+    const { post_id } = req.body;
+
+    const data = await Users.find({ deActivate: true }, { _id: 1 });
+    const excludedIds = data.map((doc) => doc._id);
+
+    const response = await likespost.aggregate([
+      {
+        $match: {
+          post_id: mongoose.Types.ObjectId(post_id)
+        },
+      },
+      {
+        $project: {
+          likesofposts: {
+            $filter: {
+              input: "$likesofposts",
+              as: "llikes",
+              cond: {
+                $and: [
+                  { $not: { $in: ["$$llikes._id", excludedIds] } },
+                  { $not: "$$llikes.deActivate" }
+                ]
+              }
+            }
+          },
+        },
+      },
+      {
+        $project: {
+          likesofposts: 1,
+          _id: 0,
+        },
+      },
+    ]);
+    if (response.length > 0) {
+      return res.status(200).json({ Status: true, message: 'Likes fetched successfully', response });
+    } else {
+      return res.status(400).json({ Status: false, message: 'Could not find the post' });
+    }
+  } catch (err) {
+    return res.status(400).json({ Status: 'Error', Error: err });
+  }
+};
+exports.getComment = async (req, res) => {
+  try {
+    const { post_id } = req.body;
+    if (!post_id) {
+      return res.status(400).json({ Status: false, message: 'Please provide all the details' });
+    } else {
+      const comments = await comment.find({ post_id: post_id });
+      const responses = await replycomment.find({ post_id: post_id });
+      const allComments = comments.concat(responses);
+
+      if (allComments.length > 0) {
+        const data = await Users.find({ deActivate: true }, { _id: 1 });
+        const excludedIds = data.map((doc) => doc._id.toString());
+
+        const filteredComments = allComments.filter(comment => !excludedIds.includes(comment.commentdetails._id.toString()));
+        const totalComments = filteredComments.length;
+
+        return res.status(200).json({ Status: true, message: 'All the Comments of Post', totalComments, response: filteredComments });
       } else {
-        return res.status(400).json({ status: false, message: 'Could not find any request' });
+        return res.status(400).json({ Status: false, message: 'Could not find Any Comment For The Post' });
       }
-    } catch (error) {
-      return res.status(500).json({ status: false, message: 'Internal server error.' });
     }
-}  
-exports.getNotification=async(req,res)=>{
-  try{
-    const {_id}=req.params
-    const response =await notifications.find({user_id:_id}).sort({ createdAt: -1 });
-    if(response){
-      return res.status(200).json({status:true ,message: `get notification successfully`,response});
-    }else{
-      return res.status(400).json({ status:false,message: 'Coulnt load notification' });
-    }
-  }catch (error) {
-        
-        return res.status(500).json({status:false, message: 'Internal server error.' });
-      }
-}
-exports.getLikesOfPost=async(req,res)=>{
-    try{
-  const{post_id}=req.body
-  const response=await likespost.findOne({post_id:post_id},{_id:0,likesofposts:1})
-  if(response){
-    return res.status(200).json({Status:true,message:'likes fetched Successfuly',response})
-  }else{
-    return res.status(400).json({Status:false,message:'couldnot find the post'})
+  } catch (err) {
+    return res.status(500).json({ Status: 'Error', Error: err });
   }
-    }catch(err){
-   
-    return res.status(400).json({Status:'Error',Error})
-  }
-}
-exports.getComment=async(req,res)=>{
-  try{
-const {post_id}=req.body
-if (!post_id) {
-  return res.status(400).json({ Status: false, message: 'Please provide all the details' });
-}else{
-  const respons=await comment.find({post_id:post_id})
-  const responses=await replycomment.find({post_id:post_id})
-  const response=respons.concat(responses)
-  if(response){
-    return res.status(200).json({ Status: true, message: 'All the Comments of Post',response });
-  }else{
-    return res.status(400).json({ Status: false, message: 'Couldnot find Any Comment For The Post' });
-  }
-}
-}catch(err){
-   
-    return res.status(400).json({Status:'Error',Error})
-  }
-}
+};
 exports.likePost = async(req, res) => {
   try {
     const { post_id, liker_id } = req.body;
@@ -486,7 +611,8 @@ exports.likePost = async(req, res) => {
                                                             await noti.save()
                                                           }
                                                         await admin.messaging().sendToDevice(token,{notification,data});
-                                              return res.status(200).json({Status:true,message:'liked your post',notification})
+                                                        const result=await likespost.findOne({post_id:post_id})
+                                              return res.status(200).json({Status:true,message:'liked your post',result})
           }else{
             return res.status(200).json({ Status: true, message: 'coudnt Liker added to likesofposts' });
           }
@@ -501,6 +627,7 @@ exports.likePost = async(req, res) => {
           likesofposts: liker
         });
         const response=await data.save();
+        console.log(response)
   
         if(response){
           const count=await likespost.findOne({post_id:post_id})
@@ -529,8 +656,10 @@ exports.likePost = async(req, res) => {
               await noti.save()
             }
           await admin.messaging().sendToDevice(token,{notification,data});
-return res.status(200).json({Status:true,message:'liked your post',notification})
+          const result=await likespost.findOne({post_id:post_id})
+return res.status(200).json({Status:true,message:'liked your post',result})
           }else{
+           
             return res.status(400).json({ Status: false, message: 'Eoror while Liker adding to likesofposts' });
           }
       }else{
@@ -540,75 +669,81 @@ return res.status(200).json({Status:true,message:'liked your post',notification}
     }
     }
   } catch (err) {
-   
+    console.log(err)
     return res.status(400).json({ Status: 'Error', Error });
   }
 }
-exports.addComment=async(req,res)=>{
-  try{
-const {post_id,commenter_id,text}=req.body
-if (!post_id || !commenter_id) {
-  return res.status(400).json({ Status: false, message: 'Please provide all the details' });
-}else{
-  const commenter = await Users.findOne({ _id: commenter_id }, { _id: 1, name: 1, profile_img: 1, token: 1 });
-  const name=commenter.name
-  const profile_img=commenter.profile_img
-  const data=await post.findOne({_id:post_id},{_id:0,user_id:1})
-  const user_id=data.user_id
-  const data1=await Users.findOne({_id:user_id},{_id:0,token:1})
-  const token=data1.token
-    if(commenter){
-    const data=new comment({
-      post_id:post_id,
-      commentdetails:commenter,
-      text:text
-    })
-    const response=await data.save()
-    const comment_id = response._id
-  
-    if(response){
-      const notification = {
-        title: 'Soulipie',
-        body: `${name} Commented On your Post`,
-        icon:profile_img
-      };
-      const data={
-        page_name:'Notification'
-      }
-      
-      if(notification){
-        const noti=new notifications({
-          post_id:post_id,
-          user_id:user_id,
-          comment_id:comment_id,
-          post_commenter_id:commenter_id,
-          comment:notification
-        })
-        await noti.save()
-      }
-    await admin.messaging().sendToDevice(token,{notification,data});
-    
-    const count =Number(await comment.find({ post_id: post_id }).countDocuments());
-    const counts=Number(await replycomment.find({post_id:post_id}).countDocuments())
-    
-    const total=count+counts
-    await post.findOneAndUpdate({_id:post_id},{$set:{totalcomments:total}})
-return res.status(200).json({Status:true,message:'Commented On Your POst',response,notification})
+exports.addComment = async (req, res) => {
+  try {
+    const { post_id, commenter_id, text } = req.body;
 
-    }else{
- return res.status(400).json({ Status: false, message: 'Eoror while Commenting the Data' });
+    if (!post_id || !commenter_id) {
+      return res.status(400).json({ Status: false, message: 'Please provide all the details' });
+    } else {
+      const commenter = await Users.findOne({ _id: commenter_id }, { _id: 1, name: 1, profile_img: 1, token: 1 });
+
+      if (commenter) {
+        const name = commenter.name;
+        const profile_img = commenter.profile_img;
+
+        const postData = await post.findOne({ _id: post_id }, { _id: 0, user_id: 1 });
+        const user_id = postData.user_id;
+
+        const userData = await Users.findOne({ _id: user_id }, { _id: 0, token: 1 });
+        const token = userData.token;
+
+        const newComment = new comment({
+          post_id: post_id,
+          commentdetails: commenter,
+          text: text
+        });
+
+        const response = await newComment.save();
+        const comment_id = response._id;
+
+        if (response) {
+          const notification = {
+            title: 'Soulipie',
+            body: `${name} Commented On your Post`,
+            icon: profile_img
+          };
+          const data = {
+            page_name: 'Notification'
+          };
+
+          if (notification) {
+            const noti = new notifications({
+              post_id: post_id,
+              user_id: user_id,
+              comment_id: comment_id,
+              post_commenter_id: commenter_id,
+              comment: notification
+            });
+            await noti.save();
+          }
+
+          await admin.messaging().sendToDevice(token, { notification, data });
+
+          const count = Number(await comment.find({ post_id: post_id }).countDocuments());
+          const counts = Number(await replycomment.find({ post_id: post_id }).countDocuments());
+
+          const total = count + counts;
+          await post.findOneAndUpdate({ _id: post_id }, { $set: { totalcomments: total } });
+
+          return res.status(200).json({ Status: true, message: 'Commented On Your Post', response, notification });
+        } else {
+          return res.status(400).json({ Status: false, message: 'Error while Commenting the Data' });
+        }
+
+      } else {
+        return res.status(400).json({ Status: false, message: 'No post found' });
+      }
     }
 
-  }else{
-    return res.status(400).json({ Status: false, message: 'nno post found' });
+  } catch (err) {
+    return res.status(400).json({ Status: 'Error', Error: err.message });
   }
-}
-
-}catch(err){
-  
-    return res.status(400).json({Status:'Error',Error})
-}
-}
+};
 exports.addReplyComment=async(req,res)=>{
   try{
 const {post_id,comment_id,commenter_id,text}=req.body
@@ -953,7 +1088,6 @@ else{
    return res.status(500).json({ message: 'Internal server error.' });
  }
 }
-
 exports.sendNotification = async (req, res) => {
   try {
     const { token } = req.body;
@@ -1180,69 +1314,70 @@ exports.rejectRequest=async(req,res)=>{
     return res.status(400).json({status:'Error',message:'somthing went wrong',err})
 }
 }
-exports.loginViaOtp = async (req, res) => {             
-  try{
-      const {mobilenumber,token}=req.body
-      if(!mobilenumber&&!token){
-        return res.status(400).send({Status:false,message:'Please provide Mobile number'})
-  }else{
-    const chek=await Users.findOne({mobilenumber:mobilenumber},{otp:1,profile:1})
-    if(chek!==null){
-    const otp=chek.otp
-    const profile=chek.profile
-    if(profile==='true'&&otp==='true'){
-    const data=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{token:token}})
-    const response=await Users.findOne({mobilenumber:mobilenumber},{_id:1,name:1})
+// exports.loginViaOtp = async (req, res) => {             
+//   try{
+//       const {mobilenumber,token}=req.body
+//       if(!mobilenumber&&!token){
+//         return res.status(400).send({Status:false,message:'Please provide Mobile number'})
+//   }else{
+//     const chek=await Users.findOne({mobilenumber:mobilenumber},{otp:1,profile:1})
+//     if(chek!==null){
+//     const otp=chek.otp
+//     const profile=chek.profile
+//     if(profile==='true'&&otp==='true'){
+//     const data=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{token:token}})
+//     const response=await Users.findOne({mobilenumber:mobilenumber},{_id:1,name:1})
      
-    if(response){
-const _id=response._id
+//     if(response){
+// const _id=response._id
 
-const user_id = mongoose.Types.ObjectId(_id);
-const conne=await users.updateMany(  {"totalrequest._id":user_id},
-  { $set: { "totalrequest.$.token": token } })
+// const user_id = mongoose.Types.ObjectId(_id);
+// const conne=await users.updateMany(  {"totalrequest._id":user_id},
+//   { $set: { "totalrequest.$.token": token } })
 
-const posts = await post.updateMany({
-  "likedpeopledata._id": user_id
-},{$set:{'likedpeopledata.$.token':token}});
-const likeposts=await likespost.updateOne({
-  "likesofposts._id": user_id
-},{$set:{'likesofposts.$.token':token}});
-const commentzsd= await comment.updateMany({
-  "commentdetails._id": user_id
-},{$set:{'commentdetails.token':token}});
+// const posts = await post.updateMany({
+//   "likedpeopledata._id": user_id
+// },{$set:{'likedpeopledata.$.token':token}});
+// const likeposts=await likespost.updateOne({
+//   "likesofposts._id": user_id
+// },{$set:{'likesofposts.$.token':token}});
+// const commentzsd= await comment.updateMany({
+//   "commentdetails._id": user_id
+// },{$set:{'commentdetails.token':token}});
 
-const commentlike= await comment.updateMany({
-  "commentlikerDetails._id": user_id
-},{$set:{'commentlikerDetails.$.token':token}});
+// const commentlike= await comment.updateMany({
+//   "commentlikerDetails._id": user_id
+// },{$set:{'commentlikerDetails.$.token':token}});
 
-const replycomments=await replycomment.updateMany({
-  "commentdetails._id": user_id
-},{ $set: { "commentdetails.token": token} })
+// const replycomments=await replycomment.updateMany({
+//   "commentdetails._id": user_id
+// },{ $set: { "commentdetails.token": token} })
 
-const replycommentslike=await replycomment.updateMany({
-  "commentlikerDetails._id": user_id
-},{$set:{'commentlikerDetails.$.token':token}})
+// const replycommentslike=await replycomment.updateMany({
+//   "commentlikerDetails._id": user_id
+// },{$set:{'commentlikerDetails.$.token':token}})
 
-const connectconnectios=await users.updateMany({
-  "connections._id": user_id
-},{$set:{'connections.$.token':token}})
+// const connectconnectios=await users.updateMany({
+//   "connections._id": user_id
+// },{$set:{'connections.$.token':token}})
 
-      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber',response})
-    }else{
-      return res.status(400).send({Status:false,message:'Number does not exists'})
-    }
-  }else{
-    return res.status(400).send({Status:false,message:'We request you to re-register once more'})
-  }
-}else{
-  return res.status(400).send({Status:false,message:'Number does not exists'})
-}
-}
-}catch(err){
+//       return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber',response})
+//     }else{
+//       return res.status(400).send({Status:false,message:'Number does not exists'})
+//     }
+//   }else{
+//     return res.status(400).send({Status:false,message:'We request you to re-register once more'})
+//   }
+// }else{
+//   return res.status(400).send({Status:false,message:'Number does not exists'})
+// }
+    
+// }
+// }catch(err){
 
-      return res.status(400).send({Status:'Error',message:'somthing went wrong'})
-     }                    
-}
+//       return res.status(400).send({Status:'Error',message:'somthing went wrong'})
+//      }                    
+// }
 exports.Message = async (req, res) => {
   try {
     const sender_id = req.body.sender_id;
@@ -1494,7 +1629,6 @@ exports.video=async(req,res,next)=>{
       res.send({ErrorMessage:"Somthing Error",err})
   }
 }
-
 exports.audio=async(req,res,next)=>{
   try{
      
@@ -1577,4 +1711,238 @@ exports.audio=async(req,res,next)=>{
   catch(err){
       res.send({ErrorMessage:"Somthing Error",err})
   }
+}
+exports.registration = async (req, res) => {
+  try{ 
+   const {mobilenumber,token,email}=req.body
+   if(!mobilenumber&&!email){
+    return res.status(400).send({Status:false,message:'Please provide Mobile number'})
+   }else if(mobilenumber&&!email){
+    const istherearenot=await Users.findOne({mobilenumber:mobilenumber})
+    
+  if(istherearenot){
+    const otp=istherearenot.otp
+    const profile=istherearenot.profile
+    const response=istherearenot
+    if(otp==='true'&&profile==='true'){
+      return res.status(400).send({Status:false,message:'You have already registerd with the Soulipie'})
+    }else if (otp==='true'&&profile==='false'){
+      return res.status(400).send({Status:false,message:'OTP verified',response})
+    }else if(otp==='false'&&profile==='false'){
+      return res.status(200).send({Status:true,message:'Otp sent on mobile Successfully'})
+    }
+   }else{
+    const user=new Users({
+      mobilenumber:mobilenumber,
+      token:token
+    })
+    await user.save()
+    if(user){
+      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber'})
+    }else{
+      return res.status(400).send({Status:false,message:'something error'})
+    }
+}
+  }else{
+    const istherearenot=await Users.findOne({email:email})
+  if(istherearenot){
+    const otp=istherearenot.otp
+    const profile=istherearenot.profile
+    const response=istherearenot
+    if(otp==='true'&&profile==='true'){
+      return res.status(400).send({Status:false,message:'You have already registerd with the Soulipie'})
+    }else if (otp==='true'&&profile==='false'){
+      return res.status(400).send({Status:false,message:'OTP verified',response})
+    }else if(otp==='false'&&profile==='false'){
+      return res.status(200).send({Status:true,message:'Otp sent on mobile Successfully'})
+    }
+   }else{
+    const user=new Users({
+      email:email,
+      token:token
+    })
+    await user.save()
+    if(user){
+      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your email'})
+    }else{
+      return res.status(400).send({Status:false,message:'something error'})
+    }
+}
+  }
+} 
+catch(err){
+       console.log(err)
+      return res.status(400).send({Status:'Error',message:'somthing went wrong'})
+     }                    
+} 
+exports.otpVerify = async (req, res) => {
+  try{
+      const {mobilenumber,email} = req.body
+       if(mobilenumber){
+          const response=await Users.findOne({mobilenumber:mobilenumber})
+          const otp=response.otp
+          if(response.deActivate===false){
+          if(otp==='false'&&response.profile==='false'){
+            const result=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{otp:'true'}},{new:true})
+          if(result){
+            const response=await Users.findOne({mobilenumber:mobilenumber})
+            return res.status(200).send({Status:true,message:'otp Verified Successfully',response})
+          }else{
+            return res.status(400).send({Status:false,message:'somthing went wrong'})
+          }
+          
+          }else{
+                      const response=await Users.findOne({mobilenumber:mobilenumber})
+                      return res.status(400).send({Status:'false',message:'otp verified already',response})
+          }
+        }else{
+          const response=await Users.findOne({mobilenumber:mobilenumber})
+          return res.status(400).send({Status:'false',message:'your account has been deactivated please activate to continue',response})
+         }
+  }
+  else if (email){
+    const response=await Users.findOne({email:email})
+    const otp=response.otp
+    if(response.deActivate===false){
+    if(otp==='false'&&response.profile==='false'){
+      const result=await Users.findOneAndUpdate({email:email},{$set:{otp:'true'}},{new:true})
+    if(result){
+      const response=await Users.findOne({email:email})
+      return res.status(200).send({Status:true,message:'otp Verified Successfully',response})
+    }else{
+      return res.status(400).send({Status:false,message:'somthing went wrong'})
+    }
+    }else{
+                const response=await Users.findOne({email:email})
+                return res.status(400).send({Status:'false',message:'otp verified already',response})
+    }
+  }else{
+    const response=await Users.findOne({email:email})
+    return res.status(400).send({Status:'false',message:'your account has been deactivated please activate to continue',response})
+   }
+  }
+  else{
+    return res.status(400).send({Status:'false',message:'please provide mobilenumber'})
+  }   
+  }catch(err){
+     
+      return res.status(400).send({Status:'false',message:'somthing went wrong'})
+             }
+}
+
+exports.loginViaOtp = async (req, res) => {             
+  try{
+      const {mobilenumber,token,email}=req.body
+      if(!mobilenumber&&!token&&!email){
+        return res.status(400).send({Status:false,message:'Please provide Mobile number or email'})
+  }else if(mobilenumber&&!email){
+    const chek=await Users.findOne({mobilenumber:mobilenumber},{otp:1,profile:1})
+    if(chek!==null){
+    const otp=chek.otp
+    const profile=chek.profile
+    if(profile==='true'&&otp==='true'){
+    const data=await Users.findOneAndUpdate({mobilenumber:mobilenumber},{$set:{token:token}})
+    const response=await Users.findOne({mobilenumber:mobilenumber},{_id:1,name:1})
+     
+    if(response){
+const _id=response._id
+
+const user_id = mongoose.Types.ObjectId(_id);
+const conne=await users.updateMany(  {"totalrequest._id":user_id},
+  { $set: { "totalrequest.$.token": token } })
+
+const posts = await post.updateMany({
+  "likedpeopledata._id": user_id
+},{$set:{'likedpeopledata.$.token':token}});
+const likeposts=await likespost.updateOne({
+  "likesofposts._id": user_id
+},{$set:{'likesofposts.$.token':token}});
+const commentzsd= await comment.updateMany({
+  "commentdetails._id": user_id
+},{$set:{'commentdetails.token':token}});
+
+const commentlike= await comment.updateMany({
+  "commentlikerDetails._id": user_id
+},{$set:{'commentlikerDetails.$.token':token}});
+
+const replycomments=await replycomment.updateMany({
+  "commentdetails._id": user_id
+},{ $set: { "commentdetails.token": token} })
+
+const replycommentslike=await replycomment.updateMany({
+  "commentlikerDetails._id": user_id
+},{$set:{'commentlikerDetails.$.token':token}})
+
+const connectconnectios=await users.updateMany({
+  "connections._id": user_id
+},{$set:{'connections.$.token':token}})
+
+      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your Mobilenumber',response})
+    }else{
+      return res.status(400).send({Status:false,message:'Number does not exists'})
+    }
+  }else{
+    return res.status(400).send({Status:false,message:'We request you to re-register once more'})
+  }
+}else{
+  return res.status(400).send({Status:false,message:'Number does not exists'})
+}
+    
+}else{
+    const chek=await Users.findOne({email:email},{otp:1,profile:1})
+    if(chek!==null){
+    const otp=chek.otp
+    const profile=chek.profile
+    if(profile==='true'&&otp==='true'){
+    const data=await Users.findOneAndUpdate({email:email},{$set:{token:token}})
+    const response=await Users.findOne({email:email},{_id:1,name:1})
+     
+    if(response){
+const _id=response._id
+
+const user_id = mongoose.Types.ObjectId(_id);
+const conne=await users.updateMany(  {"totalrequest._id":user_id},
+  { $set: { "totalrequest.$.token": token } })
+
+const posts = await post.updateMany({
+  "likedpeopledata._id": user_id
+},{$set:{'likedpeopledata.$.token':token}});
+const likeposts=await likespost.updateOne({
+  "likesofposts._id": user_id
+},{$set:{'likesofposts.$.token':token}});
+const commentzsd= await comment.updateMany({
+  "commentdetails._id": user_id
+},{$set:{'commentdetails.token':token}});
+
+const commentlike= await comment.updateMany({
+  "commentlikerDetails._id": user_id
+},{$set:{'commentlikerDetails.$.token':token}});
+
+const replycomments=await replycomment.updateMany({
+  "commentdetails._id": user_id
+},{ $set: { "commentdetails.token": token} })
+
+const replycommentslike=await replycomment.updateMany({
+  "commentlikerDetails._id": user_id
+},{$set:{'commentlikerDetails.$.token':token}})
+
+const connectconnectios=await users.updateMany({
+  "connections._id": user_id
+},{$set:{'connections.$.token':token}})
+
+      return res.status(200).send({Status:true,message:'otp Sent Successfully to Your email',response})
+    }else{
+      return res.status(400).send({Status:false,message:'Number does not exists'})
+    }
+  }else{
+    return res.status(400).send({Status:false,message:'We request you to re-register once more'})
+  }
+}else{
+  return res.status(400).send({Status:false,message:'Number does not exists'})
+}
+}
+}catch(err){
+console.log(err)
+      return res.status(400).send({Status:'Error',message:'somthing went wrong'})
+     }                    
 }

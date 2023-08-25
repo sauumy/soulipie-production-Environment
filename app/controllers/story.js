@@ -76,12 +76,15 @@ exports.getstory = async (req, res) => {
   try {
     const { sender_id } = req.body;
     const stories = await story.find({ sender_id: sender_id });
+    const data = await usermaster.find({ deActivate: true }, { _id: 1 });
+    const excludedIds = data.map((doc) => doc._id.toString());
 
     const viewerDetailsPromises = stories.map(async (story) => {
       const viewerIds = story.viewers;
+
       const viewerDetails = await usermaster.find(
-        { _id: { $in: viewerIds } },
-        { _id: 1, profile_img: 1, name: 1 }
+        { _id: { $in: viewerIds, $nin: excludedIds } }, // Exclude deactivated IDs
+        { _id: 1, profile_img: 1, name: 1, deactivated: 1 }
       );
 
       const senderDetails = await usermaster.findOne(
@@ -92,24 +95,23 @@ exports.getstory = async (req, res) => {
       return {
         ...story.toObject(),
         viewerDetails: viewerDetails.map((detail) => detail.toObject()),
-        senderName: senderDetails.name
+        senderName: senderDetails.name,
+        viewers: viewerDetails.map(viewer => viewer._id.toString()), // Update the viewers array
+        totalViewers: viewerDetails.length // Update totalViewers count
       };
     });
 
     const storiesWithViewerDetails = await Promise.all(viewerDetailsPromises);
 
-    res
-      .status(200)
-      .send({
-        Status: true,
-        message: "Story fetched successfully",
-        user: storiesWithViewerDetails
-      });
+    res.status(200).send({
+      Status: true,
+      message: "Story fetched successfully",
+      user: storiesWithViewerDetails
+    });
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
-}
-
+};
 exports.deleteStory=async(req,res)=>{
     try{
         const {_id}=req.body
@@ -197,10 +199,13 @@ exports.updateViewers = async (req, res) => {
 
       if (status) {
         if (!seenuser_id.includes(user_id)) {
+          const seenUserIdsAsObjectIds = seenuser_id.map((id) =>
+          mongoose.Types.ObjectId(id)
+        );
           const response = await story.findOneAndUpdate(
             { _id: _id },
             {
-              $push: { viewers: { $each: seenuser_id } }
+              $push: { viewers: { $each: seenUserIdsAsObjectIds } }
             }
           );
           const ids = response.viewers;
@@ -265,8 +270,7 @@ exports.updateViewers = async (req, res) => {
    
     res.status(404).json({ message: error.message });
   }
-};
-
+}
 
 exports.getAllStory = async (req, res) => {
   try {
@@ -338,11 +342,12 @@ exports.getAllStory = async (req, res) => {
   }
 };
 
-// exports.getAllStory1 = async (req, res) => {
-//   try {
-//     const { user_id } = req.body;
-//     const user_ids = mongoose.Types.ObjectId(user_id);
 
+// exports.getAllStorys = async (req, res) => {
+//   try {
+//     const { user_id,offset } = req.body;
+//     const user_ids = mongoose.Types.ObjectId(user_id);
+// const limit=5
 //     const seeinconnections = await connectSchema.find(
 //       { 'connections._id': user_ids },
 //       { _id: 0, user_id: 1 }
@@ -360,9 +365,9 @@ exports.getAllStory = async (req, res) => {
 
 //     const blockedIds = blockedBy.map(user => user._id);
 
+    
 
-
-//     const storiesWithSenderName = await story.find({ sender_id: { $in: user_idss } })
+//     const storiesWithSenderName = await story.find({ sender_id: { $in: user_idss, $nin: blockedIds } })
 //       .populate('sender_id', 'name')
 //       .select({
 //         _id: 1,
@@ -372,11 +377,12 @@ exports.getAllStory = async (req, res) => {
 //         video: 1,
 //         totalViewers: 1,
 //         deleteTime: 1,
-//         createdAt: 1
+//         createdAt: 1,
+//         duration:1
 //       })
 //       .exec();
 
-//     const privateStoriesWithSenderName = await story.find({ sender_id: { $in: isPrivatetrue } })
+//     const privateStoriesWithSenderName = await story.find({ sender_id: { $in: isPrivatetrue, $nin: blockedIds } })
 //       .populate('sender_id', 'name')
 //       .select({
 //         _id: 1,
@@ -386,7 +392,8 @@ exports.getAllStory = async (req, res) => {
 //         video: 1,
 //         totalViewers: 1,
 //         deleteTime: 1,
-//         createdAt: 1
+//         createdAt: 1,
+//         duration:1
 //       })
 //       .exec();
 
@@ -422,8 +429,12 @@ exports.getAllStory = async (req, res) => {
 //     });
 
 //     const filteredUsers = updatedUsers.filter((user) => user.sender_id !== user_id);
+//     const startIndex = offset || 0;
+//               const endIndex = startIndex + (limit || filteredUsers.length); // If limit is not provided, return all remaining posts
+          
+//               const paginatedUsersWithPosts = filteredUsers.slice(startIndex, endIndex);
 
-//     res.status(200).json({ status: true, message: 'story fetched successfully', users: filteredUsers });
+//     res.status(200).json({ status: true, message: 'story fetched successfully', users: paginatedUsersWithPosts });
 //   } catch (error) {
 //     res.status(404).json({ message: error.message });
 //   }
@@ -431,29 +442,29 @@ exports.getAllStory = async (req, res) => {
 
 exports.getAllStory1 = async (req, res) => {
   try {
-    const { user_id } = req.body;
+    const { user_id, offset } = req.body;
     const user_ids = mongoose.Types.ObjectId(user_id);
+    const limit = 5;
 
-    const seeinconnections = await connectSchema.find(
-      { 'connections._id': user_ids },
-      { _id: 0, user_id: 1 }
-    )
-    const user_ids_array = seeinconnections.map(connection => connection.user_id);
+    // Fetch the _ids of the documents with deActivate=true
+    const data = await usermaster.find({ deActivate: true }, { _id: 1 });
+    const deactivatedUserIds = data.map((doc) => doc._id);
 
-    const userss = await usermaster.find({ _id: { $in: user_ids_array }, connected: true }, { _id: 1 });
-    const user_idss = userss.map(user => user._id);
+    const seeinconnections = await connectSchema.find({ 'connections._id': user_ids }, { _id: 0, user_id: 1 });
+    const user_ids_array = seeinconnections.map((connection) => connection.user_id);
 
-    const data = await usermaster.find({ public: true }, { _id: 1 });
-    const isPrivatetrue = data.map(user => user._id);
+    const userss = await usermaster.find({ _id: { $in: user_ids_array }, connected: true,deActivate:false }, { _id: 1 });
+    const user_idss = userss.map((user) => user._id);
+
+    const datas= await usermaster.find({ public: true }, { _id: 1 });
+    const isPrivatetrue = datas.map((user) => user._id);
     const ids = user_id.toString();
 
-    const blockedBy = await usermaster.find({ 'blockContact': ids }, { _id: 1 });
+    const blockedBy = await usermaster.find({ blockContact: ids }, { _id: 1 });
+    const blockedIds = blockedBy.map((user) => user._id);
 
-    const blockedIds = blockedBy.map(user => user._id);
-
-    
-
-    const storiesWithSenderName = await story.find({ sender_id: { $in: user_idss, $nin: blockedIds } })
+    const storiesWithSenderName = await story
+      .find({ sender_id: { $in: user_idss, $nin: blockedIds, $nin: deactivatedUserIds } })
       .populate('sender_id', 'name')
       .select({
         _id: 1,
@@ -464,11 +475,12 @@ exports.getAllStory1 = async (req, res) => {
         totalViewers: 1,
         deleteTime: 1,
         createdAt: 1,
-        duration:1
+        duration: 1,
       })
       .exec();
 
-    const privateStoriesWithSenderName = await story.find({ sender_id: { $in: isPrivatetrue, $nin: blockedIds } })
+    const privateStoriesWithSenderName = await story
+      .find({ sender_id: { $in: isPrivatetrue, $nin: blockedIds, $nin: deactivatedUserIds } })
       .populate('sender_id', 'name')
       .select({
         _id: 1,
@@ -479,7 +491,7 @@ exports.getAllStory1 = async (req, res) => {
         totalViewers: 1,
         deleteTime: 1,
         createdAt: 1,
-        duration:1
+        duration: 1,
       })
       .exec();
 
@@ -504,7 +516,7 @@ exports.getAllStory1 = async (req, res) => {
       return {
         sender_id: senderId,
         name: user.name,
-        stories: groupedStories[senderId] || []
+        stories: groupedStories[senderId] || [],
       };
     });
 
@@ -515,18 +527,13 @@ exports.getAllStory1 = async (req, res) => {
     });
 
     const filteredUsers = updatedUsers.filter((user) => user.sender_id !== user_id);
+    const startIndex = offset || 0;
+    const endIndex = startIndex + (limit || filteredUsers.length); // If limit is not provided, return all remaining posts
+    const paginatedUsersWithPosts = filteredUsers.slice(startIndex, endIndex);
 
-    res.status(200).json({ status: true, message: 'story fetched successfully', users: filteredUsers });
+    res.status(200).json({ status: true, message: 'Story fetched successfully', users: paginatedUsersWithPosts });
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
 };
-
-
-
-
-
-
-
-
 

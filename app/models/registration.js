@@ -98,7 +98,13 @@ const userSchema = new Schema({
         connected:{
             type:Boolean,
             default:false
-           
+             },
+            deActivate:{
+                type:Boolean,
+                default:false  
+            },
+            deActivateTime:{
+                type:Date
             }
 },{ timestamps: true });
 
