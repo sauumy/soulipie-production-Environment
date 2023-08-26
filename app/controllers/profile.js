@@ -1063,7 +1063,7 @@ console.log(deactivatedIds)
               
               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
 
-              const result=await exploreModel.find({user_id:_id,rejected:false,'matchedprofiles._id':{$nin:deactivatedIds},'matchedprofiles.explore':{ $ne: null }},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
+              const result=await exploreModel.find({user_id:_id,rejected:false,'matchedprofiles._id':{$nin:deactivatedIds},'matchedprofiles.explore':{ $ne:  [] }},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
               const startIndex = offset || 0;
               const endIndex = startIndex + (limit || result.length); // If limit is not provided, return all remaining posts
           
@@ -1074,7 +1074,7 @@ console.log(deactivatedIds)
             const allToUserIds = [...toUserIds, ...toUserId];
               
               await exploreModel.updateMany({user_id:_id,'matchedprofiles._id':{$nin:allToUserIds}},{$set:{connected:false,requested:false}})
-            const result=await exploreModel.find({user_id:_id,rejected:false,'matchedprofiles._id':{$nin:deactivatedIds},'matchedprofiles.explore':{ $ne: null }},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
+            const result=await exploreModel.find({user_id:_id,rejected:false,'matchedprofiles._id':{$nin:deactivatedIds},'matchedprofiles.explore':{ $ne:  [] }},{_id:0,matchedprofiles:1,requested:1,connected:1}).sort({ createdAt: -1 })
             const startIndex = offset || 0;
               const endIndex = startIndex + (limit || result.length); // If limit is not provided, return all remaining posts
           
