@@ -791,7 +791,7 @@ exports.updateProfile=async(req,res)=>{
            },{$set:{'likedpeopledata.$.profile_img':profile_img,'likedpeopledata.$.name':name}});
           
        const result = await usermaster.findOne({_id:_id})
-       const likeposts=await likepost.updateOne({
+       const likeposts=await likepost.updateMany({
         "likesofposts._id": user_id
       },{$set:{'likesofposts.$.profile_img':profile_img,'likedpeopledata.$.name':name}});
 
