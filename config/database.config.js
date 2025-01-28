@@ -18,12 +18,15 @@
 //    url:'mongodb://soulipie:123456@13.126.130.241:27017/Souliepie'
 // }
 
-const username = "Soulipie&*$%089";
-const pwd = "Soulipie$%9799&";
-const encodedUsername = encodeURIComponent(username);
-const encodedPwd = encodeURIComponent(pwd);
-const dbUrl = `mongodb://${encodedUsername}:${encodedPwd}@65.1.211.125:27017/Souliepie`;
+// const username = "Soulipie&*$%089";
+// const pwd = "Soulipie$%9799&";
+// const encodedUsername = encodeURIComponent(username);
+// const encodedPwd = encodeURIComponent(pwd);
+// const dbUrl = `mongodb://${encodedUsername}:${encodedPwd}@65.1.211.125:27017/Souliepie`;
 
-module.exports = {
-   url: dbUrl
+// module.exports = {
+//    url: dbUrl
+// }
+module.exports={
+   url:"mongodb://127.0.0.1:27017/Souliepie"
 }
